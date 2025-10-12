@@ -47,8 +47,8 @@ FROM runtime as dev
 WORKDIR /usr/src/app
 CMD sh -c "cd packages/datasource && \
   bun x drizzle-kit migrate && \
-  cd - && \
-  bun x pm2-runtime start servers/ecosystem.config.js"
+  cd ../../servers && \
+  bun x pm2-runtime start ecosystem.config.js"
 
 FROM runtime as trpc 
 WORKDIR /usr/src/app/servers/trpc
