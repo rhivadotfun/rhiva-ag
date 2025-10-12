@@ -11,7 +11,7 @@ const t = initTRPC.context<Context>().create({
 export const router = t.router;
 export const publicProcedure = t.procedure.use(
   t.middleware(async ({ path, input, ctx, next }) => {
-    console.log(input);
+    if (process.env.NODE_ENV === "production") return next();
     const cacheKey = format("trpc:%s:%s", path, JSON.stringify(input));
     const cacheData = await ctx.redis.get(cacheKey);
     if (cacheData)
