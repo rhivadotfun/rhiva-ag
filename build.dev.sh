@@ -17,8 +17,6 @@ networks:
     driver: bridge
   redis:
     external: true
-  postgres:
-    external: true
 EOF
 
 git pull
