@@ -5,7 +5,7 @@ FROM oven/bun:latest as base
 ENV NODE_ENV="production"
 
 RUN apt-get update \
-    && apt-get install curl unzip bash ca-certificates 
+    && apt-get install -y curl unzip bash ca-certificates 
 
 ENV PATH="/root/.bun/bin:$PATH"
 
