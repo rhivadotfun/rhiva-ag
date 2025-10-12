@@ -19,6 +19,7 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
+    "@coingecko/coingecko-typescript": "^2.2.0",
     "@rhiva-ag/env": "*",
     "@types/pg": "^8.15.5",
     "drizzle-orm": "^0.44.5",
