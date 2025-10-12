@@ -1,13 +1,10 @@
 import type Redis from "ioredis";
 import { Secret } from "@rhiva-ag/shared";
-import { DexApi } from "@rhiva-ag/dex-api";
 import { Client } from "@solana-tracker/data-api";
 import Coingecko from "@coingecko/coingecko-typescript";
 import { createDB, createRedis } from "@rhiva-ag/datasource";
 
 import { getEnv } from "./env";
-
-export const dexApi = new DexApi();
 
 export const secret = new Secret(getEnv("SECRET_KEY"), {
   ivLength: 12,
