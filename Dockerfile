@@ -44,11 +44,10 @@ ENV HOST="0.0.0.0"
 ENV NODE_ENV=production
 
 FROM runtime as dev
-WORKDIR /usr/src/app/servers
 CMD sh -c "cd packages/datasource && \
   bun x drizzle-kit migrate && \
   cd - && \
-  bun x pm2-runtime start ecosystem.config.js"
+  bun x pm2-runtime start servers/ecosystem.config.js"
 
 FROM runtime as trpc 
 WORKDIR /usr/src/app/servers/trpc
