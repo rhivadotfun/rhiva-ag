@@ -52,8 +52,8 @@ export const userRoute = router({
       .innerJoin(settings, eq(settings.user, users.id))
       .innerJoin(wallets, eq(wallets.user, users.id));
 
-    if(user)return user;
-    
+    if (user) return user;
+
     throw new TRPCError({ code: "NOT_FOUND", message: "user not found" });
   }),
 });

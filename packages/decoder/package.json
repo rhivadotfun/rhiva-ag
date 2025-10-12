@@ -26,6 +26,6 @@
     "@solana/spl-token": "^0.4.14"
   },
   "devDependencies": {
-        "@tsconfig/bun": "^1.0.9" 
+    "@tsconfig/bun": "^1.0.9"
   }
 }
