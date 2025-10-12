@@ -16,7 +16,7 @@
   },
   "scripts": {
     "check": "tsc --noEmit",
-    "build:browser": "bun run build.ts",
+    "build:browser": "bun run packages/dex-api/build.ts",
     "codegen": "bun x @rhiva-ag/env",
     "postinstall": "bun run build:browser"
   },
