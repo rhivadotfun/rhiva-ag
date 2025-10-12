@@ -10,7 +10,6 @@ services:
     networks:
       - webnet
       - redis
-      - postgres
     env_file: .env
 networks:
   webnet:
