@@ -1,12 +1,11 @@
 # syntax = docker/dockerfile:1.2
 
-FROM node:lts-alpine AS base
+FROM oven/bun:1 as base
 
 ENV NODE_ENV="production"
 
 RUN apk update -qq \
-    && apk add --no-cache curl unzip bash ca-certificates \
-    && curl -fsSL https://bun.sh/install | bash
+    && apk add --no-cache curl unzip bash ca-certificates 
 
 ENV PATH="/root/.bun/bin:$PATH"
 
