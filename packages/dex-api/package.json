@@ -15,10 +15,7 @@
     }
   },
   "scripts": {
-    "check": "tsc --noEmit",
-    "build:browser": "ls -a && bun run ./build.ts",
-    "codegen": "bun x @rhiva-ag/env",
-    "postinstall": "bun run build:browser"
+    "check": "tsc --noEmit"
   },
   "dependencies": {
     "@rhiva-ag/shared": "*",
