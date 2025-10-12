@@ -13,3 +13,9 @@ export const positionFilterSchema = z.object({
 export const positionSortSchema = orderByOperator(
   z.enum(["createdAt", "amountUsd"]),
 );
+
+const meteoraPositionInsertSchema = z.object({
+  dex: z.literal("meteora"),
+});
+
+export const positionInsertSchema = z.union([]);
