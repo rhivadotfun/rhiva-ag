@@ -43,12 +43,12 @@ COPY --from=builder /usr/src/app/ .
 ENV HOST="0.0.0.0"
 ENV NODE_ENV=production
 
-RUN cd packages/datasource && \
-    bun x drizzle-kit migrate
-
 FROM runtime as dev
 WORKDIR /usr/src/app/servers
-CMD ["bun", "x", "pm2-runtime", "start", "ecosystem.config.js"]
+CMD sh -c "cd packages/datasource && \
+  bun x drizzle-kit migrate && \
+  cd - && \
+  bun x pm2-runtime start ecosystem.config.js"
 
 FROM runtime as trpc 
 WORKDIR /usr/src/app/servers/trpc
