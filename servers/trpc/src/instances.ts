@@ -5,7 +5,7 @@ import { Client } from "@solana-tracker/data-api";
 import Coingecko from "@coingecko/coingecko-typescript";
 import { createDB, createRedis } from "@rhiva-ag/datasource";
 
-import { getEnv } from "./env" with { type: "macro" };
+import { getEnv } from "./env";
 
 export const dexApi = new DexApi();
 
