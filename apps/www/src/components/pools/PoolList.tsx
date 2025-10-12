@@ -23,7 +23,7 @@ export default function PoolList({ pools }: PoolListProps) {
         {pools.map((pool) => (
           <Link
             key={pool.address}
-            href={format("/pools/%s/", pool.address)}
+            href={format("/pools/%s/%s/", pool.dex.id, pool.address)}
             className="flex flex-col space-y-4 bg-dark-secondary p-4  border border-white/10 rounded-xl xl:min-w-72"
           >
             <div className="flex items-center">

@@ -1,0 +1,21 @@
+{
+  "name": "@rhiva-ag/cron",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "check": "tsc --noEmit",
+    "codegen": "bun x @rhiva-ag/env",
+    "dev": "bun run --watch src/index.ts"
+  },
+  "dependencies": {
+    "@coingecko/coingecko-typescript": "^2.2.0",
+    "@rhiva-ag/dex-api": "*",
+    "@rhiva-ag/env": "*",
+    "@rhiva-ag/shared": "*"
+  },
+  "devDependencies": {
+    "@tsconfig/bun": "^1.0.9",
+    "@types/bun": "^1.3.0"
+  }
+}

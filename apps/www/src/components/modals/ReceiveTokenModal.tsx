@@ -30,28 +30,30 @@ function ReceiveTokenForm(props: React.ComponentProps<"div">) {
   const { user } = useAuth();
 
   return (
-    <div
-      {...props}
-      className={clsx("flex flex-col  space-y-8", props.className)}
-    >
-      <div className="relative flex flex-col justify-center">
-        <QRCodeSVG
-          value={user.wallet.id}
-          className="w-full h-full border border-white/10 p-4 rounded-xl"
-        />
+    user && (
+      <div
+        {...props}
+        className={clsx("flex flex-col  space-y-8", props.className)}
+      >
+        <div className="relative flex flex-col justify-center">
+          <QRCodeSVG
+            value={user.wallet.id}
+            className="w-full h-full border border-white/10 p-4 rounded-xl"
+          />
+        </div>
+        <div className="flex flex-col space-y-2">
+          <p className="text-xs text-gray">
+            Only send Solana Network tokens (SPL) to this address
+          </p>
+          <button
+            type="submit"
+            className="bg-primary text-black p-3 rounded-md"
+          >
+            Copy address
+          </button>
+        </div>
       </div>
-      <div className="flex flex-col space-y-2">
-        <p className="text-xs text-gray">
-          Only send Solana Network tokens (SPL) to this address
-        </p>
-        <button
-          type="submit"
-          className="bg-primary text-black p-3 rounded-md"
-        >
-          Copy address
-        </button>
-      </div>
-    </div>
+    )
   );
 }
 

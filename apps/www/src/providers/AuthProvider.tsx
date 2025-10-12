@@ -1,9 +1,7 @@
 import { getTokens } from "@civic/auth/nextjs";
 
 import { getTRPCClient } from "@/trpc.server";
-import AuthProviderClient, {
-  type AuthContextArgs,
-} from "./AuthProvider.client";
+import AuthProviderClient from "./AuthProvider.client";
 
 export default async function AuthProvider({
   children,
@@ -14,11 +12,7 @@ export default async function AuthProvider({
 
   return (
     <AuthProviderClient
-      user={
-        { ...user, accessToken: token?.accessToken } as NonNullable<
-          AuthContextArgs["user"]
-        >
-      }
+      user={user ? { ...user, accessToken: token?.accessToken } : undefined}
     >
       {children}
     </AuthProviderClient>

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "next start",
-    "typecheck": "tsc --noEmit",
+    "check": "tsc --noEmit",
     "lint": "biome format --write && biome check",
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",

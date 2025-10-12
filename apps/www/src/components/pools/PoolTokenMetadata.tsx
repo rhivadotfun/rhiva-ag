@@ -33,23 +33,25 @@ export default function PoolTokenMetadata({
       className={clsx("flex items-center space-x-8", props.className)}
     >
       <div className="flex items-center space-x-2 lt-sm:flex-1">
-        <div className="flex w-12 relative">
+        <div className="flex w-12 relative lt-sm:w-10">
           <Image
             src={image.base.src}
             width={32}
             height={32}
             alt={image.base.alt}
-            className="rounded-full"
+            className="rounded-full lt-sm:size-6"
           />
           <Image
             src={image.quote.src}
             width={32}
             height={32}
             alt={image.quote.alt}
-            className="absolute right-0 rounded-full"
+            className="absolute right-0 rounded-full lt-sm:size-6"
           />
         </div>
-        <h1 className="text-lg sm:text-xl font-bold">{name}</h1>
+        <h1 className="text-base font-medium sm:text-xl sm:font-bold">
+          {name}
+        </h1>
         <button
           type="button"
           className="text-gray"
@@ -58,8 +60,8 @@ export default function PoolTokenMetadata({
         </button>
         <IcDex
           dex={dex}
-          width={24}
-          height={24}
+          width={16}
+          height={16}
         />
       </div>
       <button
