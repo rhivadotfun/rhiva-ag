@@ -1,11 +1,11 @@
 # syntax = docker/dockerfile:1.2
 
-FROM oven/bun:1 as base
+FROM oven/bun:latest as base
 
 ENV NODE_ENV="production"
 
-RUN apk update -qq \
-    && apk add --no-cache curl unzip bash ca-certificates 
+RUN apt-get update -qq \
+    && apt-get install --no-cache curl unzip bash ca-certificates 
 
 ENV PATH="/root/.bun/bin:$PATH"
 
