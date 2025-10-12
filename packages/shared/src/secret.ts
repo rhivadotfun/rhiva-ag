@@ -18,7 +18,11 @@ export class Secret {
   readonly encrypt = <T>(data: T) => {
     const iv = crypto.randomBytes(this.options.ivLength);
 
-    const cipher = crypto.createCipheriv(this.options.algorithm, this.key, new Uint8Array(iv));
+    const cipher = crypto.createCipheriv(
+      this.options.algorithm,
+      this.key,
+      new Uint8Array(iv),
+    );
     const plaintext = Buffer.from(JSON.stringify(data), "utf8");
 
     const ciphertext = Buffer.concat([
