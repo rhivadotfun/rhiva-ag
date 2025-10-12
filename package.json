@@ -27,7 +27,5 @@
     "packages/*",
     "servers/*",
     "apps/*"
-  ],
-  "module": "index.ts",
-  "type": "module"
+  ]
 }

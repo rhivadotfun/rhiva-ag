@@ -1,1 +1,3 @@
-export default function PointPage() {}
+export default function PointPage() {
+  return null;
+}

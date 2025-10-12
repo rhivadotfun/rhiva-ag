@@ -28,6 +28,7 @@ server.register(fastifyCors, {
     /^http?:\/\/localhost(:\d+)?$/,
     /^http?:\/\/127\.0\.0\.1(:\d+)?$/,
     /^https?:\/\/([a-z0-9-]+\.)*rhiva\.fun$/,
+    /^https?:\/\/([a-z0-9-]+\.)*oasis-mystre\.workers\.dev$/,
   ],
 });
 server.register(fastifyRateLimit, { redis });

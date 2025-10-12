@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
-import { createCivicAuthPlugin } from "@civic/auth-web3/nextjs";
+import { createCivicAuthPlugin } from "@civic/auth/nextjs";
 
 const nextConfig: NextConfig = {
   images: {
@@ -12,7 +12,6 @@ const nextConfig: NextConfig = {
 };
 
 const withCivicAuth = createCivicAuthPlugin({
-  enableSolanaWalletAdapter: true,
   clientId: process.env.NEXT_CIVIC_CLIENT_ID!,
 });
 
