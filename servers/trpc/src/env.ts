@@ -5,6 +5,7 @@ import { format } from "util";
 type Env =
   | "PORT"
   | "HOST"
+  | "REDIS_MASTER_NAME"
   | "REDIS_MAX_SENTINELS"
   | "REDIS_SENTINEL_PORT"
   | "REDIS_URL"
@@ -13,7 +14,12 @@ type Env =
   | "COINGECKO_API_KEY"
   | "CIVIC_CLIENT_ID"
   | "SOLANA_TRACKER_API_KEY"
-  | "SECRET_KEY";
+  | "SECRET_KEY"
+  | "ORCA_API_URL"
+  | "JUPITER_API_URL"
+  | "METEORA_API_URL"
+  | "RAYDIUM_API_URL"
+  | "SAROS_API_URL";
 
 export const getEnv = <T>(name: Env, refine?: <K>(value: K) => T): T => {
   const value = process.env[format("APP_%s", name)] || process.env[name];

@@ -25,6 +25,7 @@ let redis: Redis;
 
 if (process.env.NODE_ENV === "production")
   redis = createRedis({
+    name: getEnv("REDIS_MASTER_NAME"),
     max: getEnv("REDIS_MAX_SENTINELS", Number),
     port: getEnv("REDIS_SENTINEL_PORT", Number),
     host: getEnv("REDIS_SENTINEL_HOSTNAME"),
