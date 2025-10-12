@@ -2,7 +2,7 @@ import assert from "assert";
 import crypto from "crypto";
 
 export class Secret {
-  private readonly key: Buffer;
+  private readonly key: Uint8Array;
 
   constructor(
     key: string,
@@ -11,7 +11,7 @@ export class Secret {
       algorithm: crypto.CipherGCMTypes;
     },
   ) {
-    this.key = Buffer.from(key, "hex");
+    this.key = new Uint8Array(Buffer.from(key, "hex"));
     assert(this.key.length === 32, "key must be 32 bytes");
   }
 
