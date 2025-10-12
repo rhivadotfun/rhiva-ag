@@ -1,14 +1,7 @@
 import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
 
 import { CivicAuthMiddleware } from "./controllers/auth.controller";
-import {
-  coingecko,
-  dexApi,
-  drizzle,
-  redis,
-  secret,
-  solanatracker,
-} from "./instances";
+import { coingecko, drizzle, redis, secret, solanatracker } from "./instances";
 
 const authMiddleware = new CivicAuthMiddleware(redis, secret, drizzle, {
   ttl: 86400,
@@ -19,7 +12,6 @@ export const createContext = async ({ req }: CreateFastifyContextOptions) => {
 
   return {
     user,
-    dexApi,
     redis,
     secret,
     coingecko,

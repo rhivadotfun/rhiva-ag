@@ -32,7 +32,7 @@ export default function PoolPage() {
         title="Pools"
         className="sticky top-0 z-10"
       />
-      <div className="flex-1 flex flex-col overflow-y-scroll">
+      <div className="flex-1 flex flex-col overflow-y-scroll py-4">
         <div className="flex flex-col space-y-4 px-4">
           <div className="flex flex-col space-y-2">
             <div className="flex lt-lg:flex-col lt-lg:space-y-2 lg:items-center lg:justify-between lg:space-x-4">

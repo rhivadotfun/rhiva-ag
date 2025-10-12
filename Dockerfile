@@ -1,12 +1,11 @@
 # syntax = docker/dockerfile:1.2
 
-FROM node:lts-alpine AS base
+FROM oven/bun:latest as base
 
 ENV NODE_ENV="production"
 
-RUN apk update -qq \
-    && apk add --no-cache curl unzip bash ca-certificates \
-    && curl -fsSL https://bun.sh/install | bash
+RUN apt-get update \
+    && apt-get install -y curl unzip bash ca-certificates 
 
 ENV PATH="/root/.bun/bin:$PATH"
 
@@ -35,7 +34,6 @@ RUN --mount=type=cache,target=/root/.bun/cache\
 
 COPY --from=codegen /usr/src/app/out/full . 
 COPY --from=codegen /usr/src/app/servers/ecosystem.config.js servers/ecosystem.config.js
-RUN bun x turbo check
 
 FROM base as runtime
 WORKDIR /usr/src/app
@@ -44,6 +42,9 @@ COPY --from=builder /usr/src/app/ .
 
 ENV HOST="0.0.0.0"
 ENV NODE_ENV=production
+
+RUN cd packages/datasource && \
+    bun x drizzle-kit migrate
 
 FROM runtime as dev
 WORKDIR /usr/src/app/servers

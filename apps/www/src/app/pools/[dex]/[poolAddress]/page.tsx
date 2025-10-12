@@ -1,5 +1,5 @@
 "use client";
-import { use } from "react";
+import { use, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { dexApi } from "@/instances";
@@ -9,6 +9,7 @@ import Header from "@/components/layout/Header";
 import PoolInfo from "@/components/pools/PoolInfo";
 import PoolAnalytic from "@/components/pools/PoolAnalytic";
 import PoolTokenMetadata from "@/components/pools/PoolTokenMetadata";
+import MeteoraOpenPosition from "@/components/positions/meteora/OpenPositionModal";
 
 export default function PoolPage({
   params,
@@ -17,6 +18,7 @@ export default function PoolPage({
   null
 >) {
   const { dex, poolAddress } = use(params);
+  const [showCreatePositionModal, setShowCreatePositionModal] = useState(false);
 
   const { data } = useQuery({
     queryKey: ["pools", dex, poolAddress],
@@ -33,7 +35,7 @@ export default function PoolPage({
         className="sticky top-0 z-10"
       />
       {data && (
-        <div className="flex-1 flex flex-col overflow-y-scroll px-4 xl:grid xl:grid-cols-2">
+        <div className="flex-1 flex flex-col overflow-y-scroll p-4 xl:grid xl:grid-cols-2">
           <div className="flex  lt-sm:flex-col lt-sm:space-y-4 sm:space-x-8">
             <div className="flex-1 flex flex-col space-y-4 sm:space-y-8">
               <PoolTokenMetadata
@@ -84,6 +86,19 @@ export default function PoolPage({
               volume={data.volume24h}
               price={data.price}
             />
+          </div>
+          <div className="flex-1 flex flex flex-col">
+            <MeteoraOpenPosition
+              open={showCreatePositionModal}
+              onClose={setShowCreatePositionModal}
+            />
+            <button
+              type="button"
+              className="bg-primary text-black p-2 rounded-md"
+              onClick={() => setShowCreatePositionModal(true)}
+            >
+              Open Position
+            </button>
           </div>
         </div>
       )}

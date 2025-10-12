@@ -1,13 +1,10 @@
 import type Redis from "ioredis";
 import { Secret } from "@rhiva-ag/shared";
-import { DexApi } from "@rhiva-ag/dex-api";
 import { Client } from "@solana-tracker/data-api";
 import Coingecko from "@coingecko/coingecko-typescript";
 import { createDB, createRedis } from "@rhiva-ag/datasource";
 
-import { getEnv } from "./env" with { type: "macro" };
-
-export const dexApi = new DexApi();
+import { getEnv } from "./env";
 
 export const secret = new Secret(getEnv("SECRET_KEY"), {
   ivLength: 12,
@@ -28,6 +25,7 @@ let redis: Redis;
 
 if (process.env.NODE_ENV === "production")
   redis = createRedis({
+    name: getEnv("REDIS_MASTER_NAME"),
     max: getEnv("REDIS_MAX_SENTINELS", Number),
     port: getEnv("REDIS_SENTINEL_PORT", Number),
     host: getEnv("REDIS_SENTINEL_HOSTNAME"),

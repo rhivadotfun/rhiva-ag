@@ -1,5 +1,5 @@
 import type { web3 } from "@coral-xyz/anchor";
-import { collectMap } from "@rhiva-ag/shared";
+import { mapFilter } from "@rhiva-ag/shared";
 
 import { isTokenProgram } from "../../utils";
 import { InstructionProcessor } from "../../core";
@@ -12,7 +12,7 @@ export abstract class SplTransferInstructionProcessor extends InstructionProcess
       | web3.PartiallyDecodedInstruction
     )[]
   ) {
-    return collectMap(instructions, (instruction) => {
+    return mapFilter(instructions, (instruction) => {
       if ("parsed" in instruction && isTokenProgram(instruction.programId)) {
         if (instruction.program === "spl-token") {
           return {

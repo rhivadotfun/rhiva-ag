@@ -103,7 +103,7 @@ export class CivicAuthMiddleware {
     const authorization = request.headers.authorization;
     if (authorization) {
       const [, token] = authorization.split(/\s/g);
-      const payload = await verify(token, {
+      const payload = await verify(token!, {
         clientId: getEnv("CIVIC_CLIENT_ID"),
       });
 

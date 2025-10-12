@@ -10,17 +10,14 @@ services:
     networks:
       - webnet
       - redis
-      - postgres
     env_file: .env
 networks:
   webnet:
     driver: bridge
   redis:
     external: true
-  postgres:
-    external: true
 EOF
 
 git pull
-docker compose build
-docker compose up -d --remove-orphans
+sudo docker compose build
+sudo docker compose up -d --remove-orphans

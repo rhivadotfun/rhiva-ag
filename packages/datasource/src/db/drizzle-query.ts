@@ -91,7 +91,7 @@ export const buildDrizzleWhereClauseFromObject = <
             conditionalOperators[opName as keyof typeof conditionalOperators];
           if (value) {
             const [clause] = getFilters<SQLWrapper>(name, value);
-            query.push(op(clause) as T);
+            query.push(op(clause!) as T);
             continue;
           } else {
             query.push(op(name) as T);

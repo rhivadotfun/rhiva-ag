@@ -16,7 +16,7 @@
   },
   "scripts": {
     "check": "tsc --noEmit",
-    "build:browser": "bun run build.ts",
+    "build:browser": "ls -a && bun run ./build.ts",
     "codegen": "bun x @rhiva-ag/env",
     "postinstall": "bun run build:browser"
   },
@@ -24,5 +24,9 @@
     "@rhiva-ag/shared": "*",
     "util": "^0.12.5",
     "xior": "^0.7.8"
+  },
+  "devDependencies": {
+    "@tsconfig/bun": "^1.0.9",
+    "@types/bun": "^1.3.0"
   }
 }

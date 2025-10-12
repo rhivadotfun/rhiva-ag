@@ -17,8 +17,8 @@ export default function HeaderAction(props: React.ComponentProps<"div">) {
   const { signIn, authStatus, signOut } = useUser();
 
   const isAuthenticated = useMemo(
-    () => authStatus === AuthStatus.AUTHENTICATED,
-    [authStatus],
+    () => authStatus === AuthStatus.AUTHENTICATED && user,
+    [user, authStatus],
   );
 
   const onSignOut = useCallback(
@@ -38,7 +38,7 @@ export default function HeaderAction(props: React.ComponentProps<"div">) {
       {...props}
       className={clsx("flex items-center space-x-2", props.className)}
     >
-      {isAuthenticated ? (
+      {isAuthenticated && user ? (
         <>
           <button
             type="button"

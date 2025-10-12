@@ -5,8 +5,8 @@ import type { AppRouter } from "@rhiva-ag/trpc";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import { TRPCProvider as Provider } from "@/trpc.client";
 import { useAuth } from "@/hooks/useAuth";
+import { TRPCProvider as Provider } from "@/trpc.client";
 
 const queryClient = new QueryClient();
 
@@ -21,7 +21,7 @@ export default function TRPCProvider({ children }: React.PropsWithChildren) {
             url: process.env.NEXT_PUBLIC_API_URL!,
             async headers() {
               const headers = new Headers();
-              if (user.accessToken)
+              if (user?.accessToken)
                 headers.set(
                   "authorization",
                   format("Bearer %s", user.accessToken),
@@ -31,7 +31,7 @@ export default function TRPCProvider({ children }: React.PropsWithChildren) {
           }),
         ],
       }),
-    [user.accessToken],
+    [user?.accessToken],
   );
 
   return (

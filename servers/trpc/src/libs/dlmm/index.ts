@@ -13,8 +13,8 @@ export class DLMM {
 
   constructor(connection: Connection) {
     this.orca = new OrcaDLMM(connection);
-    this.saros = new SarosDLMM(connection);
-    this.meteora = new MeteoraDLMM(connection);
-    this.raydium = new RaydiumDLMM(connection);
+    this.saros = new SarosDLMM();
+    this.meteora = new MeteoraDLMM();
+    this.raydium = new RaydiumDLMM();
   }
 }
