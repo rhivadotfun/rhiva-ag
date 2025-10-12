@@ -31,7 +31,6 @@
     "@privy-io/node": "^0.2.0",
     "@raydium-io/raydium-sdk-v2": "^0.2.29-alpha",
     "@rhiva-ag/datasource": "*",
-    "@rhiva-ag/dex-api": "*",
     "@rhiva-ag/env": "*",
     "@rhiva-ag/shared": "*",
     "@solana-tracker/data-api": "^0.1.4",
