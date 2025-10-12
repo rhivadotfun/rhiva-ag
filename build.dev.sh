@@ -11,6 +11,8 @@ services:
       - webnet
       - redis
     env_file: .env
+    environment: 
+      APP_DATABASE_URL: \${APP_DATABASE_URL}
 networks:
   webnet:
     driver: bridge
