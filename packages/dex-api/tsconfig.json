@@ -1,8 +1,11 @@
 {
   "extends": "@tsconfig/recommended/tsconfig.json",
   "compilerOptions": {
+    "types": ["bun-types"],
+    "skipLibCheck": true,
+    "module": "Preserve",
+    "target": "ESNext",
     "moduleResolution": "bundler",
-    "module": "ESNext",
     "verbatimModuleSyntax": true
   }
 }

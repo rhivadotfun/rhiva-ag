@@ -2,7 +2,7 @@ import assert from "assert";
 import crypto from "crypto";
 
 export class Secret {
-  private readonly key: Uint8Array;
+  private readonly key: Buffer;
 
   constructor(
     key: string,
@@ -11,18 +11,14 @@ export class Secret {
       algorithm: crypto.CipherGCMTypes;
     },
   ) {
-    this.key = new Uint8Array(Buffer.from(key, "hex"));
+    this.key = Buffer.from(key, "hex");
     assert(this.key.length === 32, "key must be 32 bytes");
   }
 
   readonly encrypt = <T>(data: T) => {
     const iv = crypto.randomBytes(this.options.ivLength);
 
-    const cipher = crypto.createCipheriv(
-      this.options.algorithm,
-      this.key,
-      new Uint8Array(iv),
-    );
+    const cipher = crypto.createCipheriv(this.options.algorithm, this.key, iv);
     const plaintext = Buffer.from(JSON.stringify(data), "utf8");
 
     const ciphertext = Buffer.concat([
@@ -48,9 +44,9 @@ export class Secret {
     const decipher = crypto.createDecipheriv(
       this.options.algorithm,
       this.key,
-      new Uint8Array(iv),
+      iv,
     );
-    decipher.setAuthTag(new Uint8Array(authTag));
+    decipher.setAuthTag(authTag);
 
     const decrypted = Buffer.concat([
       decipher.update(ciphertext),
