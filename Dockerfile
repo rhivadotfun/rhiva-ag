@@ -44,6 +44,7 @@ ENV HOST="0.0.0.0"
 ENV NODE_ENV=production
 
 FROM runtime as dev
+WORKDIR /usr/src/app
 CMD sh -c "cd packages/datasource && \
   bun x drizzle-kit migrate && \
   cd - && \
