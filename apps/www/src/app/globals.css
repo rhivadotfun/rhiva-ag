@@ -1,0 +1,44 @@
+@unocss all;
+
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+body {
+  scrollbar-width: none;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+tr td {
+  padding: 8px;
+}
+
+input:focus {
+  outline: none;
+}
+
+input {
+  @apply bg-transparent focus:outline-none;
+}
+
+.input {
+  @apply bg-transparent p-2 border border-white/10 rounded focus:border-primary;
+}
+
+button {
+  @apply cursor-pointer;
+}
+
+[contenteditable="true"]:empty::before {
+  content: attr(data-placeholder);
+  pointer-events: none;
+  @apply text-gray;
+}
+
+[contenteditable="true"]:empty:focus::before {
+  content: "";
+}

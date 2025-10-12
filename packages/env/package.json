@@ -1,0 +1,12 @@
+{
+  "name": "@rhiva-ag/env",
+  "private": true,
+  "version": "0.0.0",
+  "bin": "src/cli.ts",
+  "scripts": {
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3"
+  }
+}

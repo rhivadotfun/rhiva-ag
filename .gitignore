@@ -1,0 +1,12 @@
+.next 
+next-env.d.ts
+node_modules
+.env
+.env.prod
+dist
+tsconfig.tsbuildinfo
+.turbo
+.next
+.wrangler
+docker-compose.yml
+.open-next

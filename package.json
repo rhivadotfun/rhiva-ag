@@ -1,0 +1,31 @@
+{
+  "name": "rhiva-ag",
+  "version": "0.0.0",
+  "private": "true",
+  "packageManager": "bun@1.2.9",
+  "scripts": {
+    "prepare": "husky",
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "bun x biome format --write && bun x biome lint --fix && biome check ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.4",
+    "@tsconfig/recommended": "^1.0.10",
+    "@types/bun": "latest",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.1",
+    "pm2": "^6.0.13",
+    "tsup": "^8.5.0",
+    "turbo": "^2.5.8"
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.2"
+  },
+  "workspaces": [
+    "packages/*",
+    "servers/*",
+    "apps/*"
+  ],
+  "dependencies": {}
+}
