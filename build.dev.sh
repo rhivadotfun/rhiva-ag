@@ -22,5 +22,5 @@ networks:
 EOF
 
 git pull
-docker compose build
-docker compose up -d --remove-orphans
+sudo docker compose build
+sudo docker compose up -d --remove-orphans
