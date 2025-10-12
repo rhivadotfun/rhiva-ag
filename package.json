@@ -14,13 +14,13 @@
     "@tsconfig/recommended": "^1.0.10",
     "@types/bun": "latest",
     "husky": "^9.1.7",
-    "lint-staged": "^16.2.1",
+    "lint-staged": "^16.2.4",
     "pm2": "^6.0.13",
     "tsup": "^8.5.0",
     "turbo": "^2.5.8"
   },
   "peerDependencies": {
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
   },
   "workspaces": [
     "packages/*",
