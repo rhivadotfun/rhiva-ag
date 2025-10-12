@@ -25,8 +25,8 @@ RUN bun install turbo --global && \
 
 FROM base as builder
 WORKDIR /usr/src/app
-ARG SENTRY_AUTH_TOKEN
-ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
+ARG DATABASE_URL
+ENV DATABASE_URL=${DATABASE_URL}
 
 COPY --from=codegen /usr/src/app/out/json .
 RUN --mount=type=cache,target=/root/.bun/cache\

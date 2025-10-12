@@ -12,7 +12,7 @@ services:
       - redis
     env_file: .env
     environment: 
-      APP_DATABASE_URL: \${APP_DATABASE_URL}
+      DATABASE_URL: \${APP_DATABASE_URL}
 networks:
   webnet:
     driver: bridge
