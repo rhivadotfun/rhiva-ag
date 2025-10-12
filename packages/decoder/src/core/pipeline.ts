@@ -31,7 +31,7 @@ export class Pipeline<T extends InstructionProcessor<any> | LogProcessor<any>> {
 
         const promiseJoins = [];
         const blockTime = parsedTransactionWithMeta.blockTime;
-        const signature = parsedTransactionWithMeta.transaction.signatures[0];
+        const signature = parsedTransactionWithMeta.transaction.signatures[0]!;
 
         if (parsedTransactionWithMeta.meta?.logMessages && this.logPipes)
           promiseJoins.push(

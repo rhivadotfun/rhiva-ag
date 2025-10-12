@@ -11,6 +11,7 @@ import {
 } from "@rhiva-ag/datasource";
 
 import { privateProcedure, router } from "../../trpc";
+import { TRPCError } from "@trpc/server";
 
 export const userRoute = router({
   me: privateProcedure.output(userSelectSchema).query(async ({ ctx }) => {
@@ -51,6 +52,8 @@ export const userRoute = router({
       .innerJoin(settings, eq(settings.user, users.id))
       .innerJoin(wallets, eq(wallets.user, users.id));
 
-    return user;
+    if(user)return user;
+    
+    throw new TRPCError({ code: "NOT_FOUND", message: "user not found" });
   }),
 });

@@ -30,6 +30,7 @@
     "zod": "^4.1.11"
   },
   "devDependencies": {
+        "@tsconfig/bun": "^1.0.9" ,
     "@types/bun": "^1.2.22",
     "drizzle-kit": "^0.31.5"
   }
