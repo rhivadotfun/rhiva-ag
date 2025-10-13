@@ -10,6 +10,7 @@ import Swap from "@/assets/swap.png";
 import Point from "@/assets/point.png";
 import Learn from "@/assets/learn.png";
 import Referral from "@/assets/referral.png";
+import Lens from "@/assets/lens.png";
 
 export default function ProductList(props: React.ComponentProps<"section">) {
   const router = useRouter();
@@ -42,6 +43,13 @@ export default function ProductList(props: React.ComponentProps<"section">) {
       image: Bot,
       onClick() {
         window.open("https://t.me/rhivabot", "_blank");
+      },
+    },
+    {
+      name: "Rhiva Lens",
+      image: Lens,
+      onClick() {
+        window.open("https://lens.rhiva.fun", "_blank");
       },
     },
     {
