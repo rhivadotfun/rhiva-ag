@@ -12,7 +12,7 @@ export default function HeroSection(props: React.ComponentProps<"section">) {
       )}
     >
       <div className="flex flex-col justify-center p-4 space-y-4 z-10 md:px-8">
-        <p className="text-lg">Hi, User</p>
+        <p className="text-lg">Gm, User</p>
         <div className="flex flex-col justify-center space-y-2">
           <div className="flex flex-col lt-sm:w-40 lt-md:space-y-2">
             <h1 className="text-lg text-nowrap text-primary font-bold sm:text-4xl 2xl:text-5xl">
