@@ -36,8 +36,8 @@ export default function PoolPage({
       />
       {data && (
         <div className="flex-1 flex flex-col overflow-y-scroll p-4 xl:grid xl:grid-cols-2">
-          <div className="flex  lt-sm:flex-col lt-sm:space-y-4 sm:space-x-8">
-            <div className="flex-1 flex flex-col space-y-4 sm:space-y-8">
+          <div className="flex-1 flex flex-col lt-sm:gap-y-4 sm:grid sm:grid-cols-2 sm:gap-x-8">
+            <div className="flex flex-col space-y-4 sm:space-y-8">
               <PoolTokenMetadata
                 id={data.address}
                 dex={dex}
@@ -76,7 +76,6 @@ export default function PoolPage({
               />
             </div>
             <PoolAnalytic
-              className="flex-1"
               binStep={data.binStep}
               baseFee={data.baseFee}
               maxFee={data.maxFee}
@@ -86,15 +85,17 @@ export default function PoolPage({
               volume={data.volume24h}
               price={data.price}
             />
+            <div className="sm:col-span-2" />
           </div>
-          <div className="flex-1 flex flex flex-col">
+
+          <div className="flex flex flex-col">
             <MeteoraOpenPosition
               open={showCreatePositionModal}
               onClose={setShowCreatePositionModal}
             />
             <button
               type="button"
-              className="bg-primary text-black p-2 rounded-md"
+              className="bg-primary text-black p-2 rounded-md sm:hidden"
               onClick={() => setShowCreatePositionModal(true)}
             >
               Open Position

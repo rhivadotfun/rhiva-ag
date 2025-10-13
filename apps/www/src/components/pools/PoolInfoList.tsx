@@ -1,3 +1,4 @@
+import { compactCurrencyIntlArgs } from "@/constants/format";
 import clsx from "clsx";
 
 export default function PoolInfoList(props: React.ComponentProps<"div">) {
@@ -6,6 +7,8 @@ export default function PoolInfoList(props: React.ComponentProps<"div">) {
     currency: "USD",
     maximumFractionDigits: 0,
   });
+
+  const compactIntl = new Intl.NumberFormat("en-US", compactCurrencyIntlArgs);
   const poolInfos = [
     { title: "TVL", value: 731_456_780 },
     { title: "24H Volume", value: 108_890_234_890 },
@@ -23,7 +26,8 @@ export default function PoolInfoList(props: React.ComponentProps<"div">) {
           className="flex-1 bg-white/5 px-4 py-3 rounded-md"
         >
           <p className="text-xs text-gray">{poolInfo.title}</p>
-          <p>{intl.format(poolInfo.value)}</p>
+          <p className="lt-sm:hidden">{intl.format(poolInfo.value)}</p>
+          <p className="sm:hideen">{compactIntl.format(poolInfo.value)}</p>
         </div>
       ))}
     </div>

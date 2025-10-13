@@ -8,6 +8,9 @@ export default defineConfig({
       },
       light: {
         DEFAULT: "#F3F3F3",
+        secondary: {
+          DEFAULT: "#A2A2A2",
+        },
       },
       dark: {
         DEFAULT: "#000B1A",

@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import Image from "next/image";
 import "@unocss/reset/tailwind.css";
+import "rc-slider/assets/index.css";
 import { Noto_Sans } from "next/font/google";
 import { ToastContainer } from "react-toastify";
 import "@solana/wallet-adapter-react-ui/styles.css";

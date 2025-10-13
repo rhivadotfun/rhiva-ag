@@ -7,14 +7,14 @@ export default function RatioInput() {
 
   return (
     <div className="flex flex-col">
-      <p>Liquidity Ratio %</p>
+      <p className="text-light-secondary">Liquidity Ratio %</p>
       <input
         type="range"
         className="accent-primary"
       />
       <div className="flex justify-between">
-        <p>50% SOL</p>
-        <p>50% USDC</p>
+        <p className="text-light">50% SOL</p>
+        <p className="text-light">50% USDC</p>
       </div>
       <div className="flex items-center justify-between space-x-8">
         <div className="flex items-center space-x-2">

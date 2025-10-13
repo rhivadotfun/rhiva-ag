@@ -1,10 +1,12 @@
 import clsx from "clsx";
 import { useMemo } from "react";
 import { Form, Formik } from "formik";
+import { IoArrowBack } from "react-icons/io5";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 
 import TokenInput from "./TokenInput";
 import RatioInput from "./RatioInput";
+import PriceRangeInput from "./PriceRangeInput";
 
 export default function MeteoraOpenPosition(
   props: React.ComponentProps<typeof Dialog>,
@@ -45,11 +47,12 @@ function MeteoraOpenPositionForm(
       initialValues={{
         amount: undefined,
         curve: "spot",
+        range: [0.01, 0.01],
       }}
       onSubmit={() => {}}
     >
-      {({ values }) => (
-        <Form className="flex flex-col space-y-8 p-4">
+      {({ values, setFieldValue }) => (
+        <Form className="flex-1 flex flex-col space-y-8 p-4">
           <div className="flex">
             {curves.map((curve) => {
               const selected = curve.value === values.curve;
@@ -73,31 +76,37 @@ function MeteoraOpenPositionForm(
               );
             })}
           </div>
-          <div className="flex flex-col space-y-4">
-            <div className="flex flex-col space-y-2">
-              <label
-                htmlFor="amount"
-                className="text-light"
-              >
-                Trade amount
-              </label>
-              <TokenInput />
+          <div className="flex-1 flex flex-col space-y-16">
+            <div className="flex flex-col space-y-4">
+              <div className="flex flex-col space-y-2">
+                <label
+                  htmlFor="amount"
+                  className="text-light"
+                >
+                  Trade amount
+                </label>
+                <TokenInput />
+              </div>
+              <div className="flex space-x-4">
+                <button
+                  type="button"
+                  className="flex-1 bg-primary text-black p-2 rounded"
+                >
+                  SOL
+                </button>
+                <button
+                  type="button"
+                  className="flex-1 border border-primary text-primary rounded"
+                >
+                  USDC
+                </button>
+              </div>
+              <RatioInput />
+              <PriceRangeInput
+                value={values.range}
+                onChange={(range) => setFieldValue("range", range)}
+              />
             </div>
-            <div className="flex space-x-4">
-              <button
-                type="button"
-                className="flex-1 bg-primary text-black p-2 rounded"
-              >
-                SOL
-              </button>
-              <button
-                type="button"
-                className="flex-1 border border-primary text-primary rounded"
-              >
-                USDC
-              </button>
-            </div>
-            <RatioInput />
           </div>
           <button
             type="button"
@@ -123,7 +132,19 @@ function MeteoraOpenPositionSmall({
     >
       <div className="fixed inset-0">
         <DialogBackdrop className="absolute inset-0 bg-black/50 -z-10" />
-        <DialogPanel className="bg-dark">{children}</DialogPanel>
+        <DialogPanel className="h-full flex flex-col space-y-4 bg-dark">
+          <header className="p-4 lt-sm:border-b lt-sm:border-transparent lt-sm:[border-image:linear-gradient(to_right,#000,theme(colors.primary),#000)_1]">
+            <button
+              type="button"
+              className="flex items-center space-x-2"
+              onClick={() => props?.onClose(false)}
+            >
+              <IoArrowBack />
+              <span>Back</span>
+            </button>
+          </header>
+          {children}
+        </DialogPanel>
       </div>
     </Dialog>
   );

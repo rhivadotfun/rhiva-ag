@@ -103,13 +103,13 @@ export function PoolListSmall({ pools }: PoolListSmallProps) {
   return (
     <table className="sm:hidden">
       <thead>
-        <tr className="text-gray">
+        <tr className="text-xs text-gray">
           <td>#</td>
           <td>
             <PoolTabSmall />
           </td>
           <td>FDV/Mcap</td>
-          <td className="text-end">TVL/24H VOL</td>
+          <td className="text-end text-nowrap">TVL/24H VOL</td>
         </tr>
       </thead>
       <tbody className="h-full divide-y divide-white/10 overflow-y-scroll">

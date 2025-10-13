@@ -66,7 +66,7 @@ export function PoolTabSmall() {
     >
       <MenuButton className="flex items-center space-x-2 focus:outline-none">
         <span>All Pools</span>
-        <IoChevronDownOutline size={24} />
+        <IoChevronDownOutline />
       </MenuButton>
       <MenuItems
         transition
