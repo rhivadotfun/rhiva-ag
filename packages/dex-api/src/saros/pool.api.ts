@@ -38,7 +38,7 @@ export class PoolApi extends ApiImpl {
 
   normalize(pool: Pair): NormalizedPair {
     return {
-      name: [pool.tokenX.name, pool.tokenY.name].join("-"),
+      name: [pool.tokenX.symbol, pool.tokenY.symbol].join("-"),
       address: pool.pair,
       apr: pool.apr24h,
       baseFee: pool.binStep * pool.baseFactor,

@@ -9,7 +9,7 @@ export default function NumberInput({ label }: NumberProps) {
   return (
     <div className="flex flex-col space-y-2">
       <p className="text-light-secondary">{label}</p>
-      <div className="flex items-center px-2 border border-white/20 rounded-md">
+      <div className="flex items-center px-2 border border-white/20 rounded-md focus-within:border-primary">
         <button
           type="button"
           className="size-6 flex items-center justify-center bg-white/50 text-black rounded"

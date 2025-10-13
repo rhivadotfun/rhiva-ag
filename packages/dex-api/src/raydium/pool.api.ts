@@ -88,7 +88,7 @@ export class PoolApi extends ApiImpl {
   ): NormalizedPair {
     return {
       address: pool.id,
-      name: [pool.mintA.name, pool.mintB.name].join("-"),
+      name: [pool.mintA.symbol, pool.mintB.symbol].join("-"),
       baseReserveAmount: pool.mintAmountA,
       quoteReserveAmount: pool.mintAmountB,
       price: pool.price,

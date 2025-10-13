@@ -5,7 +5,12 @@ import { MdOpenInNew } from "react-icons/md";
 import Image from "../Image";
 import Decimal from "../Decimal";
 import { truncateString } from "@/lib";
-import { currencyIntlArgs, percentageIntlArgs } from "@/constants/format";
+import {
+  compactCurrencyIntlArgs,
+  currencyIntlArgs,
+  percentageIntlArgs,
+} from "@/constants/format";
+import { useMemo } from "react";
 
 type TokenInfo = {
   id: string;
@@ -21,10 +26,23 @@ type PoolInfoProps = {
 };
 
 export default function PoolInfo({ tvl, apr, tokens }: PoolInfoProps) {
-  const percentageIntl = new Intl.NumberFormat("en-US", {
-    ...percentageIntlArgs,
-    signDisplay: "never",
-  });
+  const currencyIntl = useMemo(
+    () => new Intl.NumberFormat("en-US", currencyIntlArgs),
+    [],
+  );
+  const compactCurrencyIntl = useMemo(
+    () => new Intl.NumberFormat("en-US", compactCurrencyIntlArgs),
+    [],
+  );
+  const percentageIntl = useMemo(
+    () =>
+      new Intl.NumberFormat("en-US", {
+        ...percentageIntlArgs,
+        signDisplay: "never",
+      }),
+    [],
+  );
+
   return (
     <div className="flex flex-col space-y-8 lt-sm:bg-white/3 lt-sm:p-4 lt-sm:rounded-xl sm:space-y-16 ">
       <div className="flex justify-between">
@@ -95,10 +113,12 @@ export default function PoolInfo({ tvl, apr, tokens }: PoolInfoProps) {
                   </div>
                 </div>
               </div>
-              <Decimal
-                value={token.amount}
-                className="text-base"
-              />
+              <span className="lt-xl:hidden">
+                {currencyIntl.format(token.amount)}
+              </span>
+              <span className="xl:hidden">
+                {compactCurrencyIntl.format(token.amount)}
+              </span>
             </div>
           ))}
         </div>

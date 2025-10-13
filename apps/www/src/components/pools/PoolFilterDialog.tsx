@@ -97,7 +97,7 @@ export default function PoolFilterDialog(
                 </header>
                 <div className="flex-1  flex flex-col space-y-4 p-4">
                   <div className="flex flex-col space-y-2 items-start">
-                    <p>Select Saved Filter</p>
+                    <p className="text-light-secondary">Select Saved Filter</p>
                     <Menu
                       as="div"
                       className="relative"
@@ -124,13 +124,18 @@ export default function PoolFilterDialog(
                     </Menu>
                   </div>
                   <div className="flex flex-col space-y-4">
-                    <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,2fr))] gap-4">
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-[repeat(auto-fit,minmax(160px,2fr))]">
                       {filterFields.map((field) => (
                         <div
                           key={field.name}
                           className="flex flex-col space-y-2"
                         >
-                          <label htmlFor={field.name}>{field.label}</label>
+                          <label
+                            htmlFor={field.name}
+                            className="text-light-secondary"
+                          >
+                            {field.label}
+                          </label>
                           <Field
                             name={field.name}
                             placeholder={field.placeholder}
@@ -141,7 +146,12 @@ export default function PoolFilterDialog(
                     </div>
                     <div>
                       <div className="flex flex-col space-y-2 items-start">
-                        <label htmlFor="name">Save Filter</label>
+                        <label
+                          htmlFor="name"
+                          className="text-light-secondary"
+                        >
+                          Save Filter
+                        </label>
                         <Field
                           name="name"
                           placeholder="Filter name"

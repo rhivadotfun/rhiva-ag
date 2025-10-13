@@ -39,14 +39,14 @@ export default function PoolTokenMetadata({
             width={32}
             height={32}
             alt={image.base.alt}
-            className="rounded-full lt-sm:size-6"
+            className="rounded-full z-10 lt-sm:size-6"
           />
           <Image
             src={image.quote.src}
             width={32}
             height={32}
             alt={image.quote.alt}
-            className="absolute right-0 rounded-full lt-sm:size-6"
+            className="absolute right-0 rounded-full z-0 lt-sm:size-6"
           />
         </div>
         <h1 className="text-base font-medium sm:text-xl sm:font-bold">

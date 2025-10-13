@@ -9,7 +9,9 @@ import Header from "@/components/layout/Header";
 import PoolInfo from "@/components/pools/PoolInfo";
 import PoolAnalytic from "@/components/pools/PoolAnalytic";
 import PoolTokenMetadata from "@/components/pools/PoolTokenMetadata";
-import MeteoraOpenPosition from "@/components/positions/meteora/OpenPositionModal";
+import MeteoraOpenPosition from "@/components/positions/meteora";
+import RaydiumOpenPosition from "@/components/positions/raydium";
+import OrcaOpenPosition from "@/components/positions/orca";
 
 export default function PoolPage({
   params,
@@ -89,10 +91,24 @@ export default function PoolPage({
           </div>
 
           <div className="flex flex flex-col">
-            <MeteoraOpenPosition
-              open={showCreatePositionModal}
-              onClose={setShowCreatePositionModal}
-            />
+            {dex === "meteora" && (
+              <MeteoraOpenPosition
+                open={showCreatePositionModal}
+                onClose={setShowCreatePositionModal}
+              />
+            )}
+            {dex === "orca" && (
+              <OrcaOpenPosition
+                open={showCreatePositionModal}
+                onClose={setShowCreatePositionModal}
+              />
+            )}
+            {dex === "raydium" && (
+              <RaydiumOpenPosition
+                open={showCreatePositionModal}
+                onClose={setShowCreatePositionModal}
+              />
+            )}
             <button
               type="button"
               className="bg-primary text-black p-2 rounded-md sm:hidden"

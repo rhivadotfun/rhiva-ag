@@ -2,7 +2,7 @@ import clsx from "clsx";
 import Image from "next/image";
 import "@unocss/reset/tailwind.css";
 import "rc-slider/assets/index.css";
-import { Noto_Sans } from "next/font/google";
+import { PT_Sans_Caption } from "next/font/google";
 import { ToastContainer } from "react-toastify";
 import "@solana/wallet-adapter-react-ui/styles.css";
 import { CivicAuthProvider } from "@civic/auth/nextjs";
@@ -13,10 +13,10 @@ import Line from "@/assets/bg/line.png";
 import NavBar from "@/components/layout/NavBar";
 import AuthProvider from "@/providers/AuthProvider";
 
-const defaultFont = Noto_Sans({
+const defaultFont = PT_Sans_Caption({
   subsets: ["latin"],
   variable: "--font-noto-sans",
-  weight: ["400", "600", "700"],
+  weight: ["400", "700"],
 });
 
 export default function RootLayout({ children }: React.PropsWithChildren) {

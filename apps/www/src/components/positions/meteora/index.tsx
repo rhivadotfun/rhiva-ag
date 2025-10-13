@@ -6,7 +6,7 @@ import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 
 import TokenInput from "./TokenInput";
 import RatioInput from "./RatioInput";
-import PriceRangeInput from "./PriceRangeInput";
+import PriceRangeInput from "../PriceRangeInput";
 
 export default function MeteoraOpenPosition(
   props: React.ComponentProps<typeof Dialog>,
@@ -48,11 +48,12 @@ function MeteoraOpenPositionForm(
         amount: undefined,
         curve: "spot",
         range: [0.01, 0.01],
+        ratio: [0.5, 0.5],
       }}
       onSubmit={() => {}}
     >
       {({ values, setFieldValue }) => (
-        <Form className="flex-1 flex flex-col space-y-8 p-4">
+        <Form className="flex-1 flex flex-col p-4 overflow-y-scroll">
           <div className="flex">
             {curves.map((curve) => {
               const selected = curve.value === values.curve;
@@ -76,7 +77,7 @@ function MeteoraOpenPositionForm(
               );
             })}
           </div>
-          <div className="flex-1 flex flex-col space-y-16">
+          <div className="flex-1 flex flex-col py-4 overflow-y-scroll sm:py-8">
             <div className="flex flex-col space-y-4">
               <div className="flex flex-col space-y-2">
                 <label
@@ -101,7 +102,10 @@ function MeteoraOpenPositionForm(
                   USDC
                 </button>
               </div>
-              <RatioInput />
+              <RatioInput
+                value={values.ratio}
+                onChange={(ratio) => setFieldValue("ratio", ratio)}
+              />
               <PriceRangeInput
                 value={values.range}
                 onChange={(range) => setFieldValue("range", range)}
@@ -132,7 +136,7 @@ function MeteoraOpenPositionSmall({
     >
       <div className="fixed inset-0">
         <DialogBackdrop className="absolute inset-0 bg-black/50 -z-10" />
-        <DialogPanel className="h-full flex flex-col space-y-4 bg-dark">
+        <DialogPanel className="h-full flex flex-col bg-dark overflow-y-scroll">
           <header className="p-4 lt-sm:border-b lt-sm:border-transparent lt-sm:[border-image:linear-gradient(to_right,#000,theme(colors.primary),#000)_1]">
             <button
               type="button"

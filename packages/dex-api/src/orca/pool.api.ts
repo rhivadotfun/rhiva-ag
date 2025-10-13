@@ -128,12 +128,14 @@ export class PoolApi extends ApiImpl {
 
   normalize(pool: Pair): NormalizedPair {
     return {
-      name: [pool.tokenA.name, pool.tokenB.name].join("-"),
+      name: [pool.tokenA.symbol, pool.tokenB.symbol].join("-"),
       address: pool.address,
       binStep: pool.feeRate,
       maxFee: 10,
-      baseReserveAmount: parseFloat(pool.tokenBalanceA),
-      quoteReserveAmount: parseFloat(pool.tokenBalanceB),
+      baseReserveAmount:
+        parseFloat(pool.tokenBalanceA) / Math.pow(10, pool.tokenA.decimals),
+      quoteReserveAmount:
+        parseFloat(pool.tokenBalanceB) / Math.pow(10, pool.tokenB.decimals),
       baseFee: pool.feeRate,
       price: parseFloat(pool.price),
       tvl: parseFloat(pool.tvlUsdc),

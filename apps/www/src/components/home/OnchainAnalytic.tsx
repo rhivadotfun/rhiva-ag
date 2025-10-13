@@ -14,10 +14,13 @@ export default function OnchainAnalytic(
   return (
     <section
       {...props}
-      className={clsx("flex space-x-4", props.className)}
+      className={clsx(
+        "flex lt-sm:flex-col lt-sm:space-y-4 sm:space-x-4 ",
+        props.className,
+      )}
     >
-      <FearGreedChart className="flex-1" />
-      <HonkIndexChart className="flex-1" />
+      <FearGreedChart className="flex-1 lt-sm:h-48" />
+      <HonkIndexChart className="flex-1 lt-sm:h-48" />
     </section>
   );
 }
