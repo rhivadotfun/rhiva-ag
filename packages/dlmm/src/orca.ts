@@ -1,0 +1,98 @@
+import { tickIndexToPrice } from "@orca-so/whirlpools-core";
+import type { Whirlpool } from "@orca-so/whirlpools-client";
+import {
+  closePositionInstructions,
+  openFullRangePositionInstructions,
+  openPositionInstructions,
+} from "@orca-so/whirlpools";
+import type {
+  Account,
+  Address,
+  GetAccountInfoApi,
+  GetEpochInfoApi,
+  GetMinimumBalanceForRentExemptionApi,
+  GetMultipleAccountsApi,
+  Rpc,
+  TransactionSigner,
+} from "@solana/kit";
+
+type SharedBuildCreatePositionArgs = {
+  tokenA: bigint;
+  tokenB: bigint;
+  pool: Account<Whirlpool, Address>;
+  slippage: number;
+  owner: TransactionSigner;
+};
+
+type BuildCreatePositionArgs = (
+  | {
+      strategyType: "full";
+    }
+  | {
+      strategyType: "custom";
+      tokenADecimals: number;
+      tokenBDecimals: number;
+      priceChanges: [number, number];
+    }
+) &
+  SharedBuildCreatePositionArgs;
+
+export class OrcaDLMM {
+  constructor(
+    private readonly rpc: Rpc<
+      GetAccountInfoApi &
+        GetMultipleAccountsApi &
+        GetMinimumBalanceForRentExemptionApi &
+        GetEpochInfoApi
+    >,
+  ) {}
+
+  readonly buildCreatePosition = async (args: BuildCreatePositionArgs) => {
+    const { pool, slippage, tokenA, tokenB } = args;
+    if (args.strategyType === "custom") {
+      const [lowerPriceChange, upperPriceChange] = args.priceChanges;
+
+      const currentPrice = tickIndexToPrice(
+        pool.data.tickCurrentIndex,
+        args.tokenADecimals,
+        args.tokenBDecimals,
+      );
+
+      const lowerPrice = currentPrice - currentPrice * lowerPriceChange;
+      const upperPrice = currentPrice + currentPrice * upperPriceChange;
+
+      return openPositionInstructions(
+        this.rpc,
+        pool.address,
+        { tokenA: args.tokenA, tokenB: args.tokenB },
+        lowerPrice,
+        upperPrice,
+        slippage,
+        args.owner,
+      );
+    }
+
+    return openFullRangePositionInstructions(
+      this.rpc,
+      pool.address,
+      {
+        tokenA,
+        tokenB,
+      },
+      slippage,
+      args.owner,
+    );
+  };
+
+  readonly buildClosePosition = async ({
+    pool,
+    slippage,
+    owner,
+  }: {
+    pool: Address;
+    slippage: number;
+    owner: TransactionSigner;
+  }) => {
+    return closePositionInstructions(this.rpc, pool, slippage, owner);
+  };
+}
