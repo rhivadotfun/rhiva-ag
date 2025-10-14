@@ -1,14 +1,14 @@
 import z from "zod";
 import { and, eq, getTableColumns, type SQL } from "drizzle-orm";
-
-import { privateProcedure, router } from "../../trpc";
-import { positionFilterSchema, positionSortSchema } from "./position.schema";
 import {
   buildDrizzleWhereClauseFromObject,
   buildOrderByClauseFromObject,
   positions,
   wallets,
 } from "@rhiva-ag/datasource";
+
+import { privateProcedure, router } from "../../trpc";
+import { positionFilterSchema, positionSortSchema } from "./position.schema";
 
 export const positionRoute = router({
   aggregrate: privateProcedure.query(() => {}),
