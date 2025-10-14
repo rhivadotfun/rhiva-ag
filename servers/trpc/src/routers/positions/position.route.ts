@@ -7,10 +7,16 @@ import {
   wallets,
 } from "@rhiva-ag/datasource";
 
+import { orcaRoute } from "./orca/orca.route";
+import { meteoraRoute } from "./meteora/meteora.route";
+import { raydiumRoute } from "./raydium/raydium.route";
 import { privateProcedure, router } from "../../trpc";
 import { positionFilterSchema, positionSortSchema } from "./position.schema";
 
 export const positionRoute = router({
+  orca: orcaRoute,
+  raydium: raydiumRoute,
+  meteora: meteoraRoute,
   aggregrate: privateProcedure.query(() => {}),
   list: privateProcedure
     .input(

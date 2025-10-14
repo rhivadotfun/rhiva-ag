@@ -84,7 +84,7 @@ export class MeteoraDLMM {
     }
   };
 
-  readonly buildClosePosition = ({
+  readonly buildClosePosition = async ({
     position,
     owner,
     pool,
@@ -106,12 +106,15 @@ export class MeteoraDLMM {
         user: owner,
         bps: new BN(100).muln(100),
         position: position.publicKey,
+        shouldClaimAndClose: true,
         toBinId: position.positionData.upperBinId,
         fromBinId: position.positionData.lowerBinId,
       });
-    return pool.closePositionIfEmpty({
-      owner,
-      position,
-    });
+    return [
+      await pool.closePositionIfEmpty({
+        owner,
+        position,
+      }),
+    ];
   };
 }

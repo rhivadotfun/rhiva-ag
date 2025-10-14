@@ -3,6 +3,8 @@ import "dotenv/config";
 import { format } from "util";
 
 type Env =
+  | "JITO_API_URL"
+  | "JITO_UUID"
   | "HELIUS_API_URL"
   | "HELIUS_API_KEY"
   | "SOLANA_RPC_URL"

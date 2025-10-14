@@ -1,4 +1,7 @@
-import type { TransactionError } from "@solana/web3.js";
+import type {
+  TransactionConfirmationStatus,
+  TransactionError,
+} from "@solana/web3.js";
 
 export type SimulateBundleRequest = {
   method: "simulateBundle";
@@ -10,9 +13,12 @@ export type SimulateBundleRequest = {
       encoding: "base64";
       addresses: string[];
     };
-    preExecutionAccountsConfigs?: { accountIndex: number; address: string[] }[];
+    preExecutionAccountsConfigs?: {
+      accountIndex?: number;
+      address: string[];
+    }[];
     postExecutionAccountsConfigs?: {
-      accountIndex: number;
+      accountIndex?: number;
       address: string[];
     }[];
     encodedTransactions: string[];
@@ -20,28 +26,18 @@ export type SimulateBundleRequest = {
 };
 
 export type SimulateBundleResponse = {
-  jsonrpc: string;
-  id: string;
-  result: {
-    context: {
-      apiVersion: string;
-      slot: number;
+  summary: "succeeded";
+  transactionResults: {
+    err: TransactionError | null;
+    logs: string[];
+    preExecutionAccounts: AccountState[];
+    postExecutionAccounts: AccountState[];
+    unitsConsumed: number;
+    returnData: {
+      programId: string;
+      data: string;
     };
-    value: {
-      summary: "succeeded";
-      transactionResults: {
-        err: TransactionError | null;
-        logs: string[];
-        preExecutionAccounts: AccountState[];
-        postExecutionAccounts: AccountState[];
-        unitsConsumed: number;
-        returnData: {
-          programId: string;
-          data: string;
-        };
-      }[];
-    };
-  };
+  }[];
 };
 
 type AccountState = {
@@ -50,4 +46,33 @@ type AccountState = {
   data: string;
   executable: boolean;
   rentEpoch: number;
+};
+
+export type SendBundleRequest = {
+  method: "sendBundle";
+  params: [string[], { encoding: "base64" }];
+};
+
+export type SendBundleResponse = {
+  result: string;
+};
+
+export type GetBundleStatusesRequest = {
+  params: [string[]];
+};
+
+export type GetBundleStatusesResponse = null | {
+  bundle_id: string;
+  transactions: [];
+  slot: number;
+  confirmationStatus: TransactionConfirmationStatus;
+  err: {
+    ok: null;
+  };
+};
+
+export type SolanaRPCResponse<T> = {
+  jsonrpc: string;
+  id: string;
+  result: T;
 };

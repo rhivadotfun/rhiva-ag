@@ -7,6 +7,7 @@ import {
   type ClmmPositionLayout,
   type Raydium,
 } from "@raydium-io/raydium-sdk-v2";
+import assert from "assert";
 
 type CreatePositionArgs = {
   priceChanges: [endPrice: number, startPrice: number];
@@ -17,7 +18,11 @@ type CreatePositionArgs = {
 };
 
 export class RaydiumDLMM {
-  constructor(private readonly raydium: Raydium) {}
+  readonly raydium: Raydium;
+
+  constructor(raydium?: Raydium) {
+    this.raydium = raydium!; // dangerous but we need too, assert for null runtime
+  }
 
   readonly buildCreatePosition = async ({
     pool,
@@ -26,6 +31,8 @@ export class RaydiumDLMM {
     priceChanges,
     slippage,
   }: CreatePositionArgs) => {
+    assert(this.raydium, "initialize raydium class to use this method");
+
     const rpcPoolInfo = await this.raydium.clmm.getPoolInfoFromRpc(pool);
     const { poolInfo, poolKeys } = rpcPoolInfo;
     const [lowerPriceChange, upperPriceChange] = priceChanges;
@@ -78,6 +85,7 @@ export class RaydiumDLMM {
       ownerInfo: {
         useSOLBalance: true,
       },
+      txVersion: TxVersion.V0,
     });
   };
 
@@ -85,11 +93,11 @@ export class RaydiumDLMM {
     pool,
     position,
   }: {
-    pool: string;
+    pool: Awaited<ReturnType<Raydium["clmm"]["getPoolInfoFromRpc"]>>;
     position: ClmmPositionLayout;
   }) => {
-    const rpcPoolInfo = await this.raydium.clmm.getPoolInfoFromRpc(pool);
-    const { poolInfo, poolKeys } = rpcPoolInfo;
+    assert(this.raydium, "initialize raydium class to use this method");
+    const { poolInfo, poolKeys } = pool;
 
     return this.raydium.clmm.closePosition({
       poolInfo,

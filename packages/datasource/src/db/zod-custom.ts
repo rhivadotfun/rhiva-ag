@@ -19,3 +19,21 @@ export const commaEnum = <T extends [string, ...string[]]>(values: T) => {
     ])
     .transform((arr) => arr.join(","));
 };
+
+export const publicKey = () =>
+  z
+    .string()
+    .min(32)
+    .transform(async (value) => {
+      const { PublicKey } = await import("@solana/web3.js");
+      return new PublicKey(value);
+    });
+
+export const address = () =>
+  z
+    .string()
+    .min(32)
+    .transform(async (value) => {
+      const { address } = await import("@solana/kit");
+      return address(value);
+    });

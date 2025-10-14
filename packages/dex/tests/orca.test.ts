@@ -26,9 +26,10 @@ import {
   type RpcSimulateTransactionResult,
 } from "@solana/kit";
 
-import { getEnv } from "../src/env";
-import { OrcaDLMM } from "../src/orca";
-import { getTokenBalanceChangesFromSimulation, loadWallet } from "../src/utils";
+import { getEnv } from "./env";
+import { loadWallet } from "./utils";
+import { OrcaDLMM } from "../src/dlmm/orca";
+import { getTokenBalanceChangesFromSimulation } from "../src/utils";
 import { fromLegacyPublicKey, fromVersionedTransaction } from "@solana/compat";
 
 describe("orca", () => {
@@ -50,6 +51,8 @@ describe("orca", () => {
     sender = new SendTransaction(
       getEnv("HELIUS_API_URL"),
       getEnv("HELIUS_API_KEY"),
+      getEnv("JITO_API_URL"),
+      getEnv("JITO_UUID"),
     );
 
     orca = new OrcaDLMM(rpc);
@@ -172,7 +175,7 @@ describe("orca", () => {
     const createCustomPositionV0Transaction =
       await signTransactionMessageWithSigners(createCustomPositionV0Message);
 
-    const bundleSimulationResponse = await sender.simulateBundles({
+    const bundleSimulationResponse = await sender.simulateBundle({
       skipSigVerify: true,
       transactions: [
         getBase64EncodedWireTransaction(swapV0Transaction),

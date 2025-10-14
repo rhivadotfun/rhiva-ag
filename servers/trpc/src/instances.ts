@@ -1,7 +1,8 @@
 import type Redis from "ioredis";
-import { Secret } from "@rhiva-ag/shared";
+import { Connection } from "@solana/web3.js";
 import { Client } from "@solana-tracker/data-api";
 import Coingecko from "@coingecko/coingecko-typescript";
+import { Secret, SendTransaction } from "@rhiva-ag/shared";
 import { createDB, createRedis } from "@rhiva-ag/datasource";
 
 import { getEnv } from "./env";
@@ -11,6 +12,13 @@ export const secret = new Secret(getEnv("SECRET_KEY"), {
   algorithm: "aes-256-gcm",
 });
 export const drizzle = createDB(getEnv("DATABASE_URL"));
+export const solanaConnection = new Connection(getEnv("SOLANA_RPC_URL"));
+export const sendTransaction = new SendTransaction(
+  getEnv("HELIUS_API_URL"),
+  getEnv("HELIUS_API_KEY"),
+  getEnv("JITO_API_URL"),
+  getEnv("JITO_UUID"),
+);
 
 export const coingecko = new Coingecko({
   environment: "pro",

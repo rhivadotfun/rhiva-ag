@@ -1,8 +1,19 @@
 {
-  "name": "@rhiva-ag/dlmm",
+  "name": "@rhiva-ag/dex",
   "version": "0.0.0",
   "scripts": {
-    "codegen": "bun x @rhiva-ag/env"
+    "codegen": "bun x @rhiva-ag/env --out tests/env.ts"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "require": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "resolutions": {
+    "@solana/kit": "^4.0.0"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",
@@ -14,8 +25,10 @@
     "@orca-so/whirlpools-core": "^2.0.0",
     "@raydium-io/raydium-sdk-v2": "^0.2.30-alpha",
     "@rhiva-ag/shared": "*",
+    "@saros-finance/dlmm-sdk": "^1.4.1",
     "@solana/compat": "^4.0.0",
     "@solana/kit": "^4.0.0",
+    "@solana/spl-token": "^0.4.14",
     "@solana/web3.js": "^1.98.4",
     "@types/bn.js": "^5.2.0",
     "@types/bun": "^1.3.0",

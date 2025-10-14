@@ -14,9 +14,10 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 
-import { getEnv } from "../src/env";
-import { RaydiumDLMM } from "../src/raydium";
-import { getTokenBalanceChangesFromSimulation, loadWallet } from "../src/utils";
+import { getEnv } from "./env";
+import { loadWallet } from "./utils";
+import { RaydiumDLMM } from "../src/dlmm/raydium";
+import { getTokenBalanceChangesFromSimulation } from "../src/utils";
 
 describe("raydium", () => {
   let jupiter: SwapApi;
@@ -31,6 +32,8 @@ describe("raydium", () => {
     sender = new SendTransaction(
       getEnv("HELIUS_API_URL"),
       getEnv("HELIUS_API_KEY"),
+      getEnv("JITO_API_URL"),
+      getEnv("JITO_UUID"),
     );
     connection = new Connection(getEnv("SOLANA_RPC_URL"));
     raydium = new RaydiumDLMM(
@@ -137,7 +140,7 @@ describe("raydium", () => {
       ...createPositionTransaction.signers,
     ]);
 
-    const bundleSimulationResponse = await sender.simulateBundles({
+    const bundleSimulationResponse = await sender.simulateBundle({
       skipSigVerify: true,
       transactions: [swapV0Transaction, createPositionV0Transaction],
     });

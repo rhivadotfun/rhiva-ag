@@ -13,9 +13,15 @@ import {
   type userSelectSchema,
   wallets,
   settings,
+  type walletSelectSchema,
 } from "@rhiva-ag/datasource";
 
 import { getEnv } from "../env";
+
+type User = Omit<
+  z.infer<typeof userSelectSchema>,
+  "referXp" | "totalRefer" | "settings" | "xp" | "wallet"
+> & { wallet: z.infer<typeof walletSelectSchema> };
 
 export class CivicAuthMiddleware {
   constructor(
@@ -74,16 +80,7 @@ export class CivicAuthMiddleware {
     });
   }
 
-  async getUser(
-    request: FastifyRequest,
-  ): Promise<
-    | Omit<
-        z.infer<typeof userSelectSchema>,
-        "referXp" | "totalRefer" | "settings" | "xp"
-      >
-    | undefined
-    | null
-  > {
+  async getUser(request: FastifyRequest): Promise<User | undefined | null> {
     const sessionUser = await this.getUserFromSession(request);
     if (sessionUser) return sessionUser;
     return this.getUserFromHeader(request);
@@ -91,7 +88,7 @@ export class CivicAuthMiddleware {
 
   private async getUserFromSession(
     request: FastifyRequest,
-  ): Promise<z.infer<typeof userSelectSchema> | null> {
+  ): Promise<User | null> {
     const sessionId = request.session.sessionId;
     const key = this.getCacheUserKey(sessionId);
     const user = await this.redis.get(key);

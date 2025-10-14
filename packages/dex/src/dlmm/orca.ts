@@ -85,14 +85,14 @@ export class OrcaDLMM {
   };
 
   readonly buildClosePosition = async ({
-    pool,
+    position,
     slippage,
     owner,
   }: {
-    pool: Address;
+    position: Address;
     slippage: number;
     owner: TransactionSigner;
   }) => {
-    return closePositionInstructions(this.rpc, pool, slippage, owner);
+    return closePositionInstructions(this.rpc, position, slippage, owner);
   };
 }

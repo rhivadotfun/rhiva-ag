@@ -13,9 +13,10 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 
-import { getEnv } from "../src/env";
-import { MeteoraDLMM } from "../src/meteora";
-import { getTokenBalanceChangesFromSimulation, loadWallet } from "../src/utils";
+import { getEnv } from "./env";
+import { loadWallet } from "./utils";
+import { MeteoraDLMM } from "../src/dlmm/meteora";
+import { getTokenBalanceChangesFromSimulation } from "../src/utils";
 
 describe("meteora", () => {
   let pool: DLMM;
@@ -32,6 +33,8 @@ describe("meteora", () => {
     sender = new SendTransaction(
       getEnv("HELIUS_API_URL"),
       getEnv("HELIUS_API_KEY"),
+      getEnv("JITO_API_URL"),
+      getEnv("JITO_UUID"),
     );
     connection = new Connection(getEnv("SOLANA_RPC_URL"));
     pool = await DLMM.create(
@@ -134,7 +137,7 @@ describe("meteora", () => {
     swapV0Transaction.sign([wallet]);
     createPositionV0Transaction.sign([wallet, position]);
 
-    const bundleSimulationResponse = await sender.simulateBundles({
+    const bundleSimulationResponse = await sender.simulateBundle({
       skipSigVerify: true,
       transactions: [swapV0Transaction, createPositionV0Transaction],
     });
