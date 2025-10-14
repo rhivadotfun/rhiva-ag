@@ -17,9 +17,6 @@
     "codegen": "bun x @rhiva-ag/env",
     "dev": "bun run --watch src/index.ts"
   },
-  "resolutions": {
-    "@solana/kit": "^4.0.0"
-  },
   "dependencies": {
     "@civic/auth-verify": "^0.0.4",
     "@coingecko/coingecko-typescript": "^2.2.0",
@@ -38,7 +35,7 @@
     "@rhiva-ag/shared": "*",
     "@solana-tracker/data-api": "^0.1.4",
     "@solana/compat": "^4.0.0",
-    "@solana/kit": "^4.0.0",
+    "@solana/kit": "^2.3.0",
     "@solana/spl-token": "^0.4.14",
     "@solana/web3.js": "^1.98.4",
     "@trpc/server": "^11.6.0",

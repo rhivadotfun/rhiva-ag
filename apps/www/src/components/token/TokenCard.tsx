@@ -17,7 +17,7 @@ export default function TokenCard({ token }: TokenCardProps) {
     <Link
       key={token.id}
       href={format("/tokens/%s/", token.id)}
-      className="flex  space-x-2 items-center  bg-dark border border-white/10 p-4 rounded-md 2xl:min-w-xs"
+      className="flex space-x-2 items-center  bg-dark border border-white/10 p-4 rounded-md 2xl:min-w-xs"
     >
       <Image
         width={64}
@@ -33,7 +33,7 @@ export default function TokenCard({ token }: TokenCardProps) {
       <div className="flex-1 flex flex-col space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <span className="text-base md:text-lg">{token.name}</span>
+            <p className="break-words text-base md:text-lg">{token.name}</p>
             <button type="button">
               <MdContentCopy
                 size={18}

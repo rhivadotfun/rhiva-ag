@@ -96,7 +96,7 @@ export default function ProductList(props: React.ComponentProps<"section">) {
         {...props}
         ref={scrollContainerRef}
         className={clsx(
-          "flex flex-nowrap  space-x-8 overflow-x-scroll max-w-full",
+          "snap-x snap-mandatory scroll-smooth flex flex-nowrap  space-x-8 overflow-x-scroll max-w-full",
           props.className,
         )}
       >
@@ -104,7 +104,7 @@ export default function ProductList(props: React.ComponentProps<"section">) {
           <button
             key={product.name}
             type="button"
-            className="relative flex flex-col items-center justify-center shrink-0 px-4 pb-4 sm:min-w-48 md:flex-1"
+            className="snap-center relative flex flex-col items-center justify-center shrink-0 px-4 pb-4 sm:min-w-48 md:flex-1"
             onClick={product.onClick}
           >
             <div className="lt-sm:w-28 lt-sm:h-20 absolute inset-x-0 bottom-0 overflow-hidden flex justify-center  bg-dark-secondary border border-white/10 rounded-md -z-10 sm:min-w-48 sm:min-h-32">

@@ -12,7 +12,7 @@ export default function Home() {
         <div className="flex-1 flex flex-col space-y-4 py-4 xl:self-center">
           <HeroSection className="mx-4 min-h-56 md:max-h-96 md:mx-8" />
           <ProductList className="px-4 md:px-8" />
-          <div className="flex-1 lt-xl:flex lt-xl:flex-col lt-xl:space-y-4 lt-xl:space-x-4 xl:grid xl:grid-cols-2 xl:gap-4">
+          <div className="flex-1 lt-xl:flex lt-xl:flex-col lt-xl:space-y-4 xl:grid xl:grid-cols-2 xl:gap-4">
             <OnchainAnalytic className="lt-xl:px-4 xl:flex-1 xl:ml-4 xl:md:ml-8" />
             <PeekHotTokenList className="flex-1 lt-xl:mx-4 xl:mr-4 xl:md:mr-8" />
           </div>
