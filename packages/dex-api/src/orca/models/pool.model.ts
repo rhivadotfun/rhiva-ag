@@ -91,5 +91,5 @@ export type Pair = {
   tokenBalanceB: string;
   tradeEnableTimestamp: string;
   tvlUsdc: string;
-  yieldOverTvl: symbol;
+  yieldOverTvl: string;
 };

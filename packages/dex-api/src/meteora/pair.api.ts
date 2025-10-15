@@ -1,6 +1,6 @@
+import type { Pair } from "./models";
 import { ApiImpl } from "../api-impl";
 import type { NormalizedPair } from "../type";
-import type { Pair } from "./models";
 
 type PairArgs = {
   page?: number;
@@ -58,11 +58,13 @@ export class PairApi extends ApiImpl {
     );
   }
 
-  normalize(pool: Pair): NormalizedPair {
+  normalize(
+    pool: Pair,
+    mintXDecimals: number,
+    mintYDecimals: number,
+  ): NormalizedPair {
     return {
       name: pool.name,
-      baseReserveAmount: pool.reserve_x_amount,
-      quoteReserveAmount: pool.reserve_y_amount,
       address: pool.address,
       apr: pool.apr,
       binStep: pool.bin_step,
@@ -75,6 +77,8 @@ export class PairApi extends ApiImpl {
       baseFee: parseFloat(pool.base_fee_percentage),
       volume24h: pool.trade_volume_24h,
       tvl: pool.fees_24h / pool.fee_tvl_ratio.hour_24,
+      baseReserveAmount: pool.reserve_x_amount / Math.pow(10, mintXDecimals),
+      quoteReserveAmount: pool.reserve_y_amount / Math.pow(10, mintYDecimals),
     };
   }
 }

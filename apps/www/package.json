@@ -22,6 +22,7 @@
     "@meteora-ag/dlmm": "^1.7.5",
     "@opennextjs/cloudflare": "^1.10.1",
     "@orca-so/whirlpools-core": "^2.0.0",
+    "@raydium-io/raydium-sdk-v2": "^0.2.30-alpha",
     "@reduxjs/toolkit": "^2.9.0",
     "@rhiva-ag/datasource": "*",
     "@rhiva-ag/dex-api": "*",

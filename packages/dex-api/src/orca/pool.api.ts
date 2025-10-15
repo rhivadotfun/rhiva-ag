@@ -130,13 +130,13 @@ export class PoolApi extends ApiImpl {
     return {
       name: [pool.tokenA.symbol, pool.tokenB.symbol].join("-"),
       address: pool.address,
-      binStep: pool.feeRate,
+      binStep: pool.feeRate / 10_000,
       maxFee: 10,
       baseReserveAmount:
         parseFloat(pool.tokenBalanceA) / Math.pow(10, pool.tokenA.decimals),
       quoteReserveAmount:
         parseFloat(pool.tokenBalanceB) / Math.pow(10, pool.tokenB.decimals),
-      baseFee: pool.feeRate,
+      baseFee: pool.feeRate / 10_000,
       price: parseFloat(pool.price),
       tvl: parseFloat(pool.tvlUsdc),
       liquidity: parseFloat(pool.liquidity),
@@ -144,7 +144,7 @@ export class PoolApi extends ApiImpl {
       fees24H: parseFloat(pool.stats["24h"].fees),
       fees7d: parseFloat(pool.stats["7d"].fees),
       volume24h: parseFloat(pool.stats["24h"].volume),
-      apr: parseFloat(pool.stats["24h"].yieldOverTvl),
+      apr: parseFloat(pool.yieldOverTvl),
     };
   }
 }

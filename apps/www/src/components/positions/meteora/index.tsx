@@ -1,5 +1,4 @@
 import clsx from "clsx";
-import DLMM from "@meteora-ag/dlmm";
 import { object, number } from "yup";
 import { PublicKey } from "@solana/web3.js";
 import { useCallback, useMemo } from "react";
@@ -16,6 +15,7 @@ import Image from "@/components/Image";
 import { useTRPC } from "@/trpc.client";
 import type { getPair } from "@/lib/dex-api";
 import PriceRangeInput from "./PriceRangeInput";
+import { getActiveBin } from "@/lib/meteora-patch";
 
 type MeteoraOpenPositionProps = {
   pool: Awaited<ReturnType<typeof getPair>>;
@@ -46,17 +46,17 @@ function MeteoraOpenPositionForm({
 }: React.ComponentProps<typeof Form> & Pick<MeteoraOpenPositionProps, "pool">) {
   const trpc = useTRPC();
   const { connection } = useConnection();
-  const { data: dlmm } = useQuery({
-    staleTime: Infinity,
-    queryKey: ["dlmm", pool.address],
-    queryFn: () => DLMM.create(connection, new PublicKey(pool.address)),
-  });
 
   const { data: activeBin } = useQuery({
     queryKey: [pool.address, "activeBin"],
     refetchInterval: 60000,
-    queryFn: () => dlmm?.getActiveBin(),
-    enabled: Boolean(dlmm),
+    queryFn: () =>
+      getActiveBin(
+        connection,
+        new PublicKey(pool.address),
+        pool.baseToken.decimals,
+        pool.quoteToken.decimals,
+      ),
   });
 
   const curves = useMemo(
@@ -110,127 +110,123 @@ function MeteoraOpenPositionForm({
     (value: [number, number]) => setFieldValue("priceChanges", value),
     [setFieldValue],
   );
+
   return (
-    dlmm && (
-      <FormikContext value={formikContext}>
-        <Form
-          {...props}
+    <FormikContext value={formikContext}>
+      <Form
+        {...props}
+        className={clsx(
+          "flex-1 flex flex-col p-4 overflow-y-scroll",
+          props.className,
+        )}
+      >
+        <div className="flex">
+          {curves.map((curve) => {
+            const selected = curve.value === values.strategyType;
+
+            return (
+              <button
+                key={curve.value}
+                type="button"
+                className="flex-1 flex items-center justify-center"
+                onClick={() => setFieldValue("strategyType", curve.value)}
+              >
+                <div
+                  className={clsx(
+                    selected
+                      ? "border-b-2 border-primary p-2"
+                      : "text-white/50",
+                  )}
+                >
+                  {curve.label}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex-1 flex flex-col py-4 overflow-y-scroll sm:py-8">
+          <div className="flex flex-col space-y-4">
+            <TokenInput
+              name="inputAmount"
+              label="Trade amount"
+              value={values.inputAmount}
+              onChange={(value) => setFieldValue("inputAmount", value)}
+            />
+            <div className="flex space-x-4">
+              {[pool.baseToken, pool.quoteToken].map((token) => {
+                const selected = values.sides.find((side) => side === token.id);
+
+                return (
+                  <button
+                    key={token.id}
+                    type="button"
+                    className={clsx(
+                      "flex-1 flex items-center justify-center  border-1 p-2 rounded lt-sm:items-center lt-sm:space-x-2 sm:flex-col sm:space-y-4",
+                      selected
+                        ? "border-transparent bg-primary text-black"
+                        : "border-gray text-gray",
+                    )}
+                    onClick={() => {
+                      let sides = values.sides;
+                      if (selected)
+                        sides = sides.filter((side) => side !== token.id);
+                      else sides.push(token.id);
+                      setFieldValue("sides", sides);
+                    }}
+                  >
+                    <Image
+                      src={token.icon}
+                      width={24}
+                      height={24}
+                      alt={token.symbol}
+                      className="rounded-full"
+                    />
+                    <span>{token.symbol}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {values.sides.length > 1 && (
+              <RatioInput
+                tokens={[pool.baseToken, pool.quoteToken]}
+                value={values.liquidityRatio}
+                onChange={onLiquidityRatio}
+              />
+            )}
+            {activeBin && (
+              <PriceRangeInput
+                pool={pool}
+                sides={[values.sides.length > 0, values.sides.length > 1]}
+                curveType={values.strategyType}
+                amount={values.inputAmount}
+                activeBin={activeBin}
+                value={values.priceChanges}
+                liquidityRatio={
+                  values.sides.length > 1 ? values.liquidityRatio : undefined
+                }
+                onChange={onPriceChanges}
+              />
+            )}
+          </div>
+        </div>
+        <button
+          type="button"
+          disabled={!isValid}
           className={clsx(
-            "flex-1 flex flex-col p-4 overflow-y-scroll",
-            props.className,
+            "p-2 rounded-md",
+            isValid
+              ? "bg-primary text-black"
+              : "bg-gray/30 border border-white/10 text-gray",
           )}
         >
-          <div className="flex">
-            {curves.map((curve) => {
-              const selected = curve.value === values.strategyType;
-
-              return (
-                <button
-                  key={curve.value}
-                  type="button"
-                  className="flex-1 flex items-center justify-center"
-                  onClick={() => setFieldValue("strategyType", curve.value)}
-                >
-                  <div
-                    className={clsx(
-                      selected
-                        ? "border-b-2 border-primary p-2"
-                        : "text-white/50",
-                    )}
-                  >
-                    {curve.label}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-          <div className="flex-1 flex flex-col py-4 overflow-y-scroll sm:py-8">
-            <div className="flex flex-col space-y-4">
-              <TokenInput
-                name="inputAmount"
-                label="Trade amount"
-                value={values.inputAmount}
-                onChange={(value) => setFieldValue("inputAmount", value)}
-              />
-              <div className="flex space-x-4">
-                {[pool.baseToken, pool.quoteToken].map((token) => {
-                  const selected = values.sides.find(
-                    (side) => side === token.id,
-                  );
-
-                  return (
-                    <button
-                      key={token.id}
-                      type="button"
-                      className={clsx(
-                        "flex-1 flex items-center justify-center  border-1 p-2 rounded lt-sm:items-center lt-sm:space-x-2 sm:flex-col sm:space-y-4",
-                        selected
-                          ? "border-transparent bg-primary text-black"
-                          : "border-gray text-gray",
-                      )}
-                      onClick={() => {
-                        let sides = values.sides;
-                        if (selected)
-                          sides = sides.filter((side) => side !== token.id);
-                        else sides.push(token.id);
-                        setFieldValue("sides", sides);
-                      }}
-                    >
-                      <Image
-                        src={token.icon}
-                        width={24}
-                        height={24}
-                        alt={token.symbol}
-                        className="rounded-full"
-                      />
-                      <span>{token.symbol}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              {values.sides.length > 1 && (
-                <RatioInput
-                  tokens={[pool.baseToken, pool.quoteToken]}
-                  value={values.liquidityRatio}
-                  onChange={onLiquidityRatio}
-                />
-              )}
-              {activeBin && (
-                <PriceRangeInput
-                  pool={pool}
-                  dlmm={dlmm}
-                  sides={[values.sides.length > 0, values.sides.length > 1]}
-                  curveType={values.strategyType}
-                  amount={values.inputAmount}
-                  activeBin={activeBin}
-                  value={values.priceChanges}
-                  liquidityRatio={
-                    values.sides.length > 1 ? values.liquidityRatio : undefined
-                  }
-                  onChange={onPriceChanges}
-                />
-              )}
-            </div>
-          </div>
-          <button
-            type="button"
-            disabled={!isValid}
-            className={clsx(
-              " p-2 rounded-md",
-              isValid
-                ? "bg-primary text-black"
-                : "bg-gray/30 border border-white/10 text-gray",
-            )}
-          >
-            {isSubmitting ? (
-              <div className="size-4 rounded-full" />
-            ) : (
-              <span>Open Positon</span>
-            )}
-          </button>
-        </Form>
-      </FormikContext>
-    )
+          {isSubmitting ? (
+            <div className="size-4 rounded-full" />
+          ) : (
+            <span>Open Positon</span>
+          )}
+        </button>
+      </Form>
+    </FormikContext>
   );
 }
 

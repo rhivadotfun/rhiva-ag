@@ -3,9 +3,11 @@ import { useMemo } from "react";
 import { number, object } from "yup";
 import { IoArrowBack } from "react-icons/io5";
 import { NATIVE_MINT } from "@solana/spl-token";
+import { address, createSolanaRpc } from "@solana/kit";
+import { Form, FormikContext, useFormik } from "formik";
+import { useConnection } from "@solana/wallet-adapter-react";
 import { fetchWhirlpool } from "@orca-so/whirlpools-client";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Form, type Formik, FormikContext, useFormik } from "formik";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 
 import { useTRPC } from "@/trpc.client";
@@ -13,8 +15,6 @@ import type { getPair } from "@/lib/dex-api";
 import DepositInput from "../DepositInput";
 import PriceRangeInput from "./PriceRangeInput";
 import PositionOverview from "../PositionOverview";
-import { address, createSolanaRpc } from "@solana/kit";
-import { useConnection } from "@solana/wallet-adapter-react";
 
 type OrcaOpenPositionProps = {
   pool: Awaited<ReturnType<typeof getPair>>;
@@ -42,8 +42,7 @@ export default function OrcaOpenPosition({
 function OrcaOpenPositionForm({
   pool,
   ...props
-}: Omit<React.ComponentProps<typeof Formik>, "initialValues" | "onSubmit"> &
-  Pick<OrcaOpenPositionProps, "pool">) {
+}: React.ComponentProps<typeof Form> & Pick<OrcaOpenPositionProps, "pool">) {
   const trpc = useTRPC();
   const { connection } = useConnection();
   const curves = useMemo(
@@ -94,62 +93,81 @@ function OrcaOpenPositionForm({
   const { values, isValid, setFieldValue, isSubmitting } = formikContext;
 
   return (
-    <FormikContext value={formikContext}>
-      <Form className="flex-1 flex flex-col p-4 overflow-y-scroll">
-        <div className="flex">
-          {curves.map((curve) => {
-            const selected = curve.value === values.strategyType;
+    whirlpool && (
+      <FormikContext value={formikContext}>
+        <Form
+          {...props}
+          className={clsx(
+            "flex-1 flex flex-col p-4 overflow-y-scroll",
+            props.className,
+          )}
+        >
+          <div className="flex">
+            {curves.map((curve) => {
+              const selected = curve.value === values.strategyType;
 
-            return (
-              <button
-                key={curve.value}
-                type="button"
-                className={clsx(
-                  "flex-1 flex items-center justify-center",
-                  selected ? "border-b-2 border-primary p-2" : "text-white/50",
-                )}
-                onClick={() => setFieldValue("curve", curve.value)}
-              >
-                {curve.label}
-              </button>
-            );
-          })}
-        </div>
-        <div className="flex-1 flex flex-col space-y-16 py-4 overflow-y-scroll sm:py-8">
-          <div className="flex flex-col space-y-4">
-            {values.strategyType === "custom" && (
-              <PriceRangeInput
-                pool={pool}
-                showInput={false}
-                curveType="Spot"
-                value={values.priceChanges}
-                sides={[values.sides.length > 0, values.sides.length > 1]}
-                amount={values.inputAmount}
-                liquidityRatio={
-                  values.sides.length > 1 ? values.liquidityRatio : undefined
-                }
-                onChange={(range) => setFieldValue("range", range)}
-              />
-            )}
-            <PositionOverview
-              estimatedYield={pool.apr}
-              tokens={[pool.baseToken, pool.quoteToken]}
-            />
-            <DepositInput
-              apr={pool.apr}
-              value={values.inputAmount}
-              onChange={(value) => setFieldValue("inputAmount", value)}
-            />
+              return (
+                <button
+                  key={curve.value}
+                  type="button"
+                  className={clsx(
+                    "flex-1 flex items-center justify-center",
+                    selected
+                      ? "border-b-2 border-primary p-2"
+                      : "text-white/50",
+                  )}
+                  onClick={() => setFieldValue("curve", curve.value)}
+                >
+                  {curve.label}
+                </button>
+              );
+            })}
           </div>
-          <button
-            type="button"
-            className="bg-primary text-black p-2 rounded-md"
-          >
-            Open Positon
-          </button>
-        </div>
-      </Form>
-    </FormikContext>
+          <div className="flex-1 flex flex-col space-y-16 py-4 overflow-y-scroll sm:py-8">
+            <div className="flex flex-col space-y-4">
+              {values.strategyType === "custom" && (
+                <PriceRangeInput
+                  pool={pool}
+                  whirlpool={whirlpool}
+                  value={values.priceChanges}
+                  sides={[values.sides.length > 0, values.sides.length > 1]}
+                  amount={values.inputAmount}
+                  liquidityRatio={
+                    values.sides.length > 1 ? values.liquidityRatio : undefined
+                  }
+                  onChange={(range) => setFieldValue("priceChanges", range)}
+                />
+              )}
+              <PositionOverview
+                estimatedYield={pool.apr}
+                tokens={[pool.baseToken, pool.quoteToken]}
+              />
+              <DepositInput
+                apr={pool.apr}
+                value={values.inputAmount}
+                onChange={(value) => setFieldValue("inputAmount", value)}
+              />
+            </div>
+            <button
+              type="button"
+              disabled={!isValid}
+              className={clsx(
+                "p-2 rounded-md",
+                isValid
+                  ? "bg-primary text-black"
+                  : "bg-gray/30 border border-white/10 text-gray",
+              )}
+            >
+              {isSubmitting ? (
+                <div className="size-4 rounded-full" />
+              ) : (
+                <span>Open Positon</span>
+              )}
+            </button>
+          </div>
+        </Form>
+      </FormikContext>
+    )
   );
 }
 
