@@ -1,5 +1,5 @@
-import clsx from "clsx";
 import Image from "next/image";
+import clsx from "clsx";
 import Banner from "@/assets/bg/banner.png";
 
 export default function HeroSection(props: React.ComponentProps<"section">) {
@@ -8,39 +8,47 @@ export default function HeroSection(props: React.ComponentProps<"section">) {
       {...props}
       className={clsx(
         props.className,
-        "overflow-hidden relative flex  bg-white bg-opacity-3 backdrop-blur-2xl border border-white/6 rounded-xl rounded-xl",
+        // card container
+        "relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-2xl",
       )}
     >
-      <div className="flex flex-col justify-center p-4 space-y-4 z-10 md:px-8">
-        <p className="text-lg">GM, User</p>
-        <div className="flex flex-col justify-center space-y-2">
-          <div className="flex flex-col lt-sm:w-40 lt-md:space-y-2">
-            <h1 className="text-lg text-nowrap text-primary font-bold sm:text-4xl 2xl:text-5xl">
+      {/* two columns that can shrink */}
+      <div className="grid md:grid-cols-2 items-stretch">
+        {/* text column */}
+        <div className="min-w-0 p-6 md:p-10 space-y-4">
+          <p className="text-lg">GM, User</p>
+          <div className="space-y-2">
+            <h1 className="text-primary font-bold text-3xl sm:text-5xl 2xl:text-6xl">
               Welcome to Rhiva
             </h1>
-            <p className="text-sm text-light sm:text-lg 2xl:text-xl">
-              Liquidity Yield Aggregator On Solana
+            <p className="text-sm sm:text-lg 2xl:text-xl text-light">
+              Smart Liquidity Yield Aggregator on Solana
             </p>
           </div>
-          <p className="text-gray lt-md:hidden 2xl:text-lg">
-            Maximize your earnings with our simplified,
-            <br className="lg:hidden" /> AI-powered
-            <br className="lt-lg:hidden" />
-            liquidity pool yield aggregator <br className="lg:hidden" />
-            across top DEXes on Solana.
+          <p className="text-gray 2xl:text-lg">
+            Maximize your earnings with our simplified liquidity pool yield
+            aggregator across top DEXes on Solana.
           </p>
         </div>
+
+        {/* image column (bounded) */}
+        <div className="relative min-w-0">
+          {/* give the image a height using aspect ratio so it cannot push width */}
+          <div className="relative w-full h-full md:aspect-[16/7]">
+            <Image
+              src={Banner}
+              alt="Welcome Banner"
+              fill
+              priority
+              className="object-cover object-right"
+              sizes="(min-width: 768px) 50vw, 100vw"
+            />
+          </div>
+        </div>
       </div>
-      <div className="flex-1">
-        <Image
-          src={Banner}
-          width={512}
-          height={512}
-          alt="Welcome Banner"
-          className="w-full h-full z-0"
-        />
-      </div>
-      <div className="absolute top-0 min-w-5/10 h-4 p-2 bg-primary blur-[64px] rounded-full" />
+
+      {/* glow stays inside the card bounds */}
+      <div className="pointer-events-none absolute inset-x-6 top-0 h-4 rounded-full bg-primary/30 blur-[64px]" />
     </section>
   );
 }

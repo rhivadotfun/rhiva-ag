@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <div className="flex-1 flex flex-col overflow-y-scroll">
       <Header className="sticky top-0 z-10" />
-      <div className="flex-1 flex flex-col pt-4 overflow-y-scroll">
+      <div className="flex-1 flex flex-col pt-4 overflow-y-scroll min-h-0">
         <div className="flex-1 flex flex-col space-y-4 py-4">
           <HeroSection className="mx-4 min-h-56 md:max-h-96 md:mx-8 xl:w-7xl" />
           <ProductList className="px-4 md:px-8" />
