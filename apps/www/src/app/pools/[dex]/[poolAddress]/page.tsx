@@ -98,7 +98,7 @@ export default function PoolPage({
             <div className="sm:col-span-2" />
           </div>
 
-          <div className="flex flex flex-col">
+          <div className="flex flex flex-col sm:flex sm:items-center">
             {isAuthenticated && (
               <OpenPosition
                 dex={dex}

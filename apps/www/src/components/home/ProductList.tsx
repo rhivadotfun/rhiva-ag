@@ -91,7 +91,7 @@ export default function ProductList(props: React.ComponentProps<"section">) {
   }, [updateScrollButtons]);
 
   return (
-    <div className="relative flex items-center xl:self-center">
+    <div className="relative flex items-center">
       <section
         {...props}
         ref={scrollContainerRef}

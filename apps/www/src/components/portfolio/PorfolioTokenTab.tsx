@@ -27,45 +27,47 @@ export default function PorfolioTokenTab() {
   return (
     <>
       <TabPanel className="flex flex-col space-y-4">
-        {pnl && (
-          <div>
-            <p className="uppercase text-gray">Total Value</p>
-            <div className="flex items-center space-x-2">
-              <Decimal
-                value={pnl.balance}
-                intlArgs={currencyIntlArgs}
-                className="text-xl font-semibold"
-              />
-              <span
-                className={clsx(
-                  pnl.balanceChange < 0 ? "text-red-500" : "text-primary",
-                )}
-              >
-                {percentageIntl.format(pnl.balanceChange)}
-              </span>
+        <div className="sm:flex sm:justify-between">
+          {pnl && (
+            <div>
+              <p className="uppercase text-gray">Total Value</p>
+              <div className="flex items-center space-x-2">
+                <Decimal
+                  value={pnl.balance}
+                  intlArgs={currencyIntlArgs}
+                  className="text-xl font-semibold"
+                />
+                <span
+                  className={clsx(
+                    pnl.balanceChange < 0 ? "text-red-500" : "text-primary",
+                  )}
+                >
+                  {percentageIntl.format(pnl.balanceChange)}
+                </span>
+              </div>
             </div>
+          )}
+          <div className="flex items-center space-x-4 [&_button]:flex-1 [&_button]:min-w-32 [&_button]:bg-white/3 [&_button]:py-2 [&_button]:border [&_button]:border-white/10 [&_button]:rounded">
+            <button
+              type="button"
+              onClick={() => setShowSendModal(true)}
+            >
+              Send
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowReceiveModal(true)}
+            >
+              Receive
+            </button>
+            <button
+              type="button"
+              className="!bg-primary border-none text-black"
+              onClick={() => setShowSwapModal(true)}
+            >
+              Swap
+            </button>
           </div>
-        )}
-        <div className="flex items-center space-x-4 [&_button]:flex-1 [&_button]:bg-white/3 [&_button]:py-2 [&_button]:border [&_button]:border-white/10 [&_button]:rounded">
-          <button
-            type="button"
-            onClick={() => setShowSendModal(true)}
-          >
-            Send
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowReceiveModal(true)}
-          >
-            Receive
-          </button>
-          <button
-            type="button"
-            className="!bg-primary border-none text-black"
-            onClick={() => setShowSwapModal(true)}
-          >
-            Swap
-          </button>
         </div>
         <PortfolioTokenList tokens={tokens} />
       </TabPanel>

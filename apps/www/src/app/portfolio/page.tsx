@@ -27,7 +27,7 @@ export default function PortfolioPage() {
           <PortfolioHistory />
         </div>
         <TabGroup className="flex-1 flex flex-col space-y-4">
-          <TabList className="flex space-x-4">
+          <TabList className="flex space-x-4 sm:self-start">
             {Object.keys(Tabs).map((tab) => (
               <Tab
                 key={tab}
@@ -37,7 +37,7 @@ export default function PortfolioPage() {
                   <button
                     type="button"
                     className={clsx(
-                      "flex-1 p-2 rounded focus:outline-none",
+                      "flex-1 p-2 rounded focus:outline-none sm:min-w-48",
                       selected
                         ? "bg-primary text-black border-none"
                         : "border border-white/10",

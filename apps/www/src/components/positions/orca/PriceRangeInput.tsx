@@ -3,7 +3,10 @@ import { useCallback, useMemo } from "react";
 import type { Account, Address } from "@solana/kit";
 import type { Whirlpool } from "@orca-so/whirlpools-client";
 import { BarElement, CategoryScale, LinearScale } from "chart.js";
-import { tickIndexToPrice, priceToTickIndex } from "@orca-so/whirlpools-core";
+import {
+  tickIndexToPrice,
+  priceToTickIndex,
+} from "@orca-so/whirlpools-core/dist/browser/orca_whirlpools_core_js_bindings";
 
 import type { getPair } from "@/lib/dex-api";
 import PriceRangeInput from "../PriceRangeInput";

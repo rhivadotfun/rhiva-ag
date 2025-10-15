@@ -27,7 +27,7 @@ export default function PoolInfoList(props: React.ComponentProps<"div">) {
         >
           <p className="text-xs text-gray">{poolInfo.title}</p>
           <p className="lt-sm:hidden">{intl.format(poolInfo.value)}</p>
-          <p className="sm:hideen">{compactIntl.format(poolInfo.value)}</p>
+          <p className="sm:hidden">{compactIntl.format(poolInfo.value)}</p>
         </div>
       ))}
     </div>

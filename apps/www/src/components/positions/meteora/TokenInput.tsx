@@ -19,7 +19,9 @@ export default function TokenInput({
 }: TokenInputProps) {
   const { user } = useAuth();
   const { connection } = useConnection();
-  const [rawInput, setRawInput] = useState<string | number | undefined>(value);
+  const [rawInput, setRawInput] = useState<string | number | undefined>(
+    value ?? "",
+  );
 
   const { data: balance } = useQuery({
     refetchInterval: 60000,
