@@ -26,8 +26,8 @@ export const poolFilterSchema = z.object({
   buys_duration: z.enum(["5m", "1h", "6h", "24h"]).optional(),
   sells_duration: z.enum(["5m", "1h", "6h", "24h"]).optional(),
   tx_count_duration: z.enum(["5m", "1h", "6h", "24h"]).optional(),
-  dexes: commaEnum(["orca", "saros-dlmm", "meteora", "raydium"])
-    .default("orca,meteora,raydium")
+  dexes: commaEnum(["orca", "saros-dlmm", "meteora", "raydium-clmm"])
+    .default("orca,meteora,raydium-clmm")
     .optional(),
   include: commaEnum(["base_token", "quote_token", "dex", "network"])
     .default("base_token,quote_token,dex,network")

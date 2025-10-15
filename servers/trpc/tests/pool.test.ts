@@ -6,7 +6,7 @@ describe("pool.route", () => {
     const response = await coingecko.onchain.pools.megafilter.get({
       networks: "solana",
       include: "base_token,quote_token,dex",
-      dexes: "meteora,raydium,orca",
+      dexes: "meteora,raydium-clmm,orca",
     });
     console.log(response);
   });
