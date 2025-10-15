@@ -12,7 +12,7 @@ export default function TokenInput({ label, name, ...props }: TokenInputProps) {
     <div
       {...props}
       className={clsx(
-        "flex flex-col space-y-2 bg-primary/5 border border-primary/10 rounded-md p-4 focus-within:border-primary",
+        "flex flex-col space-y-2 bg-primary/5 border border-primary/10 backdrop-blur-3xl rounded-md p-4 focus-within:border-primary",
         props.className,
       )}
     >

@@ -24,7 +24,7 @@ export default function DepositInput({
 }: DepositInputProps) {
   const { user } = useAuth();
   const { connection } = useConnection();
-  const [rawInput, setRawInput] = useState<string | number>(value);
+  const [rawInput, setRawInput] = useState<string | number>(value ?? "");
 
   const { data: balance } = useQuery({
     refetchInterval: 60000,

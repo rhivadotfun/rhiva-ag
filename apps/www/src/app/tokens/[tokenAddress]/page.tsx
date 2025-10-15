@@ -93,7 +93,7 @@ export default function TokenPage({
               />*/}
             </div>
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col xl:flex xl:items-center">
             <SwapModal
               open={showSwapModal}
               onClose={() => setShowSwapModal(false)}

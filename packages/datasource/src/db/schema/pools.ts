@@ -4,7 +4,9 @@ import { mints } from "./mints";
 export const pools = pgTable("pools", {
   id: text().primaryKey(),
   addressLookupTables: text().array(),
-  dex: text({ enum: ["saros-dlmm", "raydium", "orca", "meteora"] }).notNull(),
+  dex: text({
+    enum: ["saros-dlmm", "raydium-clmm", "orca", "meteora"],
+  }).notNull(),
   baseToken: text()
     .references(() => mints.id, { onDelete: "restrict" })
     .notNull(),

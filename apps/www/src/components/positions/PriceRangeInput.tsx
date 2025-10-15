@@ -26,7 +26,7 @@ type PriceRangeInputProps = {
   value: [number, number];
   currentPrice: number;
   priceToIndex: (price: number, decimal0: number, decimal1: number) => number;
-  indexToPrice?: (price: number, decimal0: number, decimal1: number) => number;
+  indexToPrice: (price: number, decimal0: number, decimal1: number) => number;
   liquidityRatio?: [number, number];
   curveType?: "Spot" | "Curve" | "BidAsk";
   pool: Awaited<ReturnType<typeof getPair>>;
@@ -49,15 +49,16 @@ export default function PriceRangeInput({
   const [lowerPriceChange, upperPriceChange] = value;
   const [binStep, setBinStep] = useState(69);
   const [minPrice, setMinPrice] = useState(() => {
-    const price = 0;
-    return price + price * lowerPriceChange;
+    return currentPrice + currentPrice * lowerPriceChange;
   });
   const [maxPrice, setMaxPrice] = useState(() => {
-    const price = 0;
-    return price + price * upperPriceChange;
+    return currentPrice + currentPrice * upperPriceChange;
   });
 
-  const intl = useMemo(() => new Intl.NumberFormat(), []);
+  const intl = useMemo(
+    () => new Intl.NumberFormat("en-US", { maximumFractionDigits: 6 }),
+    [],
+  );
 
   const priceStep = useMemo(() => {
     return currentPrice * (pool.binStep / 10_000);
@@ -65,9 +66,9 @@ export default function PriceRangeInput({
 
   const autoFillOptions: RangeAutoFillOption[] = useMemo(
     () => [
-      { label: "1%", value: [0.01, 0.01] },
-      { label: "5%", value: [0.05, 0.05] },
-      { label: "10%", value: [0.1, 0.1] },
+      { label: "1%", value: [-0.01, 0.01] },
+      { label: "5%", value: [-0.05, 0.05] },
+      { label: "10%", value: [-0.1, 0.1] },
     ],
     [],
   );
@@ -85,12 +86,18 @@ export default function PriceRangeInput({
   );
 
   const labels = useMemo(() => {
-    const delta = (maxPrice - minPrice) / liquidities.length;
-    const labels = [];
-    for (let index = 0; index < liquidities.length; index++)
-      labels.push((minPrice + index * delta).toPrecision(4));
+    const labels: string[] = [];
+    const stepCount = liquidities.length - 1;
+
+    const ratioStep = Math.pow(maxPrice / minPrice, 1 / stepCount);
+
+    for (let i = 0; i <= stepCount; i++) {
+      const price = minPrice * Math.pow(ratioStep, i);
+      labels.push(price.toPrecision(4));
+    }
+
     return labels;
-  }, [maxPrice, minPrice, liquidities]);
+  }, [minPrice, maxPrice, liquidities.length]);
 
   const onMinPriceChange = useCallback(
     (price: number) => {
@@ -140,7 +147,7 @@ export default function PriceRangeInput({
     const minBinId = Math.min(...binIds);
     const maxBinId = Math.max(...binIds);
     const binStep = maxBinId - minBinId;
-    setBinStep(binStep);
+    setBinStep(Math.min(binStep, 128));
     setMaxPrice(maxPrice);
     setMinPrice(minPrice);
   }, [pool, currentPrice, lowerPriceChange, upperPriceChange, priceToIndex]);
@@ -150,9 +157,9 @@ export default function PriceRangeInput({
       {label && <p className="text-light-secondary">Price Range</p>}
       <div className="flex flex-col space-y-4 sm:space-y-8">
         <p className="text-xs text-white/75 text-center">
-          Current Price: <Decimal value={0} />
+          Current Price: <Decimal value={currentPrice} />
           &nbsp;
-          {pool.baseToken.symbol}/{pool.quoteToken.symbol}
+          {pool.quoteToken.symbol}/{pool.baseToken.symbol}
         </p>
         <div className="relative flex flex-col max-h-24 sm:max-h-48">
           <Bar
@@ -256,7 +263,7 @@ export default function PriceRangeInput({
           <RangeSlider
             range
             max={1}
-            step={0.1}
+            step={0.01}
             value={value}
             className="absolute inset-x-0 bottom-5"
             onChange={(value) => onChange(value as [number, number])}

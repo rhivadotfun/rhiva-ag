@@ -3,7 +3,7 @@ import { collectionToMap } from "@rhiva-ag/shared";
 
 export async function getPair(
   dexApi: DexApi,
-  dex: "orca" | "saros" | "raydium" | "meteora",
+  dex: "orca" | "saros" | "raydium-clmm" | "meteora",
   pairAddress: string,
 ) {
   switch (dex) {
@@ -47,7 +47,7 @@ export async function getPair(
         quoteToken: mapTokens.get(pair.mint_y)!,
       };
     }
-    case "raydium": {
+    case "raydium-clmm": {
       const {
         data: [pair],
       } = await dexApi.raydium.pool.ids(pairAddress);

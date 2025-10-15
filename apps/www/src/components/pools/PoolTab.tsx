@@ -14,7 +14,7 @@ const tabs = [
   { title: "All Pools", value: null },
   { title: "Meteora", value: "meteora", icon: IcMeteoraIcon },
   { title: "Orca", value: "orca", icon: IcOrcaIcon },
-  { title: "Raydium", value: "raydium", icon: IcRaydiumIcon },
+  { title: "Raydium", value: "raydium-clmm", icon: IcRaydiumIcon },
 ];
 
 export default function PoolTab(props: React.ComponentProps<"div">) {

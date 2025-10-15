@@ -1,19 +1,22 @@
-import { SqrtPriceMath } from "@raydium-io/raydium-sdk-v2";
-import { init } from "@rhiva-ag/decoder/programs/raydium/index";
 import type { Connection, PublicKey } from "@solana/web3.js";
+import { SqrtPriceMath, PoolInfoLayout } from "@raydium-io/raydium-sdk-v2";
 
 export const getPoolState = async (
   connection: Connection,
   poolPubkey: PublicKey,
 ) => {
-  const [program] = init(connection);
-  const pool = await program.account.poolState.fetch(poolPubkey);
+  const accountInfo = await connection.getAccountInfo(poolPubkey);
 
-  const currentPrice = SqrtPriceMath.sqrtPriceX64ToPrice(
-    pool.sqrtPriceX64,
-    pool.mintDecimals0,
-    pool.mintDecimals1,
-  ).toNumber();
+  if (accountInfo) {
+    const pool = PoolInfoLayout.decode(accountInfo.data);
+    const currentPrice = SqrtPriceMath.sqrtPriceX64ToPrice(
+      pool.sqrtPriceX64,
+      pool.mintDecimalsA,
+      pool.mintDecimalsB,
+    ).toNumber();
 
-  return { currentPrice, ...pool };
+    return { currentPrice, ...pool };
+  }
+
+  return null;
 };

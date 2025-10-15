@@ -86,20 +86,36 @@ export class PoolApi extends ApiImpl {
     mintAPriceUsd: number,
     mintBPriceUsd: number,
   ): NormalizedPair {
+    const apr = pool.day.apr;
+    const feeApr = pool.day.feeApr;
+    const rewardAprs = pool.day.rewardApr;
+
+    const dailyFeeYieldPct = feeApr / 100 / 365;
+    const dailyRewardYieldPct = rewardAprs.reduce(
+      (acc, cur) => acc + cur / 100 / 265,
+      0,
+    );
+    const dailyYieldPct =
+      apr / 100 / 365 || dailyFeeYieldPct + dailyRewardYieldPct;
+
     return {
       address: pool.id,
       name: [pool.mintA.symbol, pool.mintB.symbol].join("-"),
       baseReserveAmount: pool.mintAmountA,
       quoteReserveAmount: pool.mintAmountB,
       price: pool.price,
-      apr: pool.day.apr,
-      baseFee: pool.feeRate,
+      apr: dailyYieldPct,
+      baseFee: pool.config.tradeFeeRate / 1e6,
       tvl: parseFloat(pool.tvl),
       fees: pool.month.volumeFee,
       fees24H: pool.day.volumeFee,
       fees7d: pool.week.volumeFee,
       binStep: pool.config.tickSpacing,
-      maxFee: pool.config.tradeFeeRate,
+      maxFee:
+        (pool.config.tradeFeeRate +
+          pool.config.protocolFeeRate +
+          pool.config.fundFeeRate) /
+        1e6,
       volume24h: pool.day.volume,
       liquidity:
         mintAPriceUsd * pool.mintAmountA + mintBPriceUsd * pool.mintAmountB,

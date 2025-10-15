@@ -18,7 +18,7 @@ type PoolTokenMetadata = {
       alt: string;
     };
   };
-  dex: "meteora" | "saros" | "orca" | "raydium";
+  dex: "meteora" | "saros" | "orca" | "raydium-clmm";
 } & React.ComponentProps<"div">;
 
 export default function PoolTokenMetadata({

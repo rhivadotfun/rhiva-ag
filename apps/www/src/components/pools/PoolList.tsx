@@ -50,7 +50,7 @@ export default function PoolList({ pools }: PoolListProps) {
               {pool.dex.id === "orca" && (
                 <IcOrcaIcon className="size-4 rounded-full" />
               )}
-              {pool.dex.id === "raydium" && (
+              {pool.dex.id === "raydium-clmm" && (
                 <IcRaydiumIcon className="size-4 rounded-full" />
               )}
               {pool.dex.id === "meteora" && (
@@ -143,7 +143,9 @@ export function PoolListSmall({ pools }: PoolListSmallProps) {
                 </p>
                 <MdContentCopy className="text-gray mr-1 lt-sm:text-xs" />
                 <IcDex
-                  dex={pool.dex.id as "orca" | "saros" | "raydium" | "meteora"}
+                  dex={
+                    pool.dex.id as "orca" | "saros" | "raydium-clmm" | "meteora"
+                  }
                   width={16}
                   height={16}
                 />

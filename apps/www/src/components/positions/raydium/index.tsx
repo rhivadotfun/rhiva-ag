@@ -65,7 +65,7 @@ function RaydiumOpenPositionForm({
       inputAmount: undefined as unknown as number,
       inputMint: NATIVE_MINT.toBase58(),
       strategyType: "Spot" as const,
-      priceChanges: [1, 1] as [number, number],
+      priceChanges: [-0.01, 0.01] as [number, number],
       liquidityRatio: [0.5, 0.5] as [number, number],
       sides: [pool.baseToken.id, pool.quoteToken.id],
     },

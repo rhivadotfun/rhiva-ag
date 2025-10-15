@@ -48,7 +48,7 @@ function SwapForm(props: React.ComponentProps<typeof Form>) {
             label="Sell"
             name="sell"
           />
-          <div className="absolute self-center size-8 flex items-center justify-center bg-dark-secondary border border-white/10 rounded-full">
+          <div className="z-10 absolute self-center size-8 flex items-center justify-center bg-dark-secondary border border-white/10 rounded-full">
             <MdSwapVert size={16} />
           </div>
           <TokenInput

@@ -18,7 +18,7 @@ import { useAuth } from "@/hooks/useAuth";
 export default function PoolPage({
   params,
 }: AppProps<
-  { dex: "orca" | "raydium" | "meteora"; poolAddress: string },
+  { dex: "orca" | "raydium-clmm" | "meteora"; poolAddress: string },
   null
 >) {
   const { user } = useAuth();
@@ -98,7 +98,7 @@ export default function PoolPage({
             <div className="sm:col-span-2" />
           </div>
 
-          <div className="flex flex flex-col sm:flex sm:items-center">
+          <div className="flex flex flex-col xl:flex xl:items-center">
             {isAuthenticated && (
               <OpenPosition
                 dex={dex}

@@ -1,8 +1,8 @@
 import Decimal from "decimal.js";
 import { Chart, Tooltip } from "chart.js";
 import { useCallback, useMemo } from "react";
-import { TickMath } from "@raydium-io/raydium-sdk-v2";
 import { BarElement, CategoryScale, LinearScale } from "chart.js";
+import { TickMath, SqrtPriceMath } from "@raydium-io/raydium-sdk-v2";
 
 import type { getPair } from "@/lib/dex-api";
 import PriceRangeInput from "../PriceRangeInput";
@@ -18,7 +18,7 @@ type PriceRangeInputProps = {
   liquidityRatio?: [number, number];
   pool: Awaited<ReturnType<typeof getPair>>;
   onChange: (value: [number, number]) => void;
-  poolState: Awaited<ReturnType<typeof getPoolState>>;
+  poolState: NonNullable<Awaited<ReturnType<typeof getPoolState>>>;
 };
 
 export default function RaydiumPriceRangeInput({
@@ -32,11 +32,23 @@ export default function RaydiumPriceRangeInput({
     (price: number, decimal0: number, decimal1: number) =>
       TickMath.getTickWithPriceAndTickspacing(
         new Decimal(price),
-        pool.binStep,
+        poolState.tickSpacing,
         decimal0,
         decimal1,
       ),
-    [pool],
+    [poolState],
+  );
+
+  const indexToPrice = useCallback(
+    (tick: number, decimal0: number, decimal1: number) => {
+      const tickSqrtPriceX64 = SqrtPriceMath.getSqrtPriceX64FromTick(tick);
+      return SqrtPriceMath.sqrtPriceX64ToPrice(
+        tickSqrtPriceX64,
+        decimal0,
+        decimal1,
+      ).toNumber();
+    },
+    [],
   );
 
   return (
@@ -46,6 +58,7 @@ export default function RaydiumPriceRangeInput({
       curveType="Spot"
       showInput={false}
       currentPrice={currentPrice}
+      indexToPrice={indexToPrice}
       priceToIndex={priceToIndex}
     />
   );

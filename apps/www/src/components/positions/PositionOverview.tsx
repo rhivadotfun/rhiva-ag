@@ -49,6 +49,7 @@ export default function PositionOverview({
                 height={16}
                 src={token.icon}
                 alt={token.symbol}
+                className="rounded-full"
               />
             </div>
           ))}

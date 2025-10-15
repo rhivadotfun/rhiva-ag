@@ -67,17 +67,17 @@ export default function PoolInfo({ tvl, apr, tokens }: PoolInfoProps) {
           {tokens.map((token) => (
             <div
               key={token.id}
-              className="flex items-center space-x-2"
+              className="flex  items-center space-x-2"
             >
-              <div className="flex-1 flex items-center space-x-2">
-                <Image
-                  src={token.image}
-                  width={32}
-                  height={32}
-                  alt={token.name}
-                  className="rounded-full"
-                />
-                <div className="flex flex-col space-y-2">
+              <Image
+                src={token.image}
+                width={32}
+                height={32}
+                alt={token.name}
+                className="rounded-full"
+              />
+              <div className="flex-1 flex flex-wrap items-center gap-2">
+                <div className="flex-1 flex flex-col space-y-2">
                   <div className="flex items-center space-x-4">
                     <p className="text-base font-medium">{token.name}</p>
                     <div className="flex text-xs items-center  space-x-2 bg-white/10 text-gray px-2 py-1 rounded">
@@ -110,11 +110,13 @@ export default function PoolInfo({ tvl, apr, tokens }: PoolInfoProps) {
                     </span>
                   </div>
                 </div>
+                <span className="lt-xl:hidden">
+                  {intl.format(token.amount)}
+                </span>
+                <span className="xl:hidden">
+                  {compactIntl.format(token.amount)}
+                </span>
               </div>
-              <span className="lt-xl:hidden">{intl.format(token.amount)}</span>
-              <span className="xl:hidden">
-                {compactIntl.format(token.amount)}
-              </span>
             </div>
           ))}
         </div>
