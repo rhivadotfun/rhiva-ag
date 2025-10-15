@@ -33,9 +33,15 @@ export async function getPair(
       });
 
       const mapTokens = collectionToMap(tokens, (token) => token.id);
+      const baseToken = mapTokens.get(pair.mint_x)!;
+      const quoteToken = mapTokens.get(pair.mint_y)!;
 
       return {
-        ...dexApi.meteora.pair.normalize(pair),
+        ...dexApi.meteora.pair.normalize(
+          pair,
+          baseToken.decimals,
+          quoteToken.decimals,
+        ),
         extra: pair,
         baseToken: mapTokens.get(pair.mint_x)!,
         quoteToken: mapTokens.get(pair.mint_y)!,

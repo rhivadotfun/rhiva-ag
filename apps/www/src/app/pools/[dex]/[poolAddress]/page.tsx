@@ -1,5 +1,7 @@
 "use client";
-import { use, useState } from "react";
+import { AuthStatus } from "@civic/auth";
+import { useUser } from "@civic/auth/react";
+import { use, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { dexApi } from "@/instances";
@@ -8,10 +10,10 @@ import type { AppProps } from "@/types/props";
 import Header from "@/components/layout/Header";
 import PoolInfo from "@/components/pools/PoolInfo";
 import PoolAnalytic from "@/components/pools/PoolAnalytic";
+import OpenPosition from "@/components/positions/OpenPosition";
 import PoolTokenMetadata from "@/components/pools/PoolTokenMetadata";
-import MeteoraOpenPosition from "@/components/positions/meteora";
-import RaydiumOpenPosition from "@/components/positions/raydium";
-import OrcaOpenPosition from "@/components/positions/orca";
+
+import { useAuth } from "@/hooks/useAuth";
 
 export default function PoolPage({
   params,
@@ -19,8 +21,15 @@ export default function PoolPage({
   { dex: "orca" | "raydium" | "meteora"; poolAddress: string },
   null
 >) {
+  const { user } = useAuth();
+  const { authStatus, signIn } = useUser();
   const { dex, poolAddress } = use(params);
   const [showCreatePositionModal, setShowCreatePositionModal] = useState(false);
+
+  const isAuthenticated = useMemo(
+    () => user && authStatus === AuthStatus.AUTHENTICATED,
+    [authStatus, user],
+  );
 
   const { data } = useQuery({
     queryKey: ["pools", dex, poolAddress],
@@ -55,7 +64,6 @@ export default function PoolPage({
                   },
                 }}
               />
-
               <PoolInfo
                 tvl={data.tvl}
                 apr={data.apr}
@@ -91,20 +99,10 @@ export default function PoolPage({
           </div>
 
           <div className="flex flex flex-col">
-            {dex === "meteora" && (
-              <MeteoraOpenPosition
-                open={showCreatePositionModal}
-                onClose={setShowCreatePositionModal}
-              />
-            )}
-            {dex === "orca" && (
-              <OrcaOpenPosition
-                open={showCreatePositionModal}
-                onClose={setShowCreatePositionModal}
-              />
-            )}
-            {dex === "raydium" && (
-              <RaydiumOpenPosition
+            {isAuthenticated && (
+              <OpenPosition
+                dex={dex}
+                pool={data}
                 open={showCreatePositionModal}
                 onClose={setShowCreatePositionModal}
               />
@@ -112,7 +110,10 @@ export default function PoolPage({
             <button
               type="button"
               className="bg-primary text-black p-2 rounded-md sm:hidden"
-              onClick={() => setShowCreatePositionModal(true)}
+              onClick={() => {
+                if (isAuthenticated) setShowCreatePositionModal(true);
+                else signIn();
+              }}
             >
               Open Position
             </button>

@@ -1,16 +1,30 @@
 import clsx from "clsx";
 import { useMemo } from "react";
-import { Form, Formik } from "formik";
+import { number, object } from "yup";
 import { IoArrowBack } from "react-icons/io5";
+import { NATIVE_MINT } from "@solana/spl-token";
+import { fetchWhirlpool } from "@orca-so/whirlpools-client";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Form, type Formik, FormikContext, useFormik } from "formik";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import DepositInput from "../DepositInput";
-import PositionOverview from "../PositionOverview";
-import PriceRangeInput from "../PriceRangeInput";
 
-export default function OrcaOpenPosition(
-  props: React.ComponentProps<typeof Dialog>,
-) {
-  const form = <OrcaOpenPositionForm />;
+import { useTRPC } from "@/trpc.client";
+import type { getPair } from "@/lib/dex-api";
+import DepositInput from "../DepositInput";
+import PriceRangeInput from "./PriceRangeInput";
+import PositionOverview from "../PositionOverview";
+import { address, createSolanaRpc } from "@solana/kit";
+import { useConnection } from "@solana/wallet-adapter-react";
+
+type OrcaOpenPositionProps = {
+  pool: Awaited<ReturnType<typeof getPair>>;
+} & React.ComponentProps<typeof Dialog>;
+
+export default function OrcaOpenPosition({
+  pool,
+  ...props
+}: OrcaOpenPositionProps) {
+  const form = useMemo(() => <OrcaOpenPositionForm pool={pool} />, [pool]);
 
   return (
     <>
@@ -25,12 +39,13 @@ export default function OrcaOpenPosition(
   );
 }
 
-function OrcaOpenPositionForm(
-  props: Omit<
-    React.ComponentProps<typeof Formik>,
-    "initialValues" | "onSubmit"
-  >,
-) {
+function OrcaOpenPositionForm({
+  pool,
+  ...props
+}: Omit<React.ComponentProps<typeof Formik>, "initialValues" | "onSubmit"> &
+  Pick<OrcaOpenPositionProps, "pool">) {
+  const trpc = useTRPC();
+  const { connection } = useConnection();
   const curves = useMemo(
     () => [
       { label: "Full", value: "full" },
@@ -38,62 +53,103 @@ function OrcaOpenPositionForm(
     ],
     [],
   );
+  const rpc = useMemo(
+    () => createSolanaRpc(connection.rpcEndpoint),
+    [connection],
+  );
+
+  const { data: whirlpool } = useQuery({
+    queryKey: ["whirlpool", pool.address],
+    queryFn: () => fetchWhirlpool(rpc, address(pool.address)),
+  });
+
+  const { mutateAsync } = useMutation(
+    trpc.position.orca.create.mutationOptions(),
+  );
+
+  const formikContext = useFormik({
+    validateOnMount: true,
+    validationSchema: object({
+      inputAmount: number().moreThan(0).required(),
+    }),
+    initialValues: {
+      inputAmount: undefined as unknown as number,
+      inputMint: NATIVE_MINT.toBase58(),
+      strategyType: "full" as "custom" | "full",
+      priceChanges: [1, 1] as [number, number],
+      liquidityRatio: [0.5, 0.5] as [number, number],
+      sides: [pool.baseToken.id, pool.quoteToken.id],
+    },
+    onSubmit: (values) => {
+      return mutateAsync({
+        ...values,
+        slippage: 50,
+        pair: pool.address,
+        tokenADecimals: pool.baseToken.decimals,
+        tokenBDecimals: pool.quoteToken.decimals,
+      });
+    },
+  });
+
+  const { values, isValid, setFieldValue, isSubmitting } = formikContext;
 
   return (
-    <Formik
-      {...props}
-      initialValues={{
-        amount: undefined,
-        curve: "full",
-        range: [0.01, 0.01],
-      }}
-      onSubmit={() => {}}
-    >
-      {({ values, setFieldValue }) => (
-        <Form className="flex-1 flex flex-col p-4 overflow-y-scroll">
-          <div className="flex">
-            {curves.map((curve) => {
-              const selected = curve.value === values.curve;
+    <FormikContext value={formikContext}>
+      <Form className="flex-1 flex flex-col p-4 overflow-y-scroll">
+        <div className="flex">
+          {curves.map((curve) => {
+            const selected = curve.value === values.strategyType;
 
-              return (
-                <button
-                  key={curve.value}
-                  type="button"
-                  className={clsx(
-                    "flex-1 flex items-center justify-center",
-                    selected
-                      ? "border-b-2 border-primary p-2"
-                      : "text-white/50",
-                  )}
-                  onClick={() => setFieldValue("curve", curve.value)}
-                >
-                  {curve.label}
-                </button>
-              );
-            })}
+            return (
+              <button
+                key={curve.value}
+                type="button"
+                className={clsx(
+                  "flex-1 flex items-center justify-center",
+                  selected ? "border-b-2 border-primary p-2" : "text-white/50",
+                )}
+                onClick={() => setFieldValue("curve", curve.value)}
+              >
+                {curve.label}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex-1 flex flex-col space-y-16 py-4 overflow-y-scroll sm:py-8">
+          <div className="flex flex-col space-y-4">
+            {values.strategyType === "custom" && (
+              <PriceRangeInput
+                pool={pool}
+                showInput={false}
+                curveType="Spot"
+                value={values.priceChanges}
+                sides={[values.sides.length > 0, values.sides.length > 1]}
+                amount={values.inputAmount}
+                liquidityRatio={
+                  values.sides.length > 1 ? values.liquidityRatio : undefined
+                }
+                onChange={(range) => setFieldValue("range", range)}
+              />
+            )}
+            <PositionOverview
+              estimatedYield={pool.apr}
+              tokens={[pool.baseToken, pool.quoteToken]}
+            />
+            <DepositInput
+              apr={pool.apr}
+              value={values.inputAmount}
+              onChange={(value) => setFieldValue("inputAmount", value)}
+            />
           </div>
-          <div className="flex-1 flex flex-col space-y-16 py-4 overflow-y-scroll sm:py-8">
-            <div className="flex flex-col space-y-4">
-              {values.curve === "custom" && (
-                <PriceRangeInput
-                  showInput={false}
-                  value={values.range}
-                  onChange={(range) => setFieldValue("range", range)}
-                />
-              )}
-              <PositionOverview />
-              <DepositInput />
-            </div>
-            <button
-              type="button"
-              className="bg-primary text-black p-2 rounded-md"
-            >
-              Open Positon
-            </button>
-          </div>
-        </Form>
-      )}
-    </Formik>
+          <button
+            type="button"
+            className="bg-primary text-black p-2 rounded-md"
+          >
+            Open Positon
+          </button>
+        </div>
+      </Form>
+    </FormikContext>
   );
 }
 

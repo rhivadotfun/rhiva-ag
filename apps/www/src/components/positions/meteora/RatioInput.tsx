@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import RangeSlider from "rc-slider";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 type AutoFillOption = {
   label: string;
@@ -8,15 +8,18 @@ type AutoFillOption = {
 };
 
 type RatioInputProps = {
+  tokens: { symbol: string }[];
   value: [number, number];
   onChange(value: [number, number]): void;
-} & React.ComponentProps<"div">;
+} & Omit<React.ComponentProps<"div">, "onChange">;
 
 export default function RatioInput({
   value,
+  tokens,
   onChange,
   ...props
 }: RatioInputProps) {
+  const [inputError, setInputError] = useState(false);
   const autoFillOptions: AutoFillOption[] = useMemo(
     () => [
       { label: "50:50", value: [0.5, 0.5] },
@@ -34,10 +37,27 @@ export default function RatioInput({
       <p className="text-light-secondary">Liquidity Ratio %</p>
       <div className="flex flex-col space-y-1">
         <div className="flex flex-col">
-          <RangeSlider className="max-w-full [&_.rc-slider-rail]:bg-primary" />
+          <RangeSlider
+            step={0.01}
+            max={1}
+            value={value[0]}
+            className=" [&_.rc-slider-rail]:bg-primary"
+            onChange={(value) =>
+              onChange([value as number, 1 - (value as number)])
+            }
+          />
           <div className="flex justify-between">
-            <p className="text-light">50% SOL</p>
-            <p className="text-light">50% USDC</p>
+            {tokens.map((token, index) => {
+              const fraction = value[index];
+              return (
+                <p
+                  key={token.symbol}
+                  className="text-light"
+                >
+                  {Math.round(fraction * 100)}% {token.symbol}
+                </p>
+              );
+            })}
           </div>
         </div>
         <div className="flex items-center justify-between space-x-8">
@@ -62,7 +82,12 @@ export default function RatioInput({
               );
             })}
           </div>
-          <div className="flex border border-white/10 p-2 rounded-md focus-within:border-primary">
+          <div
+            className={clsx(
+              "flex border border-white/10 p-2 rounded-md",
+              inputError ? "border-red-500" : "focus-within:border-primary",
+            )}
+          >
             <input
               placeholder="50:50"
               className="w-full placeholder-text-gray"
@@ -73,9 +98,12 @@ export default function RatioInput({
                   .map((value) => value / 100);
                 if (
                   values.length > 1 &&
-                  !values.some((value) => Number.isNaN(value))
-                )
+                  !values.some((value) => Number.isNaN(value)) &&
+                  values.reduce((acc, cur) => acc + cur, 0) === 1
+                ) {
+                  setInputError(false);
                   onChange(values as [number, number]);
+                } else setInputError(true);
               }}
             />
             <span className="text-nowrap text-xs text-gray">Custom</span>

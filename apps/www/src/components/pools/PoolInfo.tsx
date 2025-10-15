@@ -1,16 +1,12 @@
 import clsx from "clsx";
+import { useMemo } from "react";
 import { FaLeaf } from "react-icons/fa6";
 import { MdOpenInNew } from "react-icons/md";
 
 import Image from "../Image";
 import Decimal from "../Decimal";
 import { truncateString } from "@/lib";
-import {
-  compactCurrencyIntlArgs,
-  currencyIntlArgs,
-  percentageIntlArgs,
-} from "@/constants/format";
-import { useMemo } from "react";
+import { currencyIntlArgs, percentageIntlArgs } from "@/constants/format";
 
 type TokenInfo = {
   id: string;
@@ -26,12 +22,14 @@ type PoolInfoProps = {
 };
 
 export default function PoolInfo({ tvl, apr, tokens }: PoolInfoProps) {
-  const currencyIntl = useMemo(
-    () => new Intl.NumberFormat("en-US", currencyIntlArgs),
-    [],
-  );
-  const compactCurrencyIntl = useMemo(
-    () => new Intl.NumberFormat("en-US", compactCurrencyIntlArgs),
+  const intl = useMemo(() => new Intl.NumberFormat("en-US"), []);
+  const compactIntl = useMemo(
+    () =>
+      new Intl.NumberFormat("en-US", {
+        notation: "compact",
+        maximumFractionDigits: 2,
+        compactDisplay: "short",
+      }),
     [],
   );
   const percentageIntl = useMemo(
@@ -113,11 +111,9 @@ export default function PoolInfo({ tvl, apr, tokens }: PoolInfoProps) {
                   </div>
                 </div>
               </div>
-              <span className="lt-xl:hidden">
-                {currencyIntl.format(token.amount)}
-              </span>
+              <span className="lt-xl:hidden">{intl.format(token.amount)}</span>
               <span className="xl:hidden">
-                {compactCurrencyIntl.format(token.amount)}
+                {compactIntl.format(token.amount)}
               </span>
             </div>
           ))}

@@ -3,8 +3,9 @@ import { useMemo } from "react";
 import { Form, Formik } from "formik";
 import { IoArrowBack } from "react-icons/io5";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import PriceRangeInput from "../PriceRangeInput";
+
 import DepositInput from "../DepositInput";
+import PriceRangeInput from "./PriceRangeInput";
 import PositionOverview from "../PositionOverview";
 
 export default function RaydiumOpenPosition(

@@ -1,7 +1,26 @@
+import { percentageIntlArgs } from "@/constants/format";
 import clsx from "clsx";
+import { useMemo } from "react";
+import Image from "../Image";
 
-type PositionOverviewProps = {} & React.ComponentProps<"div">;
-export default function PositionOverview(props: PositionOverviewProps) {
+type PositionOverviewProps = {
+  estimatedYield: number;
+  tokens: { symbol: string; icon: string }[];
+} & React.ComponentProps<"div">;
+export default function PositionOverview({
+  estimatedYield,
+  tokens,
+  ...props
+}: PositionOverviewProps) {
+  const intl = useMemo(
+    () =>
+      new Intl.NumberFormat("en-US", {
+        ...percentageIntlArgs,
+        signDisplay: "never",
+      }),
+    [],
+  );
+
   return (
     <div
       className={clsx(
@@ -14,11 +33,26 @@ export default function PositionOverview(props: PositionOverviewProps) {
           <span>Estimated Yield</span>
           <div className="text-gray bg-primary/10 px-2 rounded">24H</div>
         </div>
-        <p>0.028%</p>
+        <p>{intl.format(estimatedYield)}</p>
       </div>
       <div className="flex justify-between">
         <p>Deposit</p>
-        <p>50% SOL/50% USDC</p>
+        <div className="flex space-x-2">
+          {tokens.map((token) => (
+            <div
+              key={token.symbol}
+              className="flex items-center space-x-1"
+            >
+              <span>50%</span>
+              <Image
+                width={16}
+                height={16}
+                src={token.icon}
+                alt={token.symbol}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -29,6 +29,11 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
             style={defaultFont.style}
             className={clsx(defaultFont.variable, defaultFont.className)}
           >
+            <meta
+              name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1"
+            />
+
             <body className="fixed inset-0 flex flex-col bg-dark text-white overflow-y-scroll lt-md:text-sm">
               <Image
                 src={Line.src}
