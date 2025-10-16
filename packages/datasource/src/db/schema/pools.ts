@@ -1,4 +1,4 @@
-import { jsonb, pgTable, text } from "drizzle-orm/pg-core";
+import { jsonb, pgTable, text, unique } from "drizzle-orm/pg-core";
 import { mints } from "./mints";
 
 export const pools = pgTable("pools", {
@@ -7,6 +7,7 @@ export const pools = pgTable("pools", {
   dex: text({
     enum: ["saros-dlmm", "raydium-clmm", "orca", "meteora"],
   }).notNull(),
+  rewardTokens: text().array(),
   baseToken: text()
     .references(() => mints.id, { onDelete: "restrict" })
     .notNull(),
@@ -15,3 +16,16 @@ export const pools = pgTable("pools", {
     .notNull(),
   config: jsonb().$type<object>().notNull(),
 });
+
+export const poolRewardTokens = pgTable(
+  "pool_reward_tokens",
+  {
+    pool: text()
+      .references(() => pools.id, { onDelete: "cascade" })
+      .notNull(),
+    mint: text()
+      .references(() => mints.id, { onDelete: "cascade" })
+      .notNull(),
+  },
+  (column) => [unique().on(column.pool, column.mint)],
+);

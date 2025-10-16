@@ -4,6 +4,7 @@ import {
   pgTable,
   text,
   timestamp,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 import { pools } from "./pools";
@@ -18,9 +19,12 @@ export const positions = pgTable("positions", {
   wallet: text()
     .references(() => wallets.id, { onDelete: "cascade" })
     .notNull(),
-  pool: text().references(() => pools.id, { onDelete: "set null" }),
-  state: text({ enum: ["pending", "error", "successful"] }).notNull(),
-  status: text({
+  pool: text()
+    .references(() => pools.id, { onDelete: "restrict" })
+    .notNull(),
+  active: boolean().notNull(),
+  status: text({ enum: ["pending", "error", "successful"] }).notNull(),
+  state: text({
     enum: ["idle", "open", "rebalanced", "repositioned", "closed"],
   }).notNull(),
   updatedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),

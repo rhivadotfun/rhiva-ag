@@ -29,7 +29,8 @@
     "xior": "^0.7.8"
   },
   "devDependencies": {
+    "@tsconfig/bun": "^1.0.9",
     "@types/bun": "^1.3.0",
-    "@tsconfig/bun": "^1.0.9"
+    "@types/lodash.chunk": "^4.2.9"
   }
 }
