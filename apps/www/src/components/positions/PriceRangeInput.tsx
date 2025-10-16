@@ -91,8 +91,8 @@ export default function PriceRangeInput({
 
     const ratioStep = Math.pow(maxPrice / minPrice, 1 / stepCount);
 
-    for (let i = 0; i <= stepCount; i++) {
-      const price = minPrice * Math.pow(ratioStep, i);
+    for (let index = 0; index <= stepCount; index++) {
+      const price = minPrice * Math.pow(ratioStep, index);
       labels.push(price.toPrecision(4));
     }
 

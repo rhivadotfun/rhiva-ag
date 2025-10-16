@@ -1,8 +1,9 @@
 import z from "zod";
-import { and, eq, getTableColumns, type SQL } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, type SQL } from "drizzle-orm";
 import {
   buildDrizzleWhereClauseFromObject,
   buildOrderByClauseFromObject,
+  pnls,
   positions,
   wallets,
 } from "@rhiva-ag/datasource";
@@ -31,8 +32,8 @@ export const positionRoute = router({
       let where: SQL<unknown> | undefined;
       let orderBy: SQL<unknown>[] | undefined;
 
-      if (filter) where = and(...buildDrizzleWhereClauseFromObject(filter));
       if (sortBy) orderBy = buildOrderByClauseFromObject(sortBy);
+      if (filter) where = and(...buildDrizzleWhereClauseFromObject(filter));
 
       const qWallets = ctx.drizzle
         .select()
@@ -40,11 +41,22 @@ export const positionRoute = router({
         .where(eq(wallets.user, ctx.user.id))
         .as("qWallets");
 
+      const qPnls = ctx.drizzle
+        .select()
+        .from(pnls)
+        .orderBy(desc(pnls.createdAt))
+        .limit(1)
+        .as("qPnls");
+
       const query = ctx.drizzle
-        .select(getTableColumns(positions))
+        .select({
+          ...getTableColumns(positions),
+          pnl: getTableColumns(pnls),
+        })
         .from(positions)
         .where(where)
-        .innerJoin(qWallets, eq(positions.wallet, qWallets.id));
+        .innerJoin(qPnls, eq(qPnls.position, positions.id))
+        .innerJoin(qWallets, eq(qWallets.id, positions.wallet));
 
       if (orderBy) query.orderBy(...orderBy);
       if (input.limit) query.limit(input.limit);

@@ -1,33 +1,22 @@
 import z from "zod";
+import Dex from "@rhiva-ag/dex";
+import { loadWallet } from "@rhiva-ag/shared";
 import type { TradeGetResponse } from "@coingecko/coingecko-typescript/resources/onchain/networks/pools/trades.js";
 import type { OhlcvGetTimeframeResponse } from "@coingecko/coingecko-typescript/resources/onchain/networks/pools/ohlcv.js";
 
 import { privateProcedure, publicProcedure, router } from "../../trpc";
 import {
   tokenChartFilter,
-  tokenFilterSchema,
+  tokenSwapSchema,
   tokenTradeFilter,
 } from "./token.schema";
 
 export const tokenRoute = router({
-  list: publicProcedure
-    .input(z.object({ page: z.number().optional() }).optional())
-    .query(({ ctx, input }) => {
-      return ctx.solanatracker.getLatestTokens(input?.page);
-    }),
-  retrieve: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
-    return ctx.solanatracker.getTokenInfo(input);
-  }),
-  search: publicProcedure
-    .input(tokenFilterSchema)
-    .query(async ({ ctx, input }) => {
-      return ctx.solanatracker.searchTokens(input).then(({ data }) => data);
-    }),
   chart: publicProcedure
     .input(
       z.object({
+        network: z.enum(["solana"]),
         token_address: z.string(),
-        network: tokenFilterSchema.shape.network.nonoptional(),
         timeframe: z.enum(["day", "hour", "minute", "second"]),
         filter: tokenChartFilter.optional(),
       }),
@@ -55,7 +44,7 @@ export const tokenRoute = router({
     .input(
       z.object({
         token_address: z.string(),
-        network: tokenFilterSchema.shape.network.nonoptional(),
+        network: z.enum(["solana"]),
         filter: tokenTradeFilter.optional(),
       }),
     )
@@ -69,7 +58,14 @@ export const tokenRoute = router({
         (data) => data.attributes,
       ) as NonNullable<TradeGetResponse.Data.Attributes>[];
     }),
-  pnl: privateProcedure.query(async ({ ctx }) => {
-    return ctx.solanatracker.getWalletPnL(ctx.user.wallet.id);
-  }),
+  swap: privateProcedure
+    .input(tokenSwapSchema)
+    .mutation(async ({ ctx, input }) => {
+      const dex = new Dex(ctx.connection);
+      const wallet = loadWallet(ctx.user.wallet, ctx.secret);
+      return dex.swap.jupiter.buildSwap({
+        ...input,
+        owner: wallet.publicKey,
+      });
+    }),
 });

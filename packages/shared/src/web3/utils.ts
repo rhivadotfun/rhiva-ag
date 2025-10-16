@@ -1,3 +1,4 @@
+import { mapFilter, type Secret } from "@rhiva-ag/shared";
 import type {
   Address,
   Base64EncodedWireTransaction,
@@ -5,6 +6,7 @@ import type {
   SimulateTransactionApi,
 } from "@solana/kit";
 import {
+  Keypair,
   type Connection,
   PublicKey,
   type SimulateTransactionConfig,
@@ -17,6 +19,7 @@ import {
   TOKEN_2022_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
+import chunk from "lodash.chunk";
 
 export const isNative = (value: string | PublicKey | Address) => {
   const pubkey = new PublicKey(value);
@@ -74,3 +77,36 @@ export const batchSimulateTransactions = (
         .then(({ value }) => value),
     ),
   );
+
+export const loadWallet = (wallet: { key: string }, secret: Secret) => {
+  const privateKey = secret.decrypt<string>(wallet.key);
+  return Keypair.fromSecretKey(Buffer.from(privateKey, "base64"));
+};
+
+export const chunkFetchMultipleAccounts = async <
+  T extends PublicKey | Address,
+  U extends Array<unknown>,
+  V,
+>(
+  keys: T[],
+  fetch: (keys: T[]) => Promise<U>,
+  decoder?: (account: NonNullable<U[number]>) => V,
+) => {
+  const chunks = chunk(keys, 101);
+  const accounts = await Promise.all(
+    chunks.map(async (chunk) => {
+      const accounts = await fetch(chunk);
+      return mapFilter(accounts, (account, index) =>
+        account
+          ? ({
+              publicKey: chunk[index]!,
+              ...(decoder ? decoder(account) : account),
+            } as V extends object
+              ? V & { publicKey: T }
+              : NonNullable<U[number]> & { publicKey: T })
+          : null,
+      );
+    }),
+  );
+  return accounts.flat();
+};

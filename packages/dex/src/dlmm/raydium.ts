@@ -1,3 +1,4 @@
+import assert from "assert";
 import type BN from "bn.js";
 import Decimal from "decimal.js";
 import {
@@ -6,8 +7,15 @@ import {
   TxVersion,
   type ClmmPositionLayout,
   type Raydium,
+  type GetAmountParams,
+  type PoolInfoLayout,
+  SqrtPriceMath,
+  LiquidityMath,
+  getTransferAmountFeeV2,
+  minExpirationTime,
+  type TransferFeeDataBaseType,
+  type PositionInfoLayout,
 } from "@raydium-io/raydium-sdk-v2";
-import assert from "assert";
 
 type CreatePositionArgs = {
   priceChanges: [endPrice: number, startPrice: number];
@@ -17,7 +25,7 @@ type CreatePositionArgs = {
   slippage: number;
 };
 
-export class RaydiumDLMM {
+export class RaydiumCLMM {
   readonly raydium: Raydium;
 
   constructor(raydium?: Raydium) {
@@ -106,4 +114,60 @@ export class RaydiumDLMM {
       txVersion: TxVersion.V0,
     });
   };
+
+  static getAmountsFromLiquidity({
+    poolInfo,
+    ownerPosition,
+    liquidity,
+    add,
+    mintA,
+    mintB,
+    epochInfo,
+  }: Omit<GetAmountParams, "poolInfo" | "slippage" | "ownerPosition"> & {
+    ownerPosition: ReturnType<typeof PositionInfoLayout.decode>;
+    mintA?: { extensions?: { feeConfig?: TransferFeeDataBaseType } } | null;
+    mintB?: { extensions?: { feeConfig?: TransferFeeDataBaseType } } | null;
+    poolInfo: Pick<ReturnType<typeof PoolInfoLayout.decode>, "sqrtPriceX64">;
+  }) {
+    const sqrtPriceX64 = poolInfo.sqrtPriceX64;
+    const sqrtPriceX64A = SqrtPriceMath.getSqrtPriceX64FromTick(
+      ownerPosition.tickLower,
+    );
+    const sqrtPriceX64B = SqrtPriceMath.getSqrtPriceX64FromTick(
+      ownerPosition.tickUpper,
+    );
+
+    const amounts = LiquidityMath.getAmountsFromLiquidity(
+      sqrtPriceX64,
+      sqrtPriceX64A,
+      sqrtPriceX64B,
+      liquidity,
+      add,
+    );
+
+    const [amountA, amountB] = [
+      getTransferAmountFeeV2(
+        amounts.amountA,
+        mintA?.extensions?.feeConfig,
+        epochInfo,
+        true,
+      ),
+      getTransferAmountFeeV2(
+        amounts.amountB,
+        mintB?.extensions?.feeConfig,
+        epochInfo,
+        true,
+      ),
+    ];
+
+    return {
+      liquidity,
+      amountA,
+      amountB,
+      expirationTime: minExpirationTime(
+        amountA.expirationTime,
+        amountB.expirationTime,
+      ),
+    };
+  }
 }

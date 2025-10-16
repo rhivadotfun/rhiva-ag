@@ -5,9 +5,9 @@ import {
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
 import {
+  PublicKey,
   type Connection,
   VersionedTransaction,
-  type PublicKey,
 } from "@solana/web3.js";
 
 import { getTokenBalanceChangesFromSimulation } from "../utils";
@@ -26,19 +26,25 @@ export class Jupiter {
     amount,
   }: {
     owner: PublicKey;
-    inputMint: PublicKey;
-    outputMint: PublicKey;
+    inputMint: PublicKey | string;
+    outputMint: PublicKey | string;
     amount: number;
     slippage: number;
   }) => {
-    const inputMintAta = getAssociatedTokenAddressSync(inputMint, owner);
+    const inputMintAta = getAssociatedTokenAddressSync(
+      new PublicKey(inputMint),
+      owner,
+    );
+    const outputMintAta = getAssociatedTokenAddressSync(
+      new PublicKey(outputMint),
+      owner,
+    );
 
-    const outputMintAta = getAssociatedTokenAddressSync(outputMint, owner);
     const quoteResponse = await this.jupiter.quoteGet({
       amount,
       slippageBps: slippage,
-      inputMint: inputMint.toBase58(),
-      outputMint: outputMint.toBase58(),
+      inputMint: inputMint.toString(),
+      outputMint: outputMint.toString(),
     });
 
     const swapResponse = await this.jupiter.swapPost({

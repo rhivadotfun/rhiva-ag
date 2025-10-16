@@ -2,7 +2,6 @@ import { relations } from "drizzle-orm";
 
 import { pnls } from "./pnls";
 import { users } from "./users";
-import { pools } from "./pools";
 import { mints } from "./mints";
 import { wallets } from "./wallets";
 import { settings } from "./settings";
@@ -11,6 +10,7 @@ import { referrers } from "./referrers";
 import { positions } from "./positions";
 import { notifications } from "./notifications";
 import { rewards, rewardTypes } from "./rewards";
+import { poolRewardTokens, pools } from "./pools";
 
 export const userRelations = relations(users, ({ many, one }) => ({
   rewards: many(rewards),
@@ -43,12 +43,23 @@ export const notificationRelations = relations(notifications, ({ one }) => ({
   user: one(users, { fields: [notifications.user], references: [users.id] }),
 }));
 
-export const mintRelations = relations(mints, ({ many }) => ({
-  positions: many(positions),
-}));
+export const poolRewardTokenRelations = relations(
+  poolRewardTokens,
+  ({ one }) => ({
+    pool: one(pools, {
+      fields: [poolRewardTokens.pool],
+      references: [pools.id],
+    }),
+    mint: one(mints, {
+      fields: [poolRewardTokens.mint],
+      references: [mints.id],
+    }),
+  }),
+);
 
 export const poolRelatins = relations(pools, ({ one, many }) => ({
   positions: many(positions),
+  rewardTokens: many(poolRewardTokens),
   baseToken: one(mints, { fields: [pools.baseToken], references: [mints.id] }),
   quoteToken: one(mints, {
     fields: [pools.quoteToken],
@@ -56,8 +67,12 @@ export const poolRelatins = relations(pools, ({ one, many }) => ({
   }),
 }));
 
-export const positionRelations = relations(positions, ({ one }) => ({
-  user: one(users, { fields: [positions.wallet], references: [users.id] }),
+export const positionRelations = relations(positions, ({ one, many }) => ({
+  pnls: many(pnls),
+  wallet: one(wallets, {
+    fields: [positions.wallet],
+    references: [wallets.id],
+  }),
   pool: one(pools, { fields: [positions.pool], references: [pools.id] }),
 }));
 

@@ -1,5 +1,5 @@
 {
-  "id": "4cadbfb0-328e-4228-a8f0-ccebc7a54065",
+  "id": "67d4fdbb-e3a3-4e1a-bd80-9c4de009b741",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -18,7 +18,19 @@
           "name": "state",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
+        },
+        "amountUsd": {
+          "name": "amountUsd",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "claimedFeeUsd": {
+          "name": "claimedFeeUsd",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
         },
         "feeUsd": {
           "name": "feeUsd",
@@ -40,7 +52,7 @@
         },
         "createdAt": {
           "name": "createdAt",
-          "type": "timestamp with time zone",
+          "type": "date",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -54,12 +66,18 @@
           "tableTo": "positions",
           "columnsFrom": ["position"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "pnls_position_createdAt_unique": {
+          "name": "pnls_position_createdAt_unique",
+          "nullsNotDistinct": false,
+          "columns": ["position", "createdAt"]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -135,12 +153,68 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "extensions": {
+          "name": "extensions",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.pool_reward_tokens": {
+      "name": "pool_reward_tokens",
+      "schema": "",
+      "columns": {
+        "pool": {
+          "name": "pool",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mint": {
+          "name": "mint",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "pool_reward_tokens_pool_pools_id_fk": {
+          "name": "pool_reward_tokens_pool_pools_id_fk",
+          "tableFrom": "pool_reward_tokens",
+          "tableTo": "pools",
+          "columnsFrom": ["pool"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "pool_reward_tokens_mint_mints_id_fk": {
+          "name": "pool_reward_tokens_mint_mints_id_fk",
+          "tableFrom": "pool_reward_tokens",
+          "tableTo": "mints",
+          "columnsFrom": ["mint"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "pool_reward_tokens_pool_mint_unique": {
+          "name": "pool_reward_tokens_pool_mint_unique",
+          "nullsNotDistinct": false,
+          "columns": ["pool", "mint"]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -166,6 +240,12 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "rewardTokens": {
+          "name": "rewardTokens",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
         },
         "baseToken": {
           "name": "baseToken",
@@ -615,16 +695,22 @@
           "name": "pool",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
-        "state": {
-          "name": "state",
-          "type": "text",
+        "active": {
+          "name": "active",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": true
         },
         "status": {
           "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "state": {
+          "name": "state",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -661,7 +747,7 @@
           "tableTo": "pools",
           "columnsFrom": ["pool"],
           "columnsTo": ["id"],
-          "onDelete": "set null",
+          "onDelete": "restrict",
           "onUpdate": "no action"
         }
       },

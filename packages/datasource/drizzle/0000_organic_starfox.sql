@@ -1,10 +1,13 @@
 CREATE TABLE "pnls" (
 	"position" text NOT NULL,
-	"state" text,
+	"state" text NOT NULL,
+	"amountUsd" double precision NOT NULL,
+	"claimedFeeUsd" double precision NOT NULL,
 	"feeUsd" double precision NOT NULL,
 	"pnlUsd" double precision NOT NULL,
 	"rewardUsd" double precision NOT NULL,
-	"createdAt" timestamp with time zone DEFAULT now() NOT NULL
+	"createdAt" date DEFAULT now() NOT NULL,
+	CONSTRAINT "pnls_position_createdAt_unique" UNIQUE("position","createdAt")
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
@@ -19,13 +22,21 @@ CREATE TABLE "users" (
 CREATE TABLE "mints" (
 	"id" text PRIMARY KEY NOT NULL,
 	"decimals" integer NOT NULL,
-	"tokenProgram" text NOT NULL
+	"tokenProgram" text NOT NULL,
+	"extensions" jsonb
+);
+--> statement-breakpoint
+CREATE TABLE "pool_reward_tokens" (
+	"pool" text NOT NULL,
+	"mint" text NOT NULL,
+	CONSTRAINT "pool_reward_tokens_pool_mint_unique" UNIQUE("pool","mint")
 );
 --> statement-breakpoint
 CREATE TABLE "pools" (
 	"id" text PRIMARY KEY NOT NULL,
 	"addressLookupTables" text[],
 	"dex" text NOT NULL,
+	"rewardTokens" text[],
 	"baseToken" text NOT NULL,
 	"quoteToken" text NOT NULL,
 	"config" jsonb NOT NULL
@@ -89,9 +100,10 @@ CREATE TABLE "positions" (
 	"quoteAmount" double precision NOT NULL,
 	"config" jsonb NOT NULL,
 	"wallet" text NOT NULL,
-	"pool" text,
-	"state" text NOT NULL,
+	"pool" text NOT NULL,
+	"active" boolean NOT NULL,
 	"status" text NOT NULL,
+	"state" text NOT NULL,
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -105,7 +117,9 @@ CREATE TABLE "messages" (
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "pnls" ADD CONSTRAINT "pnls_position_positions_id_fk" FOREIGN KEY ("position") REFERENCES "public"."positions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "pnls" ADD CONSTRAINT "pnls_position_positions_id_fk" FOREIGN KEY ("position") REFERENCES "public"."positions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "pool_reward_tokens" ADD CONSTRAINT "pool_reward_tokens_pool_pools_id_fk" FOREIGN KEY ("pool") REFERENCES "public"."pools"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "pool_reward_tokens" ADD CONSTRAINT "pool_reward_tokens_mint_mints_id_fk" FOREIGN KEY ("mint") REFERENCES "public"."mints"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "pools" ADD CONSTRAINT "pools_baseToken_mints_id_fk" FOREIGN KEY ("baseToken") REFERENCES "public"."mints"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "pools" ADD CONSTRAINT "pools_quoteToken_mints_id_fk" FOREIGN KEY ("quoteToken") REFERENCES "public"."mints"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "poolFilters" ADD CONSTRAINT "poolFilters_user_users_id_fk" FOREIGN KEY ("user") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -116,5 +130,5 @@ ALTER TABLE "settings" ADD CONSTRAINT "settings_user_users_id_fk" FOREIGN KEY ("
 ALTER TABLE "referrers" ADD CONSTRAINT "referrers_referer_users_id_fk" FOREIGN KEY ("referer") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "referrers" ADD CONSTRAINT "referrers_user_users_id_fk" FOREIGN KEY ("user") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "positions" ADD CONSTRAINT "positions_wallet_wallets_id_fk" FOREIGN KEY ("wallet") REFERENCES "public"."wallets"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "positions" ADD CONSTRAINT "positions_pool_pools_id_fk" FOREIGN KEY ("pool") REFERENCES "public"."pools"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "positions" ADD CONSTRAINT "positions_pool_pools_id_fk" FOREIGN KEY ("pool") REFERENCES "public"."pools"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "messages" ADD CONSTRAINT "messages_user_users_id_fk" FOREIGN KEY ("user") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;

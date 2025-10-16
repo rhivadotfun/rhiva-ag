@@ -16,13 +16,13 @@ import {
 
 import { getEnv } from "./env";
 import { loadWallet } from "./utils";
-import { RaydiumDLMM } from "../src/dlmm/raydium";
+import { RaydiumCLMM } from "../src/dlmm/raydium";
 import { getTokenBalanceChangesFromSimulation } from "../src/utils";
 
 describe("raydium", () => {
   let jupiter: SwapApi;
   let wallet: Keypair;
-  let raydium: RaydiumDLMM;
+  let raydium: RaydiumCLMM;
   let connection: Connection;
   let sender: SendTransaction;
 
@@ -36,7 +36,7 @@ describe("raydium", () => {
       getEnv("JITO_UUID"),
     );
     connection = new Connection(getEnv("SOLANA_RPC_URL"));
-    raydium = new RaydiumDLMM(
+    raydium = new RaydiumCLMM(
       await Raydium.load({
         connection,
         owner: wallet.publicKey,
