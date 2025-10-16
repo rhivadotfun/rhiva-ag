@@ -1,6 +1,8 @@
 import type { z } from "zod/mini";
 import Decimal from "decimal.js";
+import { PublicKey } from "@solana/web3.js";
 import { and, eq, inArray, not } from "drizzle-orm";
+import { fromLegacyPublicKey } from "@solana/compat";
 import type Coingecko from "@coingecko/coingecko-typescript";
 import {
   chunkFetchMultipleAccounts,
@@ -11,6 +13,7 @@ import {
   getTickIndexInArray,
   decreaseLiquidityQuote,
   collectRewardsQuote,
+  getTickArrayStartTickIndex,
 } from "@orca-so/whirlpools-core";
 import {
   getWhirlpoolDecoder,
@@ -26,7 +29,6 @@ import {
   type walletSelectSchema,
 } from "@rhiva-ag/datasource";
 import {
-  isAddress,
   type Address,
   type GetMultipleAccountsApi,
   type GetTokenAccountsByOwnerApi,
@@ -37,7 +39,7 @@ import {
   address,
 } from "@solana/kit";
 
-export const syncRaydiumPositionsForWallet = async (
+export const syncOrcaPositionsForWallet = async (
   rpc: Rpc<
     GetTokenAccountsByOwnerApi &
       GetMultipleAccountsApi &
@@ -93,7 +95,7 @@ export const syncRaydiumPositionsForWallet = async (
   );
 
   if (walletPositions.length < 1) return;
-  const whirlPoolPositions = await fetchAllPositionWithFilter(
+  const whirlpoolPositions = await fetchAllPositionWithFilter(
     rpc,
     ...walletPositions.map((position) =>
       positionMintFilter(address(position.id)),
@@ -101,7 +103,7 @@ export const syncRaydiumPositionsForWallet = async (
   );
 
   const whirlpoolIds = new Set(
-    whirlPoolPositions.map((position) => position.data.whirlpool),
+    whirlpoolPositions.map((position) => position.data.whirlpool),
   );
   const whirpoolCodec = getWhirlpoolDecoder();
 
@@ -127,9 +129,9 @@ export const syncRaydiumPositionsForWallet = async (
   const tickArrayAddresses: Address[] = [];
 
   const whirlpoolPositionsWithTickAddress = await promiseMapFilter(
-    whirlPoolPositions,
+    whirlpoolPositions,
     async (position) => {
-      const pool = whirlpoolAccountsMap.get(position.address);
+      const pool = whirlpoolAccountsMap.get(position.data.whirlpool);
       const ticks = [
         position.data.tickLowerIndex,
         position.data.tickUpperIndex,
@@ -138,7 +140,12 @@ export const syncRaydiumPositionsForWallet = async (
 
       const [[lowerTickArrayAddress], [upperTickArrayAddress]] =
         (await Promise.all(
-          ticks.map((tick) => getTickArrayAddress(position.address, tick)),
+          ticks.map((tick) =>
+            getTickArrayAddress(
+              pool.publicKey,
+              getTickArrayStartTickIndex(tick, pool.tickSpacing),
+            ),
+          ),
         )) as [ProgramDerivedAddress, ProgramDerivedAddress];
 
       tickArrayAddresses.push(lowerTickArrayAddress, upperTickArrayAddress);
@@ -146,7 +153,8 @@ export const syncRaydiumPositionsForWallet = async (
       mints.add(pool.tokenMintA);
       mints.add(pool.tokenMintB);
       for (const rewardInfo of pool.rewardInfos)
-        if (isAddress(rewardInfo.mint)) mints.add(rewardInfo.mint);
+        if (fromLegacyPublicKey(PublicKey.default) !== rewardInfo.mint)
+          mints.add(rewardInfo.mint);
 
       return {
         lowerTickArrayAddress,
@@ -160,19 +168,21 @@ export const syncRaydiumPositionsForWallet = async (
   if (whirlpoolPositionsWithTickAddress.length < 1) return;
 
   const tickArrayCodec = getTickArrayDecoder();
+  const tickArrays = await chunkFetchMultipleAccounts(
+    tickArrayAddresses,
+    async (keys) =>
+      rpc
+        .getMultipleAccounts(keys)
+        .send()
+        .then(({ value }) => value),
+    (account) => {
+      const [data, encoding] = account.data;
+      return tickArrayCodec.decode(Buffer.from(data, encoding));
+    },
+  );
+
   const tickArraysMap = collectionToMap(
-    await chunkFetchMultipleAccounts(
-      tickArrayAddresses,
-      (keys) =>
-        rpc
-          .getMultipleAccounts(keys)
-          .send()
-          .then(({ value }) => value),
-      (account) => {
-        const [data, encoding] = account.data;
-        return tickArrayCodec.decode(Buffer.from(data, encoding));
-      },
-    ),
+    tickArrays,
     (tickArray) => tickArray.publicKey,
   );
 
@@ -187,9 +197,9 @@ export const syncRaydiumPositionsForWallet = async (
   const epochInfo = await rpc.getEpochInfo().send();
 
   for (const { pool, ...position } of whirlpoolPositionsWithTickAddress) {
+    const offchainPosition = positionsMap.get(position.data.positionMint);
     const lowerTickArray = tickArraysMap.get(position.lowerTickArrayAddress);
     const upperTickArray = tickArraysMap.get(position.upperTickArrayAddress);
-    const offchainPosition = positionsMap.get(position.address);
 
     if (!offchainPosition || !lowerTickArray || !upperTickArray) return;
 

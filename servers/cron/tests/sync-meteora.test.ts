@@ -29,7 +29,7 @@ import {
 
 import { getEnv } from "../src/env";
 import { coingecko } from "../src/instances";
-import { syncMeteoraPositionsForWallet } from "../src/controllers/sync-meteora";
+import { syncMeteoraPositionsForWallet } from "../src/controllers/sync/meteora";
 
 describe("sync meteora", () => {
   let db: Database;

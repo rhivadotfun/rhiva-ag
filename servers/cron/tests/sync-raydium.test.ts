@@ -29,7 +29,7 @@ import {
 
 import { getEnv } from "../src/env";
 import { coingecko } from "../src/instances";
-import { syncRaydiumPositionsForWallet } from "../src/controllers/sync-raydium";
+import { syncRaydiumPositionsForWallet } from "../src/controllers/sync/raydium";
 
 describe("sync raydium", () => {
   let db: Database;

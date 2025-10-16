@@ -1,6 +1,7 @@
 import bs58 from "bs58";
 import type { z } from "zod/mini";
 import { eq, inArray } from "drizzle-orm";
+import { fromLegacyPublicKey } from "@solana/compat";
 import { fetchWhirlpool } from "@orca-so/whirlpools-client";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { getTransferFeeConfig, unpackMint } from "@solana/spl-token";
@@ -8,7 +9,6 @@ import { beforeAll, afterAll, describe, test, expect } from "bun:test";
 import {
   address,
   createSolanaRpc,
-  isAddress,
   type Rpc,
   type SolanaRpcApiMainnet,
 } from "@solana/kit";
@@ -36,7 +36,7 @@ import {
 
 import { getEnv } from "../src/env";
 import { coingecko } from "../src/instances";
-import { syncRaydiumPositionsForWallet } from "../src/controllers/sync-raydium";
+import { syncOrcaPositionsForWallet } from "../src/controllers/sync/orca";
 
 describe("sync orca", () => {
   let db: Database;
@@ -55,7 +55,7 @@ describe("sync orca", () => {
   beforeAll(async () => {
     const poolPubkey = address("Czfq3xZZDmsdGdUyrNLtRhGc47cXcZtLG4crryfu44zE");
     const positionPubkey = address(
-      "oX5vYqFVJZS549PPGTD3Qoqzq4684XzNjwgvaRydinx",
+      "F8u8KJnsbPaYs8cDkN6S8MyDteHqJHktspV9w8K4zFTB",
     );
 
     connection = new Connection(getEnv<string>("SOLANA_RPC_URL"));
@@ -101,13 +101,17 @@ describe("sync orca", () => {
     const poolMints = [whirlpool.data.tokenMintA, whirlpool.data.tokenMintB];
 
     const rewardMints = mapFilter(whirlpool.data.rewardInfos, (reward) =>
-      isAddress(reward.mint) ? reward.mint : undefined,
+      fromLegacyPublicKey(PublicKey.default) === reward.mint
+        ? undefined
+        : reward.mint,
     );
 
     const accountInfos = await chunkFetchMultipleAccounts(
       [...poolMints, ...rewardMints].map((mint) => new PublicKey(mint)),
       connection.getMultipleAccountsInfo.bind(connection),
     );
+
+    console.log(poolMints, rewardMints);
 
     tokens = await db
       .insert(mints)
@@ -211,14 +215,13 @@ describe("sync orca", () => {
   test("should sync pnl", async () => {
     if (!wallet) return;
 
-    const results = await syncRaydiumPositionsForWallet(
-      connection,
-      secret,
+    const results = await syncOrcaPositionsForWallet(
+      rpc,
       coingecko,
       db,
       wallet,
     );
-
+    console.log(results, { depth: null });
     expect(results).toHaveLength(2);
   });
 });

@@ -5,7 +5,7 @@ export const mapFilter = <T, R>(
   const results = [];
   for (const [index, item] of collection.entries()) {
     const result = mapFn(item, index);
-    if (result) results.push(result);
+    if (result != null) results.push(result);
   }
 
   return results;

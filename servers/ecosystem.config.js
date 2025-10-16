@@ -16,5 +16,19 @@ module.exports = {
         PORT: 8000,
       },
     },
+    {
+      interpreter,
+      instances: 1,
+      name: "schedules",
+      exec_mode: "fork",
+      script: "cron/src/schedules/index.ts",
+    },
+    {
+      interpreter,
+      instances: 2,
+      name: "workers",
+      exec_mode: "fork",
+      script: "cron/src/workers/index.ts",
+    },
   ],
 };
