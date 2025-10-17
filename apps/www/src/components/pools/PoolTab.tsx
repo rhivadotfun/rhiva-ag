@@ -1,33 +1,25 @@
 import clsx from "clsx";
 import Link from "next/link";
 import { format } from "util";
+import { MdCheck } from "react-icons/md";
 import { useSearchParams } from "next/navigation";
 import { IoChevronDownOutline } from "react-icons/io5";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 
-import IcOrcaIcon from "@/assets/icons/ic_orca";
-import IcMeteoraIcon from "@/assets/icons/ic_meteora";
-import IcRaydiumIcon from "@/assets/icons/ic_raydium";
-import { MdCheck } from "react-icons/md";
-
-const tabs = [
-  { title: "All Pools", value: null },
-  { title: "Meteora", value: "meteora", icon: IcMeteoraIcon },
-  { title: "Orca", value: "orca", icon: IcOrcaIcon },
-  { title: "Raydium", value: "raydium-clmm", icon: IcRaydiumIcon },
-];
+import { useDexes } from "@/hooks/useDexes";
 
 export default function PoolTab(props: React.ComponentProps<"div">) {
+  const dexes = useDexes();
   const searchParams = useSearchParams();
-  const dexes = searchParams.get("dexes");
+  const dex = searchParams.get("dexes");
 
   return (
     <div
       {...props}
       className={clsx("flex flex-nowrap space-x-4", props.className)}
     >
-      {tabs.map((tab) => {
-        const selected = tab.value === dexes;
+      {dexes.map((tab) => {
+        const selected = tab.value === dex;
         const urlSearchParams = new URLSearchParams(searchParams);
         if (tab.value) urlSearchParams.set("dexes", tab.value);
         else urlSearchParams.delete("dexes");
@@ -55,14 +47,16 @@ export default function PoolTab(props: React.ComponentProps<"div">) {
   );
 }
 
-export function PoolTabSmall() {
+export function PoolTabSmall(props: React.ComponentProps<typeof Menu>) {
+  const dexes = useDexes();
+
   const searchParams = useSearchParams();
-  const dexes = searchParams.get("dexes");
+  const dex = searchParams.get("dexes");
 
   return (
     <Menu
       as="div"
-      className="relative z-50"
+      className={clsx("relative z-50", props.className)}
     >
       <MenuButton className="flex items-center space-x-2 focus:outline-none">
         <span>All Pools</span>
@@ -72,8 +66,8 @@ export function PoolTabSmall() {
         transition
         className="absolute origin-top-right flex flex-col  bg-dark-secondary  text-gray border border-white/10 px-4 py-2 rounded-md transition duration-100 ease-out data-closed:scale-95 data-closed:opacity-0 focus:outline-none"
       >
-        {tabs.map((tab) => {
-          const selected = tab.value === dexes;
+        {dexes.map((tab) => {
+          const selected = tab.value === dex;
           const urlSearchParams = new URLSearchParams(searchParams);
           if (tab.value) urlSearchParams.set("dexes", tab.value);
           else urlSearchParams.delete("dexes");

@@ -32,9 +32,9 @@ export default function SettingsPage() {
         <Header
           canBack
           title="Settings"
-          className="sticky top-0 z-10"
+          className="sticky top-0 z-10 md:px-12"
         />
-        <div className="flex-1 flex flex-col px-4  overflow-y-scroll md:self-center md:min-w-2xl">
+        <div className="flex-1 flex flex-col px-4  overflow-y-scroll md:p-16">
           <Formik
             initialValues={user.settings}
             onSubmit={(values) =>
@@ -44,55 +44,55 @@ export default function SettingsPage() {
             }
           >
             {({ values, setFieldValue, isSubmitting }) => (
-              <Form className="flex flex-col space-y-4 ">
-                <div className="flex flex flex-col space-y-4 bg-white/3 border border-white/10 backdrop-blur-3xl p-4 rounded-md">
-                  <div className="flex items-center">
+              <Form className="flex-1 flex flex-col space-y-4 ">
+                <div className="flex flex flex-col  space-y-4 bg-white/3 border border-white/10 backdrop-blur-3xl p-4 rounded-md md:flex-1 md:p-16 md:justify-center md:justify-between md:gap-y-8">
+                  <div className="flex items-center md:space-x-28">
                     <label
                       htmlFor="slippage"
-                      className="flex-1"
+                      className="lt-sm:flex-1"
                     >
                       Slippage
                     </label>
                     <Field
                       name="slippage"
-                      className="flex-1 p-2 border border-white/10 rounded focus:border-primary"
+                      className="p-2 border border-white/10 rounded focus:border-primary lt-sm:flex-1 md:min-w-md"
                     />
                   </div>
-                  <div className="flex items-center">
+                  <div className="flex items-center md:space-x-16">
                     <label
                       htmlFor="gasPriorityFee"
-                      className="flex-1"
+                      className="lt-sm:flex-1"
                     >
                       Gas priority fee
                     </label>
                     <Field
                       name="gasPriorityFee"
-                      className="flex-1 p-2 border border-white/10 rounded focus:border-primary"
+                      className="p-2 border border-white/10 rounded focus:border-primary lt-sm:flex-1 md:min-w-md"
                     />
                   </div>
-                  <div className="flex items-center">
+                  <div className="flex items-center md:space-x-16">
                     <label
                       htmlFor="rebalanceTime"
-                      className="flex-1"
+                      className="lt-sm:flex-1"
                     >
                       Rebalance time
                     </label>
                     <RebalanceTime
-                      className="flex-1"
+                      className="lt-sm:flex-1 md:min-w-md"
                       value={values.rebalanceTime}
                       onChange={(value) =>
                         setFieldValue("rebalanceTime", value)
                       }
                     />
                   </div>
-                  <div className="flex items-center space-x-8">
+                  <div className="flex items-center space-x-8 md:space-x-28">
                     <label
                       htmlFor="slippage"
-                      className="flex-1"
+                      className="lt-sm:flex-1"
                     >
                       Auto claim
                     </label>
-                    <div className="flex-1">
+                    <div className="lt-sm:flex-1 md:min-w-m">
                       <Toggle
                         value={values.enableAutoClaim}
                         onChange={(value) =>
@@ -101,14 +101,14 @@ export default function SettingsPage() {
                       />
                     </div>
                   </div>
-                  <div className="flex items-center space-x-8">
+                  <div className="flex items-center space-x-8 md:space-x-18">
                     <label
                       htmlFor="slippage"
-                      className="flex-1"
+                      className="lt-sm:flex-1"
                     >
                       Auto compound
                     </label>
-                    <div className="flex-1">
+                    <div className="lt-sm:flex-1 md:min-w-m">
                       <Toggle
                         value={values.enableAutoCompound}
                         onChange={(value) =>
@@ -117,29 +117,29 @@ export default function SettingsPage() {
                       />
                     </div>
                   </div>
-                  <div className="flex items-center">
+                  <div className="flex items-center md:space-x-12">
                     <label
                       htmlFor="slippage"
-                      className="flex-1 text-nowrap"
+                      className="lt-sm:flex-1 text-nowrap"
                     >
                       Rebalancing type
                     </label>
                     <RebalanceType
-                      className="flex-1"
+                      className="lt-sm:flex-1 md:min-w-m"
                       value={values.rebalanceType}
                       onChange={(value) =>
                         setFieldValue("rebalanceType", value)
                       }
                     />
                   </div>
-                  <div className="flex items-center space-x-8">
+                  <div className="flex items-center space-x-8 md:space-x-8">
                     <label
                       htmlFor="slippage"
-                      className="flex-1"
+                      className="lt-sm:flex-1"
                     >
                       Message Notifications
                     </label>
-                    <div className="flex-1">
+                    <div className="lt-sm:flex-1 md:min-w-m">
                       <Toggle
                         value={values.enableNotifications}
                         onChange={(value) =>

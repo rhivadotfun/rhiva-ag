@@ -1,5 +1,5 @@
 {
-  "id": "67d4fdbb-e3a3-4e1a-bd80-9c4de009b741",
+  "id": "82268c65-f2ce-427b-8e38-379c91109fde",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -141,6 +141,24 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true
+        },
+        "image": {
+          "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "decimals": {
           "name": "decimals",
@@ -402,44 +420,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.rewardType": {
-      "name": "rewardType",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "xp": {
-          "name": "xp",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "rewardType_name_unique": {
-          "name": "rewardType_name_unique",
-          "nullsNotDistinct": false,
-          "columns": ["name"]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.rewards": {
       "name": "rewards",
       "schema": "",
@@ -457,9 +437,15 @@
           "primaryKey": false,
           "notNull": true
         },
-        "rewardType": {
-          "name": "rewardType",
-          "type": "uuid",
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "xp": {
+          "name": "xp",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -478,15 +464,6 @@
           "tableFrom": "rewards",
           "tableTo": "users",
           "columnsFrom": ["user"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "rewards_rewardType_rewardType_id_fk": {
-          "name": "rewards_rewardType_rewardType_id_fk",
-          "tableFrom": "rewards",
-          "tableTo": "rewardType",
-          "columnsFrom": ["rewardType"],
           "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"

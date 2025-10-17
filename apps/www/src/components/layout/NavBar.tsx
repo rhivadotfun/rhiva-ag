@@ -3,7 +3,8 @@
 import clsx from "clsx";
 import Link from "next/link";
 import Image from "next/image";
-import { useMemo } from "react";
+import debounce from "lodash.debounce";
+import { useMemo, useState } from "react";
 import { AuthStatus } from "@civic/auth";
 import { useUser } from "@civic/auth/react";
 import { usePathname } from "next/navigation";
@@ -26,6 +27,9 @@ type NavItem = {
 export default function NavBar(props: React.ComponentProps<"div">) {
   const pathname = usePathname();
   const { signIn, authStatus } = useUser();
+  const [expanded, setExpanded] = useState(false);
+
+  const toggleExpanded = useMemo(() => debounce(setExpanded, 150), []);
 
   const authenticated = useMemo(
     () => authStatus === AuthStatus.AUTHENTICATED,
@@ -52,28 +56,29 @@ export default function NavBar(props: React.ComponentProps<"div">) {
       {...props}
       className={clsx(
         props.className,
-        "flex flex-col  bg-dark-secondary lt-sm:border lt-md:border-b-none lt-sm:border-primary/25 lt-sm:rounded-t-2xl sm:space-y-4",
+        expanded ? "xl:w-xs" : "xl:w-[96px]",
+        "transition-all duration-300 flex flex-col  bg-dark-secondary lt-sm:border lt-md:border-b-none lt-sm:border-primary/25 lt-sm:rounded-t-2xl sm:space-y-4",
       )}
     >
-      <div className="py-4 lt-sm:hidden">
+      <div className={clsx("py-4 lt-xl:h-32", expanded && "xl:px-4")}>
         <Image
           src={Logo}
           width={189}
           height={61}
           alt="Rhiva"
-          className="hidden"
+          className={clsx("lt-xl:hidden", !expanded && "xl:hidden")}
         />
         <Image
           src={LogoSmall}
           width={20}
           height={20}
           alt="Rhiva"
-          className="lt-sm:hidden m-auto"
+          className={clsx("m-auto", expanded && "xl:hidden")}
         />
       </div>
 
       <nav className={clsx(props.className, "flex-1 flex sm:flex-col")}>
-        <ul className="flex-1 flex sm:flex-col sm:space-y-4 sm:p-4">
+        <ul className="flex-1 flex sm:flex-col sm:p-4">
           {navItems.map((navItem) => {
             const selected = navItem.path === pathname;
             const Button = Link;
@@ -86,11 +91,13 @@ export default function NavBar(props: React.ComponentProps<"div">) {
                 <Button
                   href={navItem.path}
                   className={clsx(
-                    "flex items-center p-2 lt-md:flex-col lt-md:space-y-2 sm:space-x-4 sm:py-4",
+                    "flex items-center p-2 lt-md:flex-col lt-md:space-y-2 sm:space-x-4 sm:py-8",
                     selected
                       ? "text-primary fill-primary"
                       : "text-white/70 fill-white/70",
                   )}
+                  onMouseEnter={() => toggleExpanded(true)}
+                  onMouseLeave={() => toggleExpanded(false)}
                   onNavigate={(event) => {
                     if (navItem.protected) {
                       if (authenticated) return;
@@ -100,13 +107,23 @@ export default function NavBar(props: React.ComponentProps<"div">) {
                   }}
                 >
                   <navItem.icon className="size-6" />
-                  <span className="sm:hidden">{navItem.name}</span>
+                  <span
+                    className={clsx(
+                      expanded ? "lt-xl:hidden" : "lt-xl:hidden xl:hidden",
+                    )}
+                  >
+                    {navItem.name}
+                  </span>
                 </Button>
               </li>
             );
           })}
         </ul>
-        <SideNav className="lt-sm:hidden" />
+        <SideNav
+          expanded={expanded}
+          setExpanded={toggleExpanded}
+          className="lt-sm:hidden"
+        />
       </nav>
     </div>
   );

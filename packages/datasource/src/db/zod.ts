@@ -11,7 +11,6 @@ import {
   positions,
   referrers,
   rewards,
-  rewardTypes,
   settings,
   users,
   wallets,
@@ -65,10 +64,5 @@ export const pnlInsertSchema = createInsertSchema(pnls, {
   position: positionSelectSchema,
 });
 
-export const rewardTypeInsertSchema = createInsertSchema(rewardTypes);
-export const rewardTypeSelectSchema = createSelectSchema(rewardTypes);
-
 export const rewardInsertSchema = createInsertSchema(rewards);
-export const rewardSelectSchema = createSelectSchema(rewards, {
-  rewardType: refererSelectSchema,
-});
+export const rewardSelectSchema = createSelectSchema(rewards);

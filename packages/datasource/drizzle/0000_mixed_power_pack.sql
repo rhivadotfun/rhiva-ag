@@ -21,6 +21,9 @@ CREATE TABLE "users" (
 --> statement-breakpoint
 CREATE TABLE "mints" (
 	"id" text PRIMARY KEY NOT NULL,
+	"image" text,
+	"name" text,
+	"symbol" text,
 	"decimals" integer NOT NULL,
 	"tokenProgram" text NOT NULL,
 	"extensions" jsonb
@@ -58,17 +61,11 @@ CREATE TABLE "wallets" (
 	CONSTRAINT "wallets_user_unique" UNIQUE("user")
 );
 --> statement-breakpoint
-CREATE TABLE "rewardType" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"name" text NOT NULL,
-	"xp" integer NOT NULL,
-	CONSTRAINT "rewardType_name_unique" UNIQUE("name")
-);
---> statement-breakpoint
 CREATE TABLE "rewards" (
 	"id" uuid DEFAULT gen_random_uuid() NOT NULL,
 	"user" uuid NOT NULL,
-	"rewardType" uuid NOT NULL,
+	"key" text NOT NULL,
+	"xp" integer NOT NULL,
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
@@ -125,7 +122,6 @@ ALTER TABLE "pools" ADD CONSTRAINT "pools_quoteToken_mints_id_fk" FOREIGN KEY ("
 ALTER TABLE "poolFilters" ADD CONSTRAINT "poolFilters_user_users_id_fk" FOREIGN KEY ("user") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "wallets" ADD CONSTRAINT "wallets_user_users_id_fk" FOREIGN KEY ("user") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "rewards" ADD CONSTRAINT "rewards_user_users_id_fk" FOREIGN KEY ("user") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "rewards" ADD CONSTRAINT "rewards_rewardType_rewardType_id_fk" FOREIGN KEY ("rewardType") REFERENCES "public"."rewardType"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "settings" ADD CONSTRAINT "settings_user_users_id_fk" FOREIGN KEY ("user") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "referrers" ADD CONSTRAINT "referrers_referer_users_id_fk" FOREIGN KEY ("referer") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "referrers" ADD CONSTRAINT "referrers_user_users_id_fk" FOREIGN KEY ("user") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

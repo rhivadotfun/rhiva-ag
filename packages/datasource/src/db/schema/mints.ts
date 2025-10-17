@@ -20,6 +20,9 @@ type Extension = {
 
 export const mints = pgTable("mints", {
   id: text().primaryKey(),
+  image: text(),
+  name: text(),
+  symbol: text(),
   decimals: integer().notNull(),
   tokenProgram: text().notNull(),
   extensions: jsonb().$type<Extension>(),
