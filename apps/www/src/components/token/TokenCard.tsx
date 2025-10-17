@@ -17,7 +17,7 @@ export default function TokenCard({ token }: TokenCardProps) {
     <Link
       key={token.id}
       href={format("/tokens/%s/", token.id)}
-      className="flex space-x-2 items-center  bg-dark border border-white/10 p-4 rounded-md 2xl:min-w-xs"
+      className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-dark p-4 overflow-hidden"
     >
       <Image
         width={64}
@@ -25,25 +25,30 @@ export default function TokenCard({ token }: TokenCardProps) {
         unoptimized
         src={token.icon}
         alt={token.symbol}
-        className="size-12 rounded-md"
-        errorProps={{
-          className: "size-12 bg-gray/50 rounded-md",
-        }}
+        className="size-12 rounded-md shrink-0"
+        errorProps={{ className: "size-12 bg-gray/50 rounded-md" }}
       />
-      <div className="flex-1 flex flex-col space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <p className="break-words text-base md:text-lg">{token.name}</p>
-            <button type="button">
+
+      <div className="flex-1 min-w-0 flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <p className="truncate text-base md:text-lg font-medium">
+              {token.name}
+            </p>
+            <button
+              type="button"
+              className="shrink-0"
+            >
               <MdContentCopy
                 size={18}
                 className="text-gray"
               />
             </button>
           </div>
-          <div className="flex items-center space-x-2">
+
+          <div className="flex items-center gap-2 shrink-0">
             <span>Risk</span>
-            <div
+            <span
               className={clsx(
                 "size-2 rounded-full",
                 token.isVerified ? "bg-primary" : "bg-red-500",
@@ -51,16 +56,18 @@ export default function TokenCard({ token }: TokenCardProps) {
             />
           </div>
         </div>
-        <div className="flex justify-between space-x-2">
-          <p className="shrink-0">
+
+        {/* allow wrap, but keep each pill in one line */}
+        <div className="flex flex-wrap gap-2 text-sm">
+          <p className="whitespace-nowrap text-gray/80">
             <span className="text-gray">Mcap: </span>
             <Decimal
               value={token.mcap}
               intlArgs={compactCurrencyIntlArgs}
             />
           </p>
-          <p className="shrink-0">
-            <span className="ml-auto">24h Vol: </span>
+          <p className="whitespace-nowrap">
+            <span>24h Vol: </span>
             <Decimal
               value={
                 token.stats24h.buyOrganicVolume +

@@ -22,7 +22,7 @@ export default function PeekHotTokenList({
       dexApi.jup.token.list({
         category: "toptrending",
         timestamp: "5m",
-        limit: 8,
+        limit: 4,
       }),
   });
 
