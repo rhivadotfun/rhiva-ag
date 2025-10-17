@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import Image from "next/image";
-import Banner from "@/assets/bg/banner.png";
+import Banner from "@/assets/bg/banner.svg";
 
 export default function HeroSection(props: React.ComponentProps<"section">) {
   return (
@@ -8,7 +8,7 @@ export default function HeroSection(props: React.ComponentProps<"section">) {
       {...props}
       className={clsx(
         props.className,
-        "overflow-hidden relative flex  bg-white bg-opacity-3 backdrop-blur-2xl border border-white/6 rounded-xl rounded-xl",
+        "overflow-hidden relative flex justify-between items-center bg-white/5 backdrop-blur-2xl border border-white/10 rounded-xl",
       )}
     >
       <div className="flex flex-col justify-center p-4 space-y-4 z-10 md:px-8">
@@ -31,15 +31,13 @@ export default function HeroSection(props: React.ComponentProps<"section">) {
           </p>
         </div>
       </div>
-      <div className="flex-1">
-        <Image
-          src={Banner}
-          width={512}
-          height={512}
-          alt="Welcome Banner"
-          className="w-full h-full z-0"
-        />
-      </div>
+      <Image
+        src={Banner}
+        width={600}
+        height={600}
+        alt="Welcome Banner"
+        className="object-contain justify-end"
+      />
       <div className="absolute top-0 min-w-5/10 h-4 p-2 bg-primary blur-[64px] rounded-full" />
     </section>
   );
