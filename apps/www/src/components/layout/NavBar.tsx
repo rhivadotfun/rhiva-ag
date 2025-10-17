@@ -60,7 +60,7 @@ export default function NavBar(props: React.ComponentProps<"div">) {
         "transition-all duration-300 flex flex-col  bg-dark-secondary lt-sm:border lt-md:border-b-none lt-sm:border-primary/25 lt-sm:rounded-t-2xl sm:space-y-4",
       )}
     >
-      <div className={clsx("py-4 lt-xl:h-32", expanded && "xl:px-4")}>
+      <div className={clsx("py-4 lt-xl:h-10", expanded && "xl:px-4")}>
         <Image
           src={Logo}
           width={189}
@@ -73,7 +73,7 @@ export default function NavBar(props: React.ComponentProps<"div">) {
           width={20}
           height={20}
           alt="Rhiva"
-          className={clsx("m-auto", expanded && "xl:hidden")}
+          className={clsx("lt-xl:hidden m-auto", expanded && "xl:hidden")}
         />
       </div>
 
