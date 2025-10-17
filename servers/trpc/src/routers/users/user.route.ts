@@ -1,9 +1,11 @@
-import { count, eq, getTableColumns, sum } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
+import { count, eq, getTableColumns, isNull, not, sum } from "drizzle-orm";
 import {
+  caseWhen,
   coalesce,
+  mul,
   referrers,
   rewards,
-  rewardTypes,
   settings,
   users,
   userSelectSchema,
@@ -11,24 +13,22 @@ import {
 } from "@rhiva-ag/datasource";
 
 import { privateProcedure, router } from "../../trpc";
-import { TRPCError } from "@trpc/server";
 
 export const userRoute = router({
   me: privateProcedure.output(userSelectSchema).query(async ({ ctx }) => {
     const qRewards = ctx.drizzle
       .select({
         user: rewards.user,
-        xp: sum(rewardTypes.xp).as("xp"),
+        xp: sum(rewards.xp).as("xp"),
       })
       .from(rewards)
-      .innerJoin(rewardTypes, eq(rewardTypes.id, rewards.rewardType))
       .groupBy(rewards.user)
       .as("qRewards");
 
     const qReferrers = ctx.drizzle
       .select({
         referer: referrers.referer,
-        referXp: sum(qRewards.xp).as("referXp"), // todo: calculate 10% of this
+        referXp: mul(sum(qRewards.xp), 0.1).as("referXp"),
         totalRefer: count(referrers.referer).as("totalRefer"),
       })
       .from(referrers)
@@ -44,9 +44,13 @@ export const userRoute = router({
         settings: getTableColumns(settings),
         referXp: coalesce(qReferrers.referXp, 0).mapWith(Number),
         totalRefer: coalesce(qReferrers.totalRefer, 0).mapWith(Number),
-        xp: coalesce(qRewards.xp, 0).mapWith(Number),
+        xp: coalesce(
+          caseWhen(not(isNull(referrers.user)), qRewards.xp),
+          0,
+        ).mapWith(Number),
       })
       .from(users)
+      .leftJoin(referrers, eq(referrers.user, users.id))
       .leftJoin(qReferrers, eq(qReferrers.referer, users.id))
       .leftJoin(qRewards, eq(qRewards.user, users.id))
       .innerJoin(settings, eq(settings.user, users.id))

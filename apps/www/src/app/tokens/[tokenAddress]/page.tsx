@@ -11,6 +11,7 @@ import TokenInfo from "@/components/token/TokenInfo";
 import TokenSort from "@/components/token/TokenTab";
 import TokenAnalytic from "@/components/token/TokenAnalytic";
 import TokenMetadata from "@/components/token/TokenMetadata";
+import { format } from "util";
 
 const TimeFrame = {
   stats5m: "5M",
@@ -86,11 +87,12 @@ export default function TokenPage({
               )}
             </div>
             <div className="flex-1 flex flex-col">
-              {/*<iframe
+              <iframe
                 title="gmgn"
-                src="https://www.gmgn.cc/kline/sol/ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82"
+                className="focus:outline-none"
+                src={format("https://www.gmgn.cc/kline/sol/%s", token.id)}
                 style={{ height: "100%", width: "100%" }}
-              />*/}
+              />
             </div>
           </div>
           <div className="flex flex-col xl:flex xl:items-center">

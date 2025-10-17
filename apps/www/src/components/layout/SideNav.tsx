@@ -22,9 +22,18 @@ type Social = {
   icon: React.ElementType;
 };
 
-type SideNavProps = { onClose?: () => void } & React.ComponentProps<"div">;
+type SideNavProps = {
+  expanded?: boolean;
+  setExpanded?: React.Dispatch<React.SetStateAction<boolean>>;
+  onClose?: () => void;
+} & React.ComponentProps<"div">;
 
-export default function SideNav({ onClose, ...props }: SideNavProps) {
+export default function SideNav({
+  onClose,
+  expanded,
+  setExpanded,
+  ...props
+}: SideNavProps) {
   const pathname = usePathname();
 
   const navItems: NavItem[] = [
@@ -91,15 +100,25 @@ export default function SideNav({ onClose, ...props }: SideNavProps) {
                           ? "text-primary fill-primary"
                           : "text-white/70 fill-white/70",
                       )}
+                      onMouseEnter={() => setExpanded?.(true)}
+                      onMouseLeave={() => setExpanded?.(false)}
                     >
                       <navItem.icon className="size-6" />
-                      <span className="sm:hidden">{navItem.name}</span>
+                      <span
+                        className={clsx(
+                          expanded ? "lt-xl:hidden" : "lt-xl:hidden xl:hidden",
+                        )}
+                      >
+                        {navItem.name}
+                      </span>
                     </Link>
                   </li>
                 );
               })}
             </ul>
-            <ul className="flex space-x-4 p-4 sm:hidden">
+            <ul
+              className={clsx("flex space-x-4 p-4", !expanded && "sm:hidden")}
+            >
               {socials.map((navItem) => {
                 return (
                   <li

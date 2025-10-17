@@ -2,6 +2,9 @@ import { defineConfig, presetWind3 } from "unocss";
 
 export default defineConfig({
   theme: {
+    fontFamily: {
+      times: "'Times New Roman', 'Times', 'serif'",
+    },
     colors: {
       primary: {
         DEFAULT: "#00D897",

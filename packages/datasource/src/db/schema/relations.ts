@@ -9,7 +9,7 @@ import { poolFilters } from "./filters";
 import { referrers } from "./referrers";
 import { positions } from "./positions";
 import { notifications } from "./notifications";
-import { rewards, rewardTypes } from "./rewards";
+import { rewards } from "./rewards";
 import { poolRewardTokens, pools } from "./pools";
 
 export const userRelations = relations(users, ({ many, one }) => ({
@@ -82,15 +82,6 @@ export const pnlRelations = relations(pnls, ({ one }) => ({
     references: [positions.id],
   }),
 }));
-
-export const rewardTypeRelations = relations(rewardTypes, ({ many }) => ({
-  rewards: many(rewards),
-}));
-
 export const rewardRelations = relations(rewards, ({ one }) => ({
   user: one(users, { fields: [rewards.user], references: [users.id] }),
-  rewardType: one(rewardTypes, {
-    fields: [rewards.rewardType],
-    references: [rewardTypes.id],
-  }),
 }));

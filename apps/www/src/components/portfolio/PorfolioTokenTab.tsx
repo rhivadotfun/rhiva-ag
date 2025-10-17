@@ -3,16 +3,15 @@ import { useMemo, useState } from "react";
 import { TabPanel } from "@headlessui/react";
 
 import Decimal from "../Decimal";
+import { useAppSelector } from "@/store";
 import SwapModal from "../modals/SwapModal";
+import { walletTokenSelectors } from "@/store/wallet";
 import PortfolioTokenList from "./PortfolioTokenList";
 import SendTokenModal from "../modals/SendTokenModal";
 import ReceiveTokenModal from "../modals/ReceiveTokenModal";
 import { currencyIntlArgs, percentageIntlArgs } from "@/constants/format";
-import { useAppSelector } from "@/store";
-import { walletTokenSelectors } from "@/store/wallet";
 
 export default function PorfolioTokenTab() {
-  const { pnl, walletToken } = useAppSelector((state) => state.wallet);
   const [showSwapModal, setShowSwapModal] = useState(false);
   const [showSendModal, setShowSendModal] = useState(false);
   const [showReceiveModal, setShowReceiveModal] = useState(false);
@@ -22,6 +21,7 @@ export default function PorfolioTokenTab() {
     [],
   );
 
+  const { pnl, walletToken } = useAppSelector((state) => state.wallet);
   const tokens = walletTokenSelectors.selectAll(walletToken);
 
   return (
@@ -73,6 +73,7 @@ export default function PorfolioTokenTab() {
       </TabPanel>
       {showSwapModal && (
         <SwapModal
+          tokens={[]}
           open={showSwapModal}
           onClose={setShowSwapModal}
         />

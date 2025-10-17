@@ -1,13 +1,30 @@
 import clsx from "clsx";
-import { Field } from "formik";
+import { useState } from "react";
 import { IoChevronDown } from "react-icons/io5";
+import Image from "./Image";
 
 type TokenInputProps = {
+  value: number;
   label?: string;
-  name: string;
-} & React.ComponentProps<"div">;
+  symbol: string;
+  icon: string;
+  balance: number;
+  onSwitch?: () => void;
+  onChange: (value: number) => void;
+} & Omit<React.ComponentProps<"div">, "onChange">;
 
-export default function TokenInput({ label, name, ...props }: TokenInputProps) {
+export default function TokenInput({
+  label,
+  icon,
+  symbol,
+  value,
+  balance,
+  onChange,
+  onSwitch,
+  ...props
+}: TokenInputProps) {
+  const [rawInput, setRawInput] = useState<string | number>(value ?? "");
+
   return (
     <div
       {...props}
@@ -24,17 +41,31 @@ export default function TokenInput({ label, name, ...props }: TokenInputProps) {
         <button
           type="button"
           className="flex items-center space-x-2 bg-primary/10 px-2 py-2 rounded-md"
+          onClick={onSwitch}
         >
-          <p className="font-medium">USDT</p>
+          <Image
+            src={icon}
+            width={24}
+            height={24}
+            alt={symbol}
+            className="size-6 rounded-full"
+          />
+          <p className="font-medium">{symbol}</p>
           <IoChevronDown />
         </button>
-        <Field
-          name={name}
+        <input
+          value={rawInput}
           placeholder="0"
-          className="w-full bg-transparent text-2xl text-end font-medium border-none"
+          className="w-full flex-1 bg-transparent text-2xl text-end font-medium border-none"
+          onChange={(event) => {
+            const raw = event.target.value;
+            setRawInput(raw);
+            const value = parseFloat(raw);
+            if (!Number.isNaN(value)) onChange(value);
+          }}
         />
       </div>
-      <p className="text-gray text-xs">Balance: 0</p>
+      <p className="text-gray text-xs">Balance: {balance}</p>
     </div>
   );
 }
