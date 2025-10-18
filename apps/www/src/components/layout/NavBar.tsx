@@ -75,7 +75,7 @@ export default function NavBar(props: React.ComponentProps<"div">) {
           width={20}
           height={20}
           alt="Rhiva"
-          className={clsx("m-auto", expanded && "xl:hidden")}
+          className={clsx("lt-xl:hidden m-auto", expanded && "xl:hidden")}
         />
       </div>
 
