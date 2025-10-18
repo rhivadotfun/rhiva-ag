@@ -1,5 +1,6 @@
 export enum Work {
   syncPosition = "sync-position",
+  syncTransaction = "sync-transaction",
   syncPositionSchedule = "sync-position-schedule",
 }
 

@@ -1,9 +1,11 @@
 import type { z } from "zod/mini";
 import Decimal from "decimal.js";
 import DLMM from "@meteora-ag/dlmm";
-import { PublicKey, type Connection } from "@solana/web3.js";
 import { and, eq, inArray, not } from "drizzle-orm";
+import type { ProgramEventType } from "@rhiva-ag/decoder";
+import { PublicKey, type Connection } from "@solana/web3.js";
 import type Coingecko from "@coingecko/coingecko-typescript";
+import type { LbClmm } from "@rhiva-ag/decoder/programs/idls/types/meteora";
 import {
   collectionToMap,
   flatMapFilter,
@@ -235,4 +237,16 @@ export const syncMeteoraPositionsForWallet = async (
   ]);
 
   return result.flat(2);
+};
+
+export const syncMeteoraPositionStateFromEvent = async (
+  events: ProgramEventType<LbClmm>[],
+) => {
+  for (const event of events) {
+    if (event.name === "addLiquidity") {
+      const data = event.data;
+    } else if (event.name === "positionClose") {
+    } else if (event.name === "removeLiquidity") {
+    }
+  }
 };

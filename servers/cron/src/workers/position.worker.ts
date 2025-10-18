@@ -38,6 +38,7 @@ export default async function createWorker({
     Work.syncPosition,
     async ({ data }: Job<z.infer<typeof workSchema>>) => {
       const result = workSchema.safeParse(data);
+
       if (result.success)
         switch (data.dex) {
           case "orca": {

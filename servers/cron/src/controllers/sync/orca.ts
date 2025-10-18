@@ -3,7 +3,9 @@ import Decimal from "decimal.js";
 import { PublicKey } from "@solana/web3.js";
 import { and, eq, inArray, not } from "drizzle-orm";
 import { fromLegacyPublicKey } from "@solana/compat";
+import type { ProgramEventType } from "@rhiva-ag/decoder";
 import type Coingecko from "@coingecko/coingecko-typescript";
+import type { Whirlpool } from "@rhiva-ag/decoder/programs/idls/types/orca";
 import {
   chunkFetchMultipleAccounts,
   collectionToMap,
@@ -363,4 +365,15 @@ export const syncOrcaPositionsForWallet = async (
   ]);
 
   return result.flat(2);
+};
+
+export const syncOrcaPositionStateFromEvent = async (
+  events: ProgramEventType<Whirlpool>[],
+) => {
+  for (const event of events) {
+    if (event.name === "liquidityIncreased") {
+      const data = event.data;
+    } else if (event.name === "liquidityDecreased") {
+    }
+  }
 };

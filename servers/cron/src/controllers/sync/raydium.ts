@@ -5,6 +5,7 @@ import { RaydiumCLMM } from "@rhiva-ag/dex";
 import { and, eq, inArray, not } from "drizzle-orm";
 import { PublicKey, type Connection } from "@solana/web3.js";
 import type Coingecko from "@coingecko/coingecko-typescript";
+import type { AmmV3 } from "@rhiva-ag/decoder/programs/idls/types/raydium";
 import {
   PoolInfoLayout,
   Raydium,
@@ -28,6 +29,7 @@ import {
   type Database,
   type walletSelectSchema,
 } from "@rhiva-ag/datasource";
+import type { ProgramEventType } from "@rhiva-ag/decoder";
 
 export const syncRaydiumPositionsForWallet = async (
   connection: Connection,
@@ -300,4 +302,16 @@ export const syncRaydiumPositionsForWallet = async (
   ]);
 
   return result.flat(2);
+};
+
+export const syncRaydiumPositionStateFromEvent = async (
+  events: ProgramEventType<AmmV3>[],
+) => {
+  for (const event of events) {
+    if (event.name === "createPersonalPositionEvent") {
+      const data = event.data;
+    } else if (event.name === "increaseLiquidityEvent") {
+    } else if (event.name === "decreaseLiquidityEvent") {
+    }
+  }
 };

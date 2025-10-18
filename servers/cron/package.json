@@ -16,6 +16,7 @@
     "@raydium-io/raydium-sdk-v2": "^0.2.30-alpha",
     "@rhiva-ag/datasource": "*",
     "@rhiva-ag/dex": "*",
+    "@rhiva-ag/decoder": "*",
     "@rhiva-ag/dex-api": "*",
     "@rhiva-ag/env": "*",
     "@rhiva-ag/shared": "*",

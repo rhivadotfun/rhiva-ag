@@ -62,9 +62,9 @@ export type GetBundleStatusesRequest = {
 };
 
 export type GetBundleStatusesResponse = null | {
-  bundle_id: string;
-  transactions: [];
   slot: number;
+  bundle_id: string;
+  transactions: string[];
   confirmationStatus: TransactionConfirmationStatus;
   err: {
     ok: null;

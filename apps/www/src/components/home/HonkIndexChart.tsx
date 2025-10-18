@@ -5,9 +5,9 @@ export default function HonkIndexChart(props: React.ComponentProps<"div">) {
   return (
     <div
       {...props}
-      className={clsx("relative rounded-xl", props.className)}
+      className={clsx("relative flex flex-col rounded-xl", props.className)}
     >
-      <div className="flex flex-col space-y-8  bg-dark-secondary p-4 border border-white/6 rounded-xl md:p-8">
+      <div className="h-full flex flex-col space-y-8  bg-dark-secondary p-4 border border-white/6 rounded-xl md:p-8">
         <p className="text-gray">Honk Index</p>
         <div className="flex-1 flex flex-col space-y-4">
           <HorizontalChart
