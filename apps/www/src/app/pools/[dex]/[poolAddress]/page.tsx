@@ -6,14 +6,13 @@ import { useQuery } from "@tanstack/react-query";
 
 import { dexApi } from "@/instances";
 import { getPair } from "@/lib/dex-api";
+import { useAuth } from "@/hooks/useAuth";
 import type { AppProps } from "@/types/props";
 import Header from "@/components/layout/Header";
 import PoolInfo from "@/components/pools/PoolInfo";
 import PoolAnalytic from "@/components/pools/PoolAnalytic";
 import OpenPosition from "@/components/positions/OpenPosition";
 import PoolTokenMetadata from "@/components/pools/PoolTokenMetadata";
-
-import { useAuth } from "@/hooks/useAuth";
 
 export default function PoolPage({
   params,

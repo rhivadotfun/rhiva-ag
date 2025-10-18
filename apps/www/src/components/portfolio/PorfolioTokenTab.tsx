@@ -76,7 +76,6 @@ export default function PorfolioTokenTab() {
       </TabPanel>
       {showSwapModal && (
         <SwapModal
-          tokens={[]}
           open={showSwapModal}
           onClose={setShowSwapModal}
         />

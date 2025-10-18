@@ -1,12 +1,20 @@
 import clsx from "clsx";
+import { useMemo } from "react";
+import debounce from "lodash.debounce";
 import { MdSearch } from "react-icons/md";
 
-type SearchInputProps = { placeholder?: string } & React.ComponentProps<"div">;
+type SearchInputProps = {
+  placeholder?: string;
+  onChange: (value?: string | null) => void;
+} & Omit<React.ComponentProps<"div">, "onChange">;
 
 export default function SearchInput({
   placeholder,
+  onChange,
   ...props
 }: SearchInputProps) {
+  const search = useMemo(() => debounce(onChange, 500), [onChange]);
+
   return (
     <div
       {...props}
@@ -23,6 +31,11 @@ export default function SearchInput({
         type="search"
         placeholder={placeholder}
         className="flex-1 shrink-0 bg-transparent p-2 outline-none placeholder-text-gray"
+        onChange={(event) => {
+          const value = event.target.value;
+          if (value.trim().length > 0) return search(value);
+          else search(null);
+        }}
       />
     </div>
   );

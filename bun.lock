@@ -30,7 +30,7 @@
         "@meteora-ag/dlmm": "^1.7.5",
         "@opennextjs/cloudflare": "^1.10.1",
         "@orca-so/whirlpools-core": "^2.0.0",
-        "@raydium-io/raydium-sdk-v2": "^0.2.30-alpha",
+        "@raydium-io/raydium-sdk-v2":"^0.2.30-alpha",
         "@reduxjs/toolkit": "^2.9.0",
         "@rhiva-ag/datasource": "*",
         "@rhiva-ag/dex-api": "*",
@@ -70,6 +70,7 @@
         "zod": "^4.1.12",
       },
       "devDependencies": {
+        "@types/lodash.debounce": "^4.0.9",
         "@types/node": "^20.19.21",
         "@types/react": "^19.2.2",
         "@types/react-dom": "^19.2.2",
@@ -125,9 +126,10 @@
         "@orca-so/whirlpools": "^4.0.0",
         "@orca-so/whirlpools-client": "^4.0.1",
         "@orca-so/whirlpools-core": "^2.0.0",
-        "@raydium-io/raydium-sdk-v2": "^0.2.30-alpha",
+        "@raydium-io/raydium-sdk-v2":"^0.2.30-alpha",
         "@rhiva-ag/shared": "*",
         "@saros-finance/dlmm-sdk": "^1.4.1",
+        "@solana-program/token": "^0.7.0",
         "@solana/compat": "^4.0.0",
         "@solana/kit": "^2.3.0",
         "@solana/spl-token": "^0.4.14",
@@ -167,6 +169,8 @@
       "name": "@rhiva-ag/shared",
       "version": "0.0.0",
       "dependencies": {
+        "@solana-program/system": "^0.9.0",
+        "@solana/compat": "^4.0.0",
         "@solana/kit": "^2.3.0",
         "@solana/spl-token": "^0.4.14",
         "@solana/web3.js": "^1.98.4",
@@ -188,7 +192,7 @@
         "@meteora-ag/dlmm": "^1.7.5",
         "@orca-so/whirlpools-client": "^4.0.1",
         "@orca-so/whirlpools-core": "^2.0.0",
-        "@raydium-io/raydium-sdk-v2": "^0.2.30-alpha",
+        "@raydium-io/raydium-sdk-v2":"^0.2.30-alpha",
         "@rhiva-ag/datasource": "*",
         "@rhiva-ag/dex": "*",
         "@rhiva-ag/dex-api": "*",
@@ -226,7 +230,7 @@
         "@fastify/websocket": "^11.2.0",
         "@meteora-ag/dlmm": "^1.7.5",
         "@orca-so/whirlpools-client": "^4.0.1",
-        "@raydium-io/raydium-sdk-v2": "^0.2.30-alpha",
+        "@raydium-io/raydium-sdk-v2":"^0.2.30-alpha",
         "@rhiva-ag/datasource": "*",
         "@rhiva-ag/dex": "*",
         "@rhiva-ag/env": "*",
@@ -238,6 +242,7 @@
         "@solana/web3.js": "^1.98.4",
         "@trpc/server": "^11.6.0",
         "bn.js": "^5.2.2",
+        "bs58": "^6.0.0",
         "decimal.js": "^10.6.0",
         "drizzle-orm": "^0.44.6",
         "fastify": "^5.6.1",
@@ -1409,9 +1414,9 @@
 
     "@solana-program/stake": ["@solana-program/stake@0.2.1", "", { "peerDependencies": { "@solana/kit": "^2.1.0" } }, "sha512-ssNPsJv9XHaA+L7ihzmWGYcm/+XYURQ8UA3wQMKf6ccEHyHOUgoglkkDU/BoA0+wul6HxZUN0tHFymC0qFw6sg=="],
 
-    "@solana-program/system": ["@solana-program/system@0.7.0", "", { "peerDependencies": { "@solana/kit": "^2.1.0" } }, "sha512-FKTBsKHpvHHNc1ATRm7SlC5nF/VdJtOSjldhcyfMN9R7xo712Mo2jHIzvBgn8zQO5Kg0DcWuKB7268Kv1ocicw=="],
+    "@solana-program/system": ["@solana-program/system@0.9.0", "", { "peerDependencies": { "@solana/kit": "^4.0" } }, "sha512-yu+i0SZ+c+0E9Cy+btoMiCbxRnP/FLQuv/Ba8l2klZApAiOX1Ja/2IGkctFV36fglsI7PwD9czkSkHm8og+QeA=="],
 
-    "@solana-program/token": ["@solana-program/token@0.5.1", "", { "peerDependencies": { "@solana/kit": "^2.1.0" } }, "sha512-bJvynW5q9SFuVOZ5vqGVkmaPGA0MCC+m9jgJj1nk5m20I389/ms69ASnhWGoOPNcie7S9OwBX0gTj2fiyWpfag=="],
+    "@solana-program/token": ["@solana-program/token@0.7.0", "", { "peerDependencies": { "@solana/kit": "^4.0" } }, "sha512-Rx9vTsU15lLbjLmzrnLhPG4ZBlzkvyr7sRAH5ciA3dtSocpprkMEHQslDteE9+5rKkuYoIUl7Qki4l2IMY0P2w=="],
 
     "@solana-program/token-2022": ["@solana-program/token-2022@0.4.2", "", { "peerDependencies": { "@solana/kit": "^2.1.0", "@solana/sysvars": "^2.1.0" } }, "sha512-zIpR5t4s9qEU3hZKupzIBxJ6nUV5/UVyIT400tu9vT1HMs5JHxaTTsb5GUhYjiiTvNwU0MQavbwc4Dl29L0Xvw=="],
 
@@ -1742,6 +1747,8 @@
     "@types/lodash": ["@types/lodash@4.17.20", "", {}, "sha512-H3MHACvFUEiujabxhaI/ImO6gUrd8oOurg7LQtS7mbwIXA/cUqWrvBsaeJ23aZEPk1TAYkurjfMbSELfoCXlGA=="],
 
     "@types/lodash.chunk": ["@types/lodash.chunk@4.2.9", "", { "dependencies": { "@types/lodash": "*" } }, "sha512-Z9VtFUSnmT0No/QymqfG9AGbfOA4O5qB/uyP89xeZBqDAsKsB4gQFTqt7d0pHjbsTwtQ4yZObQVHuKlSOhIJ5Q=="],
+
+    "@types/lodash.debounce": ["@types/lodash.debounce@4.0.9", "", { "dependencies": { "@types/lodash": "*" } }, "sha512-Ma5JcgTREwpLRwMM+XwBR7DaWe96nC38uCBDFKZWbNKD+osjVzdpnUSwBcqCptrp16sSOLBAUb50Car5I0TCsQ=="],
 
     "@types/ms": ["@types/ms@2.1.0", "", {}, "sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA=="],
 
@@ -5129,9 +5136,13 @@
 
     "@opennextjs/cloudflare/enquirer": ["enquirer@2.4.1", "", { "dependencies": { "ansi-colors": "^4.1.1", "strip-ansi": "^6.0.1" } }, "sha512-rRqJg/6gd538VHvR3PSrdRBb/1Vy2YfzHqzvbhGIQpDRKIa4FgV/54b5Q1xYSxOOwKvjXweS26E0Q+nAMwp2pQ=="],
 
+    "@orca-so/tx-sender/@solana-program/system": ["@solana-program/system@0.7.0", "", { "peerDependencies": { "@solana/kit": "^2.1.0" } }, "sha512-FKTBsKHpvHHNc1ATRm7SlC5nF/VdJtOSjldhcyfMN9R7xo712Mo2jHIzvBgn8zQO5Kg0DcWuKB7268Kv1ocicw=="],
+
     "@orca-so/whirlpools/@orca-so/whirlpools-client": ["@orca-so/whirlpools-client@4.0.0", "", { "peerDependencies": { "@solana/kit": "^2.1.0" } }, "sha512-aALN8Pt34GUyARKRIv+qtl4M54NqXV8MiLGP7MtjTyqsYwl8utkH6lPA1GaxgcTOGpe2T/rPSuFHnkTE7R+NEQ=="],
 
-    "@particle-network/solana-wallet/bs58": ["bs58@4.0.1", "", { "dependencies": { "base-x": "^3.0.2" } }, "sha512-Ok3Wdf5vOIlBrgCvTq96gBkJw+JUEzdBgyaza5HLtPm7yTHkjRy8+JzNyHF7BHa0bNWOQIp3m5YF0nnFcOIKLw=="],
+    "@orca-so/whirlpools/@solana-program/system": ["@solana-program/system@0.7.0", "", { "peerDependencies": { "@solana/kit": "^2.1.0" } }, "sha512-FKTBsKHpvHHNc1ATRm7SlC5nF/VdJtOSjldhcyfMN9R7xo712Mo2jHIzvBgn8zQO5Kg0DcWuKB7268Kv1ocicw=="],
+
+    "@orca-so/whirlpools/@solana-program/token": ["@solana-program/token@0.5.1", "", { "peerDependencies": { "@solana/kit": "^2.1.0" } }, "sha512-bJvynW5q9SFuVOZ5vqGVkmaPGA0MCC+m9jgJj1nk5m20I389/ms69ASnhWGoOPNcie7S9OwBX0gTj2fiyWpfag=="],
 
     "@pm2/agent/dayjs": ["dayjs@1.8.36", "", {}, "sha512-3VmRXEtw7RZKAf+4Tv1Ym9AGeo8r8+CjDi26x+7SYQil1UqtqdaokhzoEJohqlzt0m5kacJSDhJQkG/LWhpRBw=="],
 
@@ -5569,7 +5580,13 @@
 
     "@trezor/blockchain-link/@solana-program/compute-budget": ["@solana-program/compute-budget@0.8.0", "", { "peerDependencies": { "@solana/kit": "^2.1.0" } }, "sha512-qPKxdxaEsFxebZ4K5RPuy7VQIm/tfJLa1+Nlt3KNA8EYQkz9Xm8htdoEaXVrer9kpgzzp9R3I3Bh6omwCM06tQ=="],
 
+    "@trezor/blockchain-link/@solana-program/token": ["@solana-program/token@0.5.1", "", { "peerDependencies": { "@solana/kit": "^2.1.0" } }, "sha512-bJvynW5q9SFuVOZ5vqGVkmaPGA0MCC+m9jgJj1nk5m20I389/ms69ASnhWGoOPNcie7S9OwBX0gTj2fiyWpfag=="],
+
     "@trezor/connect/@solana-program/compute-budget": ["@solana-program/compute-budget@0.8.0", "", { "peerDependencies": { "@solana/kit": "^2.1.0" } }, "sha512-qPKxdxaEsFxebZ4K5RPuy7VQIm/tfJLa1+Nlt3KNA8EYQkz9Xm8htdoEaXVrer9kpgzzp9R3I3Bh6omwCM06tQ=="],
+
+    "@trezor/connect/@solana-program/system": ["@solana-program/system@0.7.0", "", { "peerDependencies": { "@solana/kit": "^2.1.0" } }, "sha512-FKTBsKHpvHHNc1ATRm7SlC5nF/VdJtOSjldhcyfMN9R7xo712Mo2jHIzvBgn8zQO5Kg0DcWuKB7268Kv1ocicw=="],
+
+    "@trezor/connect/@solana-program/token": ["@solana-program/token@0.5.1", "", { "peerDependencies": { "@solana/kit": "^2.1.0" } }, "sha512-bJvynW5q9SFuVOZ5vqGVkmaPGA0MCC+m9jgJj1nk5m20I389/ms69ASnhWGoOPNcie7S9OwBX0gTj2fiyWpfag=="],
 
     "@trezor/connect/bs58check": ["bs58check@4.0.0", "", { "dependencies": { "@noble/hashes": "^1.2.0", "bs58": "^6.0.0" } }, "sha512-FsGDOnFg9aVI9erdriULkd/JjEWONV/lQE5aYziB5PoBsXRind56lh8doIZIc9X4HoxT5x4bLjMWN1/NB8Zp5g=="],
 
@@ -6822,8 +6839,6 @@
     "@opennextjs/aws/express/serve-static": ["serve-static@2.2.0", "", { "dependencies": { "encodeurl": "^2.0.0", "escape-html": "^1.0.3", "parseurl": "^1.3.3", "send": "^1.2.0" } }, "sha512-61g9pCh0Vnh7IutZjtLGGpTA355+OPn2TyDv/6ivP2h/AdAVX9azsoxmg2/M6nZeQZNYBEwIcsne1mJd9oQItQ=="],
 
     "@opennextjs/aws/express/type-is": ["type-is@2.0.1", "", { "dependencies": { "content-type": "^1.0.5", "media-typer": "^1.1.0", "mime-types": "^3.0.0" } }, "sha512-OZs6gsjF4vMp32qrCbiVSkrFmXtG/AZhY3t0iAMrMBiAZyV9oALtXO8hsrHbMXF9x6L3grlFuwW2oAz7cav+Gw=="],
-
-    "@particle-network/solana-wallet/bs58/base-x": ["base-x@3.0.11", "", { "dependencies": { "safe-buffer": "^5.0.1" } }, "sha512-xz7wQ8xDhdyP7tQxwdteLYeFfS68tSMNCZ/Y37WJ4bhGfKPpqEIlmIyueQHqOyoPhE6xNUqjzRr8ra0eF9VRvA=="],
 
     "@pm2/agent/semver/lru-cache": ["lru-cache@6.0.0", "", { "dependencies": { "yallist": "^4.0.0" } }, "sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA=="],
 

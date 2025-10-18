@@ -86,7 +86,7 @@ export default function SideNav({
           </div>
 
           <nav className={clsx(props.className, "flex-1 flex flex-col")}>
-            <ul className="flex-1 flex flex-col space-y-4 p-4">
+            <ul className="flex-1 flex flex-col space-y-4 p-4 lt-xl:items-center">
               {navItems.map((navItem) => {
                 const selected = navItem.path === pathname;
 
@@ -101,7 +101,6 @@ export default function SideNav({
                           : "text-white/70 fill-white/70",
                       )}
                       onMouseEnter={() => setExpanded?.(true)}
-                      onMouseLeave={() => setExpanded?.(false)}
                     >
                       <navItem.icon className="size-6" />
                       <span
@@ -117,7 +116,10 @@ export default function SideNav({
               })}
             </ul>
             <ul
-              className={clsx("flex space-x-4 p-4", !expanded && "sm:hidden")}
+              className={clsx(
+                "flex space-x-4 p-4 lt-xl:hidden",
+                !expanded && "xl:invisible",
+              )}
             >
               {socials.map((navItem) => {
                 return (

@@ -12,12 +12,21 @@ import {
   poolSearchSchema,
   poolTradeFilter,
 } from "./pool.schema";
+import type { PoolGetResponse } from "@coingecko/coingecko-typescript/resources/onchain/networks/tokens.mjs";
 
 export const poolRoute = router({
   list: publicProcedure
-    .input(poolFilterSchema.optional())
+    .input(
+      z
+        .union([poolFilterSchema.optional(), poolSearchSchema.optional()])
+        .optional(),
+    )
     .query(async ({ ctx, input }) => {
-      const response = await ctx.coingecko.onchain.pools.megafilter.get(input);
+      let response: MegafilterGetResponse | PoolGetResponse;
+      if (input && "query" in input)
+        response = await ctx.coingecko.onchain.search.pools.get(input);
+      else response = await ctx.coingecko.onchain.pools.megafilter.get(input);
+
       if (response.data && response.included) {
         const { data, included } = response;
         const mapIncludes = new Map(

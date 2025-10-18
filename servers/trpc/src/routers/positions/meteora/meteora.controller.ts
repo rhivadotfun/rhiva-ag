@@ -3,8 +3,11 @@ import Decimal from "decimal.js";
 import type { z } from "zod/mini";
 import type Dex from "@rhiva-ag/dex";
 import DLMM from "@meteora-ag/dlmm";
-import { getTokenBalanceChangesFromBatchSimulation } from "@rhiva-ag/dex";
 import { getAssociatedTokenAddressSync, NATIVE_MINT } from "@solana/spl-token";
+import {
+  getPreTokenBalanceForAccounts,
+  getTokenBalanceChangesFromBatchSimulation,
+} from "@rhiva-ag/dex";
 import {
   batchSimulateTransactions,
   isNative,
@@ -35,6 +38,7 @@ export const createPosition = async (
     slippage,
     priceChanges,
     strategyType,
+    jitoConfig,
   }: z.infer<typeof meteoraCreatePositionSchema>,
 ) => {
   const pool = await DLMM.create(dex.connection, pair);
@@ -50,20 +54,20 @@ export const createPosition = async (
     for (const [index, side] of sides.entries()) {
       const ratio = liquidityRatio ? liquidityRatio[index]! : 1;
       const amount = inputAmount * ratio;
+      const bigAmount = new BN(
+        new Decimal(amount).mul(Math.pow(10, 9)).toFixed(),
+      );
       if (isNative(side)) {
-        const bigAmount = new BN(
-          new Decimal(amount).mul(Math.pow(10, 9)).toFixed(),
-        );
         if (side.equals(tokenXMint)) {
           totalXAmount = bigAmount;
         } else if (side.equals(tokenYMint)) totalYAmount = bigAmount;
       } else {
         const { quote, transaction } = await dex.swap.jupiter.buildSwap({
-          amount,
           slippage,
           inputMint,
           outputMint: side,
           owner: owner.publicKey,
+          amount: BigInt(bigAmount.toString()),
         });
 
         if (side.equals(tokenXMint)) {
@@ -85,17 +89,21 @@ export const createPosition = async (
 
   const position = Keypair.generate();
 
-  const createPositionInstructions = await dex.dlmm.meteora.buildCreatePosition(
-    {
-      pool,
-      slippage,
-      strategyType,
-      totalXAmount,
-      totalYAmount,
-      priceChanges,
-      owner: owner.publicKey,
-      position: position.publicKey,
-    },
+  let createPositionInstructions = await dex.dlmm.meteora.buildCreatePosition({
+    pool,
+    slippage,
+    strategyType,
+    totalXAmount,
+    totalYAmount,
+    priceChanges,
+    owner: owner.publicKey,
+    position: position.publicKey,
+  });
+
+  createPositionInstructions = await sender.processJitoTipFromTxMessage(
+    owner.publicKey,
+    createPositionInstructions,
+    jitoConfig,
   );
 
   const { blockhash: recentBlockhash } =
@@ -114,13 +122,23 @@ export const createPosition = async (
   createPositionV0Transaction.sign([owner, position]);
   for (const transaction of swapV0Transactions) transaction.sign([owner]);
 
+  const transactions = [...swapV0Transactions, createPositionV0Transaction];
+
   const bundleSimulationResponse = await sender.simulateBundle({
+    transactions,
     skipSigVerify: true,
     replaceRecentBlockhash: true,
-    transactions: [...swapV0Transactions, createPositionV0Transaction],
   });
 
-  return bundleSimulationResponse;
+  return {
+    bundleSimulationResponse,
+    async execute() {
+      const {
+        result: { value },
+      } = await sender.sendBundle(transactions);
+      return value;
+    },
+  };
 };
 
 export const closePosition = async (
@@ -130,12 +148,13 @@ export const closePosition = async (
   {
     pair,
     slippage,
+    jitoConfig,
     position: positionPubkey,
   }: z.infer<typeof meteoraClosePositionSchema>,
 ) => {
   const pool = await DLMM.create(dex.connection, pair);
   const position = await pool.getPosition(positionPubkey);
-  const transactions = await dex.dlmm.meteora.buildClosePosition({
+  const closePositionTransactions = await dex.dlmm.meteora.buildClosePosition({
     pool,
     position,
     owner: owner.publicKey,
@@ -143,15 +162,23 @@ export const closePosition = async (
 
   const { blockhash: recentBlockhash } =
     await dex.connection.getLatestBlockhash();
-  const closePositionV0Transactions = transactions.map((transaction) => {
-    const v0Message = new TransactionMessage({
-      recentBlockhash,
-      payerKey: owner.publicKey,
-      instructions: transaction.instructions,
-    }).compileToV0Message();
+  const closePositionV0Transactions = await Promise.all(
+    closePositionTransactions.map(async (transaction, index) => {
+      if (index === 0)
+        transaction = await sender.processJitoTipFromTxMessage(
+          owner.publicKey,
+          transaction,
+          jitoConfig,
+        );
+      const v0Message = new TransactionMessage({
+        recentBlockhash,
+        payerKey: owner.publicKey,
+        instructions: transaction.instructions,
+      }).compileToV0Message();
 
-    return new VersionedTransaction(v0Message);
-  });
+      return new VersionedTransaction(v0Message);
+    }),
+  );
 
   const tokenAAta = getAssociatedTokenAddressSync(
     pool.tokenX.mint.address,
@@ -166,20 +193,30 @@ export const closePosition = async (
     pool.tokenY.owner,
   );
 
+  const preTokenBalanceChanges = await getPreTokenBalanceForAccounts(
+    dex.connection,
+    [tokenAAta, tokenBAta],
+  );
+
   const simulationResponses = await batchSimulateTransactions(dex.connection, {
     transactions: closePositionV0Transactions,
     options: {
       sigVerify: false,
       accounts: {
-        addresses: [tokenAAta.toBase58(), tokenBAta.toBase58()],
         encoding: "base64",
+        addresses: [tokenAAta.toBase58(), tokenBAta.toBase58()],
       },
     },
   });
 
+  const errors = simulationResponses
+    .filter((response) => response.err != null)
+    .map((response) => response.err);
+  if (errors.length > 0) throw errors;
+
   const tokenBalanceChanges = getTokenBalanceChangesFromBatchSimulation(
     simulationResponses,
-    {},
+    preTokenBalanceChanges,
   );
 
   const swapV0Transactions = [];
@@ -188,7 +225,7 @@ export const closePosition = async (
     [pool.tokenY.mint.address, pool.tokenY.mint.decimals],
   ];
 
-  for (const [mint, decimals] of tokenConfigs) {
+  for (const [mint] of tokenConfigs) {
     if (!isNative(mint)) {
       const quoteAmount = tokenBalanceChanges[mint.toBase58()] ?? 0n;
       if (quoteAmount > 0n) {
@@ -197,9 +234,7 @@ export const closePosition = async (
           inputMint: mint,
           outputMint: NATIVE_MINT,
           owner: owner.publicKey,
-          amount: new Decimal(quoteAmount.toString())
-            .div(Math.pow(10, decimals))
-            .toNumber(),
+          amount: quoteAmount.toString(),
         });
 
         swapV0Transactions.push(transaction);
@@ -211,11 +246,21 @@ export const closePosition = async (
   for (const transaction of closePositionV0Transactions)
     transaction.sign([owner]);
 
+  const transactions = [...closePositionV0Transactions, ...swapV0Transactions];
+
   const bundleSimulationResponse = await sender.simulateBundle({
+    transactions,
     skipSigVerify: true,
     replaceRecentBlockhash: true,
-    transactions: [...closePositionV0Transactions, ...swapV0Transactions],
   });
 
-  return bundleSimulationResponse;
+  return {
+    bundleSimulationResponse,
+    async execute() {
+      const {
+        result: { value },
+      } = await sender.sendBundle(transactions);
+      return value;
+    },
+  };
 };

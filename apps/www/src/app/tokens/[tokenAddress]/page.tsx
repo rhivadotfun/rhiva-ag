@@ -1,17 +1,18 @@
 "use client";
-import { use, useState } from "react";
 import moment from "moment";
+import { format } from "util";
+import { use, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { dexApi } from "@/instances";
 import type { AppProps } from "@/types/props";
 import Header from "@/components/layout/Header";
+import { DefaultToken } from "@/constants/tokens";
+import TokenSort from "@/components/token/TokenTab";
 import SwapModal from "@/components/modals/SwapModal";
 import TokenInfo from "@/components/token/TokenInfo";
-import TokenSort from "@/components/token/TokenTab";
 import TokenAnalytic from "@/components/token/TokenAnalytic";
 import TokenMetadata from "@/components/token/TokenMetadata";
-import { format } from "util";
 
 const TimeFrame = {
   stats5m: "5M",
@@ -98,6 +99,17 @@ export default function TokenPage({
           <div className="flex flex-col xl:flex xl:items-center">
             <SwapModal
               open={showSwapModal}
+              tokens={[
+                {
+                  balance: 0,
+                  mint: token.id,
+                  icon: token.icon,
+                  name: token.name,
+                  symbol: token.symbol,
+                  verified: token.isVerified,
+                },
+                DefaultToken.Sol,
+              ]}
               onClose={() => setShowSwapModal(false)}
             />
             <button

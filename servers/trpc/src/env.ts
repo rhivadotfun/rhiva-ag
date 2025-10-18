@@ -19,7 +19,8 @@ type Env =
   | "HELIUS_API_KEY"
   | "SOLANA_TRACKER_API_KEY"
   | "SECRET_KEY"
-  | "SOLANA_RPC_URL";
+  | "SOLANA_RPC_URL"
+  | "DEV_WALLET";
 
 export const getEnv = <T>(name: Env, refine?: <K>(value: K) => T): T => {
   const value = process.env[format("APP_%s", name)] || process.env[name];

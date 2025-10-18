@@ -19,8 +19,8 @@ export default function OnchainAnalytic(
         props.className,
       )}
     >
-      <FearGreedChart className="flex-1 lt-sm:min-h-48" />
-      <HonkIndexChart className="flex-1 lt-sm:min-h-48" />
+      <FearGreedChart className="flex-1" />
+      <HonkIndexChart className="flex-1" />
     </section>
   );
 }

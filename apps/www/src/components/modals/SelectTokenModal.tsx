@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MdClose, MdVerified } from "react-icons/md";
 import {
@@ -35,17 +35,18 @@ export default function SelectTokenModal({
   onChange,
   ...props
 }: SelectTokenModalProps) {
+  const [tokenArgs, setTokenArgs] = useState<
+    Parameters<typeof dexApi.jup.token.list>[number]
+  >({
+    timestamp: "5m",
+    category: "toptraded",
+  });
   const { walletToken } = useAppSelector((state) => state.wallet);
   const walletTokens = walletTokenSelectors.selectAll(walletToken);
 
   const { data } = useQuery({
-    queryKey: ["tokens", "trending"],
-    queryFn: () =>
-      dexApi.jup.token.list({
-        category: "toptraded",
-        timestamp: "5m",
-        query: "",
-      }),
+    queryKey: ["tokens", tokenArgs.category, tokenArgs.query, tokenArgs.query],
+    queryFn: () => dexApi.jup.token.list(tokenArgs),
   });
 
   const tokens: Token[] = useMemo(() => {
@@ -94,7 +95,13 @@ export default function SelectTokenModal({
                 <MdClose />
               </button>
             </header>
-            <SearchInput placeholder="Search by name, symbol or address..." />
+            <SearchInput
+              placeholder="Search by name, symbol or address..."
+              onChange={(value) => {
+                if (value) setTokenArgs({ category: "search", query: value });
+                else setTokenArgs({ category: "toptraded", timestamp: "5m" });
+              }}
+            />
           </div>
           <div className="flex flex-col overflow-y-scroll">
             <div className="flex flex-col space-y-2">

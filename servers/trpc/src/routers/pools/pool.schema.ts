@@ -64,7 +64,7 @@ export const poolFilterSchema = z.object({
 });
 
 export const poolSearchSchema = z.object({
-  query: z.string(),
+  query: z.string().optional(),
   page: z.number().default(1).optional(),
   include: poolFilterSchema.shape.include.optional(),
   network: z.enum(["solana"]).default("solana").optional(),

@@ -1,7 +1,17 @@
-import { isSystemProgram, isTokenProgram } from "@rhiva-ag/shared";
-import type { RpcSimulateTransactionResult } from "@solana/kit";
-import type { SimulatedTransactionResponse } from "@solana/web3.js";
+import { getTokenDecoder } from "@solana-program/token";
+import { isSystemProgram, isTokenProgram, mapFilter } from "@rhiva-ag/shared";
 import { AccountLayout, NATIVE_MINT, type RawAccount } from "@solana/spl-token";
+import type {
+  Address,
+  Rpc,
+  RpcSimulateTransactionResult,
+  SolanaRpcApiMainnet,
+} from "@solana/kit";
+import {
+  Connection,
+  type PublicKey,
+  type SimulatedTransactionResponse,
+} from "@solana/web3.js";
 
 export const getTokenBalanceChangesFromSimulation = (
   result: RpcSimulateTransactionResult | SimulatedTransactionResponse,
@@ -56,18 +66,65 @@ export const getTokenBalanceChangesFromBatchSimulation = (
   results: (RpcSimulateTransactionResult | SimulatedTransactionResponse)[],
   preTokenBalanceChanges: Record<string, bigint>,
 ) => {
-  const tokenBalanceChanges: Record<string, bigint> = {};
+  const globalTokenBalanceChanges: Record<string, bigint> = {};
 
   for (const result of results) {
     const tokenBalanceChanges = getTokenBalanceChangesFromSimulation(
       result,
       preTokenBalanceChanges,
     );
+
     for (const [mint, value] of Object.entries(tokenBalanceChanges)) {
-      const amount = tokenBalanceChanges[mint] ?? 0n;
-      tokenBalanceChanges[mint] = amount + value;
+      const amount = globalTokenBalanceChanges[mint] ?? 0n;
+      globalTokenBalanceChanges[mint] = amount + value;
     }
   }
 
-  return tokenBalanceChanges;
+  return globalTokenBalanceChanges;
 };
+
+export function getPreTokenBalanceForAccounts(
+  rpc: Rpc<SolanaRpcApiMainnet>,
+  accounts: Address[],
+): Promise<Record<string, bigint>>;
+export function getPreTokenBalanceForAccounts(
+  connection: Connection,
+  accounts: PublicKey[],
+): Promise<Record<string, bigint>>;
+export async function getPreTokenBalanceForAccounts(
+  connection: Connection | Rpc<SolanaRpcApiMainnet>,
+  accounts: PublicKey[] | Address[],
+): Promise<Record<string, bigint>> {
+  if (connection instanceof Connection) {
+    const accountInfos = await connection.getMultipleAccountsInfo(
+      accounts as PublicKey[],
+    );
+    return Object.fromEntries(
+      mapFilter(accountInfos, (accountInfo) => {
+        if (accountInfo) {
+          const account = AccountLayout.decode(accountInfo.data);
+          return [account.mint.toBase58(), account.amount];
+        }
+
+        return null;
+      }),
+    );
+  }
+
+  const tokenDecoder = getTokenDecoder();
+  const { value: accountInfos } = await connection
+    .getMultipleAccounts(accounts as Address[])
+    .send();
+
+  return Object.fromEntries(
+    mapFilter(accountInfos, (accountInfo) => {
+      if (accountInfo) {
+        const [data, encoding] = accountInfo.data;
+        const account = tokenDecoder.decode(Buffer.from(data, encoding));
+        return [account.mint, account.amount];
+      }
+
+      return null;
+    }),
+  );
+}
