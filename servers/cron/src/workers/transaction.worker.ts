@@ -1,8 +1,15 @@
-import { z } from "zod/mini";
+import { z } from "zod";
 import { Worker } from "bullmq";
 import type { Logger } from "pino";
 import { Pipeline } from "@rhiva-ag/decoder";
-import type { Connection } from "@solana/web3.js";
+import type { Connection, PublicKey } from "@solana/web3.js";
+import { createSolanaRpc, type Rpc, type SolanaRpcApi } from "@solana/kit";
+import {
+  publicKey,
+  walletSelectSchema,
+  type Database,
+} from "@rhiva-ag/datasource";
+import type Coingecko from "@coingecko/coingecko-typescript";
 import { mapFilter, type SendTransaction } from "@rhiva-ag/shared";
 import {
   RaydiumProgramEventProcessor,
@@ -21,61 +28,142 @@ import { Work } from "../constants";
 import { syncOrcaPositionStateFromEvent } from "../controllers/sync/orca";
 import { syncRaydiumPositionStateFromEvent } from "../controllers/sync/raydium";
 import { syncMeteoraPositionStateFromEvent } from "../controllers/sync/meteora";
+import { createRedis } from "../instances";
 
-const workSchema = z.union([
-  z.object({
-    bundleId: z.string(),
-    type: z.literal("create-position"),
-    dex: z.enum(["orca", "meteora", "raydium-clmm"]),
-  }),
-  z.object({
-    bundleId: z.string(),
-    type: z.literal("close-position"),
-    dex: z.enum(["orca", "meteora", "raydium-clmm"]),
-  }),
-]);
+const workSchema = z
+  .union([
+    z
+      .union([
+        z.object({
+          dex: z.enum(["orca", "meteora"]),
+        }),
+        z.object({
+          positionNftMint: publicKey().optional(),
+          dex: z.enum(["raydium-clmm"]),
+        }),
+      ])
+      .and(
+        z.object({
+          bundleId: z.string(),
+          type: z.literal("create-position"),
+        }),
+      ),
+    z.object({
+      bundleId: z.string(),
+      type: z.literal("close-position"),
+      dex: z.enum(["orca", "meteora", "raydium-clmm"]),
+    }),
+  ])
+  .and(
+    z.object({
+      wallet: walletSelectSchema.pick({ id: true }),
+    }),
+  );
 
-export default async function createWorker(
-  connection: Connection,
-  sender: SendTransaction,
-  logger: Logger,
-) {
-  const pipeline = new Pipeline([
-    new MeteoraProgramEventProcessor(connection).addConsumer(
-      syncMeteoraPositionStateFromEvent,
+export const createTransactionPipeline = ({
+  db,
+  rpc,
+  coingecko,
+  connection,
+  positionNftMint,
+  wallet,
+}: {
+  db: Database;
+  rpc: Rpc<SolanaRpcApi>;
+  connection: Connection;
+  coingecko: Coingecko;
+  positionNftMint?: PublicKey;
+  wallet: Pick<z.infer<typeof walletSelectSchema>, "id">;
+}) =>
+  new Pipeline([
+    new MeteoraProgramEventProcessor(connection).addConsumer((...args) =>
+      syncMeteoraPositionStateFromEvent(
+        db,
+        connection,
+        coingecko,
+        wallet,
+        ...args,
+      ),
     ),
-    new RaydiumProgramEventProcessor(connection).addConsumer(
-      syncRaydiumPositionStateFromEvent,
+    new RaydiumProgramEventProcessor(connection).addConsumer((...args) =>
+      syncRaydiumPositionStateFromEvent(
+        db,
+        connection,
+        coingecko,
+        wallet,
+        positionNftMint,
+        ...args,
+      ),
     ),
-    new WhirlpoolProgramEventProcessor(connection).addConsumer(
-      syncOrcaPositionStateFromEvent,
+    new WhirlpoolProgramEventProcessor(connection).addConsumer((...args) =>
+      syncOrcaPositionStateFromEvent(db, rpc, coingecko, wallet, ...args),
     ),
     new MeteoraProgramInstructionEventProcessor(connection).addConsumer(
-      (instructions) =>
+      (instructions, extra) =>
         syncMeteoraPositionStateFromEvent(
+          db,
+          connection,
+          coingecko,
+          wallet,
           instructions.map((instruction) => instruction.parsed),
+          extra,
         ),
     ),
     new RaydiumProgramInstructionEventProcessor(connection).addConsumer(
-      (instructions) =>
+      (instructions, extra) =>
         syncRaydiumPositionStateFromEvent(
+          db,
+          connection,
+          coingecko,
+          wallet,
+          positionNftMint,
           instructions.map((instruction) => instruction.parsed),
+          extra,
         ),
     ),
     new WhirlpoolProgramInstructionEventProcessor(connection).addConsumer(
-      (instructions) =>
+      (instructions, extra) =>
         syncOrcaPositionStateFromEvent(
+          db,
+          rpc,
+          coingecko,
+          wallet,
           instructions.map((instruction) => instruction.parsed),
+          extra,
         ),
     ),
   ]);
 
+export default async function createWorker({
+  db,
+  logger,
+  sender,
+  coingecko,
+  connection,
+}: {
+  db: Database;
+  logger: Logger;
+  coingecko: Coingecko;
+  connection: Connection;
+  sender: SendTransaction;
+}) {
+  const rpc = createSolanaRpc(connection.rpcEndpoint);
   const worker = new Worker<z.infer<typeof workSchema>>(
     Work.syncTransaction,
     async ({ data }) => {
       const result = workSchema.safeParse(data);
 
       if (result.success) {
+        const pipeline = createTransactionPipeline({
+          db,
+          rpc,
+          connection,
+          coingecko,
+          wallet: data.wallet,
+          positionNftMint:
+            "positionNftMint" in data ? data.positionNftMint : undefined,
+        });
+
         const {
           result: { value },
         } = await sender.getBundleStatuses(data.bundleId);
@@ -97,6 +185,9 @@ export default async function createWorker(
         { data, error: "Invalid job payload" },
         "worker.transaction.sync.error",
       );
+    },
+    {
+      connection: createRedis({ maxRetriesPerRequest: null }),
     },
   );
 

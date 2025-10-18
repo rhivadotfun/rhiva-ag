@@ -1,9 +1,9 @@
 import Pino from "pino";
 import type Redis from "ioredis";
-import type { RedisOptions } from "ioredis";
-import { Secret } from "@rhiva-ag/shared";
 import { DexApi } from "@rhiva-ag/dex-api";
+import type { RedisOptions } from "ioredis";
 import { Connection } from "@solana/web3.js";
+import { Secret, SendTransaction } from "@rhiva-ag/shared";
 import { Coingecko } from "@coingecko/coingecko-typescript";
 import {
   createDB,
@@ -20,6 +20,12 @@ export const secret = new Secret(getEnv("SECRET_KEY"), {
   algorithm: "aes-256-gcm",
 });
 export const solanaConnection = new Connection(getEnv("SOLANA_RPC_URL"));
+export const sender = new SendTransaction(
+  getEnv("HELIUS_API_URL"),
+  getEnv("HELIUS_API_KEY"),
+  getEnv("JITO_API_URL"),
+  getEnv("JITO_UUID"),
+);
 export const coingecko = new Coingecko({
   environment: "pro",
   proAPIKey: getEnv("COINGECKO_API_KEY"),

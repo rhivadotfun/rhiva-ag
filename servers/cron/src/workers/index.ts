@@ -1,17 +1,34 @@
 import createPositionWorker from "./position.worker";
-import { db, secret, logger, coingecko, solanaConnection } from "../instances";
+import createTransactionWorker from "./transaction.worker";
+import {
+  db,
+  secret,
+  logger,
+  coingecko,
+  solanaConnection,
+  sender,
+} from "../instances";
 
 (async () => {
-  const stopPositionWorker = await createPositionWorker({
-    db,
-    secret,
-    logger,
-    coingecko,
-    solanaConnection,
-  });
+  const stopFns = await Promise.all([
+    createPositionWorker({
+      db,
+      secret,
+      logger,
+      coingecko,
+      solanaConnection,
+    }),
+    createTransactionWorker({
+      db,
+      logger,
+      sender,
+      coingecko,
+      connection: solanaConnection,
+    }),
+  ]);
 
   const shutdown = async () => {
-    await stopPositionWorker();
+    await Promise.all(stopFns.map((fn) => fn()));
     process.exit();
   };
 

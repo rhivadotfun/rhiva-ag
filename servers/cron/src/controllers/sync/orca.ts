@@ -1,14 +1,18 @@
-import type { z } from "zod/mini";
 import Decimal from "decimal.js";
+import type { z } from "zod/mini";
 import { PublicKey } from "@solana/web3.js";
 import { and, eq, inArray, not } from "drizzle-orm";
 import { fromLegacyPublicKey } from "@solana/compat";
+import { getMintDecoder } from "@solana-program/token";
 import type { ProgramEventType } from "@rhiva-ag/decoder";
 import type Coingecko from "@coingecko/coingecko-typescript";
 import type { Whirlpool } from "@rhiva-ag/decoder/programs/idls/types/orca";
 import {
   chunkFetchMultipleAccounts,
   collectionToMap,
+  isNative,
+  isTokenProgram,
+  mapFilter,
   promiseMapFilter,
 } from "@rhiva-ag/shared";
 import {
@@ -23,9 +27,13 @@ import {
   getTickArrayDecoder,
   fetchAllPositionWithFilter,
   positionMintFilter,
+  fetchWhirlpool,
 } from "@orca-so/whirlpools-client";
 import {
+  mints,
   pnls,
+  poolRewardTokens,
+  pools,
   positions,
   type Database,
   type walletSelectSchema,
@@ -39,7 +47,9 @@ import {
   type Rpc,
   type GetProgramAccountsApi,
   address,
+  type SolanaRpcApi,
 } from "@solana/kit";
+import assert from "assert";
 
 export const syncOrcaPositionsForWallet = async (
   rpc: Rpc<
@@ -203,7 +213,7 @@ export const syncOrcaPositionsForWallet = async (
     const lowerTickArray = tickArraysMap.get(position.lowerTickArrayAddress);
     const upperTickArray = tickArraysMap.get(position.upperTickArrayAddress);
 
-    if (!offchainPosition || !lowerTickArray || !upperTickArray) return;
+    if (!offchainPosition || !lowerTickArray || !upperTickArray) continue;
 
     const lowerTickState =
       lowerTickArray.ticks[
@@ -367,13 +377,275 @@ export const syncOrcaPositionsForWallet = async (
   return result.flat(2);
 };
 
+const getPoolById = async (
+  db: Database,
+  id: (typeof pools.$inferSelect)["id"],
+) =>
+  await db.query.pools.findFirst({
+    columns: {
+      baseToken: false,
+      quoteToken: false,
+    },
+    with: {
+      baseToken: {
+        columns: {
+          id: true,
+          decimals: true,
+        },
+      },
+      quoteToken: {
+        columns: {
+          id: true,
+          decimals: true,
+        },
+      },
+    },
+    where: eq(pools.id, id),
+  });
+
+const getPositionById = async (
+  db: Database,
+  id: (typeof positions.$inferSelect)["id"],
+) =>
+  await db.query.positions
+    .findFirst({
+      columns: {
+        pool: false,
+      },
+      with: {
+        pool: {
+          columns: {
+            baseToken: false,
+            quoteToken: false,
+          },
+          with: {
+            baseToken: {
+              columns: {
+                id: true,
+                decimals: true,
+              },
+            },
+            quoteToken: {
+              columns: {
+                id: true,
+                decimals: true,
+              },
+            },
+          },
+        },
+      },
+      where: eq(positions.id, id),
+    })
+    .execute();
+
+async function upsertPool(
+  db: Database,
+  rpc: Rpc<SolanaRpcApi>,
+  poolId: string,
+) {
+  const pool = await getPoolById(db, poolId);
+
+  if (pool) return pool;
+  const { data: pair } = await fetchWhirlpool(rpc, address(poolId));
+
+  const rewardPubkeys = mapFilter(pair.rewardInfos, (reward) =>
+    fromLegacyPublicKey(PublicKey.default) === reward.mint ? null : reward.mint,
+  );
+  const mintPubkeys = [pair.tokenMintA, pair.tokenMintB, ...rewardPubkeys];
+
+  const mintAccountInfos = await chunkFetchMultipleAccounts(
+    mintPubkeys,
+    (keys) =>
+      rpc
+        .getMultipleAccounts(keys)
+        .send()
+        .then(({ value }) => value),
+  );
+  const mintValues = mapFilter(mintAccountInfos, (mintAccountInfo) => {
+    if (mintAccountInfo) {
+      if (isNative(mintAccountInfo.owner))
+        return {
+          decimals: 9,
+          id: mintAccountInfo.publicKey,
+          tokenProgram: mintAccountInfo.owner,
+        };
+      else if (isTokenProgram(mintAccountInfo.owner)) {
+        const mintDecoder = getMintDecoder();
+        const [data, encoding] = mintAccountInfo.data;
+        const account = mintDecoder.decode(Buffer.from(data, encoding));
+        return {
+          decimals: account.decimals,
+          id: mintAccountInfo.publicKey,
+          tokenProgram: mintAccountInfo.owner,
+        };
+      }
+    }
+  });
+
+  if (mintValues.length > 0)
+    await db.insert(mints).values(mintValues).onConflictDoNothing().execute();
+
+  await db.insert(pools).values({
+    id: poolId,
+    dex: "orca",
+    config: {},
+    baseToken: pair.tokenMintA,
+    quoteToken: pair.tokenMintB,
+    rewardTokens: rewardPubkeys,
+  });
+
+  await db.insert(poolRewardTokens).values(
+    rewardPubkeys.map((pubkey) => ({
+      pool: poolId,
+      mint: pubkey,
+    })),
+  );
+
+  return getPoolById(db, poolId);
+}
+
 export const syncOrcaPositionStateFromEvent = async (
+  db: Database,
+  rpc: Rpc<SolanaRpcApi>,
+  coingecko: Coingecko,
+  wallet: Pick<z.infer<typeof walletSelectSchema>, "id">,
   events: ProgramEventType<Whirlpool>[],
+  _extra: { signature: string },
 ) => {
+  const results = [];
+
   for (const event of events) {
     if (event.name === "liquidityIncreased") {
       const data = event.data;
+      let position = await getPositionById(db, data.position.toBase58());
+
+      if (!position) {
+        const pool = await upsertPool(db, rpc, data.whirlpool.toBase58());
+
+        assert(pool, "pool not created");
+
+        await db
+          .insert(positions)
+          .values({
+            config: {},
+            active: true,
+            state: "open",
+            pool: pool.id,
+            amountUsd: 0,
+            baseAmount: 0,
+            quoteAmount: 0,
+            wallet: wallet.id,
+            status: "pending",
+            id: data.position.toBase58(),
+          })
+          .returning();
+
+        position = await getPositionById(db, data.position.toBase58());
+      }
+
+      if (position) {
+        const { pool } = position;
+        const rawAmountX = data.tokenAAmount,
+          rawAmountY = data.tokenBAmount;
+        let baseAmount = position.baseAmount,
+          quoteAmount = position.quoteAmount,
+          amountUsd = position.amountUsd;
+
+        const price = (await coingecko.simple.tokenPrice.getID("solana", {
+          vs_currencies: "usd",
+          contract_addresses: [pool.baseToken.id, pool.quoteToken.id].join(","),
+        })) as Record<string, { usd: number }>;
+
+        if (rawAmountX) {
+          const priceUsd = price[pool.baseToken.id];
+          const amount = new Decimal(rawAmountX.toString())
+            .div(Math.pow(10, pool.baseToken.decimals))
+            .toNumber();
+
+          baseAmount += amount;
+          if (priceUsd) amountUsd += priceUsd.usd * amount;
+        }
+
+        if (rawAmountY) {
+          const priceUsd = price[pool.quoteToken.id];
+          const amount = new Decimal(rawAmountY.toString())
+            .div(Math.pow(10, pool.quoteToken.decimals))
+            .toNumber();
+
+          quoteAmount += amount;
+          if (priceUsd) amountUsd += priceUsd.usd * amount;
+        }
+
+        const values: Partial<typeof positions.$inferInsert> = {
+          baseAmount,
+          quoteAmount,
+          amountUsd,
+          active: true,
+          status: "successful",
+        };
+
+        const [updatedPosition] = await db
+          .update(positions)
+          .set(values)
+          .where(eq(positions.id, position.id))
+          .returning();
+
+        results.push(updatedPosition);
+      }
     } else if (event.name === "liquidityDecreased") {
+      const data = event.data;
+
+      const positionId = data.position.toBase58();
+
+      const position = await getPositionById(db, positionId);
+
+      if (position) {
+        const { pool } = position;
+        const rawAmountX = data.tokenAAmount,
+          rawAmountY = data.tokenBAmount;
+        let baseAmount = position.baseAmount,
+          quoteAmount = position.quoteAmount,
+          amountUsd = position.amountUsd;
+
+        const price = (await coingecko.simple.tokenPrice.getID("solana", {
+          vs_currencies: "usd",
+          contract_addresses: [pool.baseToken.id, pool.quoteToken.id].join(","),
+        })) as Record<string, { usd: number }>;
+
+        if (rawAmountX) {
+          const priceUsd = price[pool.baseToken.id];
+          const amount = new Decimal(rawAmountX.toString())
+            .div(Math.pow(10, pool.baseToken.decimals))
+            .toNumber();
+
+          baseAmount -= amount;
+          if (priceUsd) amountUsd -= priceUsd.usd * amount;
+        }
+
+        if (rawAmountY) {
+          const priceUsd = price[pool.quoteToken.id];
+          const amount = new Decimal(rawAmountY.toString())
+            .div(Math.pow(10, pool.quoteToken.decimals))
+            .toNumber();
+
+          quoteAmount -= amount;
+          if (priceUsd) amountUsd -= priceUsd.usd * amount;
+        }
+
+        const [updatedPosition] = await db
+          .update(positions)
+          .set({
+            baseAmount,
+            quoteAmount,
+            amountUsd,
+          })
+          .where(eq(positions.id, positionId))
+          .returning();
+
+        results.push(updatedPosition);
+      }
     }
   }
+
+  return results;
 };

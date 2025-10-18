@@ -1,19 +1,28 @@
+import { format } from "util";
 import type { z } from "zod/mini";
 import Decimal from "decimal.js";
-import DLMM from "@meteora-ag/dlmm";
+import { MintLayout } from "@solana/spl-token";
 import { and, eq, inArray, not } from "drizzle-orm";
+import DLMM, { createProgram } from "@meteora-ag/dlmm";
 import type { ProgramEventType } from "@rhiva-ag/decoder";
 import { PublicKey, type Connection } from "@solana/web3.js";
 import type Coingecko from "@coingecko/coingecko-typescript";
 import type { LbClmm } from "@rhiva-ag/decoder/programs/idls/types/meteora";
 import {
+  chunkFetchMultipleAccounts,
   collectionToMap,
   flatMapFilter,
+  isNative,
+  isTokenProgram,
   loadWallet,
+  mapFilter,
   type Secret,
 } from "@rhiva-ag/shared";
 import {
+  mints,
   pnls,
+  poolRewardTokens,
+  pools,
   positions,
   type Database,
   type walletSelectSchema,
@@ -111,7 +120,7 @@ export const syncMeteoraPositionsForWallet = async (
       rewardInfo.mint.toBase58(),
     );
 
-    if (!offchainPosition) return;
+    if (!offchainPosition) continue;
 
     const active =
       activeBin >= position.positionData.lowerBinId &&
@@ -239,14 +248,285 @@ export const syncMeteoraPositionsForWallet = async (
   return result.flat(2);
 };
 
+const getPoolById = async (
+  db: Database,
+  id: (typeof pools.$inferSelect)["id"],
+) =>
+  await db.query.pools.findFirst({
+    columns: {
+      baseToken: false,
+      quoteToken: false,
+    },
+    with: {
+      baseToken: {
+        columns: {
+          id: true,
+          decimals: true,
+        },
+      },
+      quoteToken: {
+        columns: {
+          id: true,
+          decimals: true,
+        },
+      },
+    },
+    where: eq(pools.id, id),
+  });
+
+const getPositionById = async (
+  db: Database,
+  id: (typeof pools.$inferSelect)["id"],
+) =>
+  await db.query.positions
+    .findFirst({
+      columns: {
+        pool: false,
+      },
+      with: {
+        pool: {
+          columns: {
+            baseToken: false,
+            quoteToken: false,
+          },
+          with: {
+            baseToken: {
+              columns: {
+                id: true,
+                decimals: true,
+              },
+            },
+            quoteToken: {
+              columns: {
+                id: true,
+                decimals: true,
+              },
+            },
+          },
+        },
+      },
+      where: eq(positions.id, id),
+    })
+    .execute();
+
+async function upsertPool(
+  db: Database,
+  connection: Connection,
+  poolId: string,
+) {
+  const pool = await getPoolById(db, poolId);
+
+  if (pool) return pool;
+  const program = createProgram(connection);
+  const pair = await program.account.lbPair.fetch(poolId);
+
+  if (pair) {
+    const rewardPubkeys = mapFilter(pair.rewardInfos, (reward) =>
+      PublicKey.default.equals(reward.mint) ? null : reward.mint,
+    );
+    const mintPubkeys = [pair.tokenXMint, pair.tokenYMint, ...rewardPubkeys];
+
+    const mintAccountInfos = await chunkFetchMultipleAccounts(
+      mintPubkeys,
+      connection.getMultipleAccountsInfo.bind(connection),
+    );
+    const mintValues = mapFilter(mintAccountInfos, (mintAccountInfo) => {
+      if (mintAccountInfo) {
+        if (isNative(mintAccountInfo.owner))
+          return {
+            decimals: 9,
+            id: mintAccountInfo.publicKey.toBase58(),
+            tokenProgram: mintAccountInfo.owner.toBase58(),
+          };
+        else if (isTokenProgram(mintAccountInfo.owner)) {
+          const account = MintLayout.decode(mintAccountInfo.data);
+          return {
+            decimals: account.decimals,
+            id: mintAccountInfo.publicKey.toBase58(),
+            tokenProgram: mintAccountInfo.owner.toBase58(),
+          };
+        }
+      }
+    });
+
+    if (mintValues.length > 0)
+      await db.insert(mints).values(mintValues).onConflictDoNothing().execute();
+
+    await db.insert(pools).values({
+      id: poolId,
+      dex: "meteora",
+      config: {},
+      baseToken: pair.tokenXMint.toBase58(),
+      quoteToken: pair.tokenYMint.toBase58(),
+      rewardTokens: rewardPubkeys.map((pubkey) => pubkey.toBase58()),
+    });
+
+    await db.insert(poolRewardTokens).values(
+      rewardPubkeys.map((pubkey) => ({
+        pool: poolId,
+        mint: pubkey.toBase58(),
+      })),
+    );
+
+    return getPoolById(db, poolId);
+  }
+
+  throw new Error(format("pool with id=% not found", poolId));
+}
+
 export const syncMeteoraPositionStateFromEvent = async (
+  db: Database,
+  connection: Connection,
+  coingecko: Coingecko,
+  wallet: Pick<z.infer<typeof walletSelectSchema>, "id">,
   events: ProgramEventType<LbClmm>[],
+  _extra: { signature: string },
 ) => {
+  const results = [];
+
   for (const event of events) {
-    if (event.name === "addLiquidity") {
+    if (event.name === "positionCreate") {
       const data = event.data;
-    } else if (event.name === "positionClose") {
+      const pool = await upsertPool(db, connection, data.lbPair.toBase58());
+
+      if (pool) {
+        const [position] = await db
+          .insert(positions)
+          .values({
+            config: {},
+            active: true,
+            state: "open",
+            pool: pool.id,
+            amountUsd: 0,
+            baseAmount: 0,
+            quoteAmount: 0,
+            wallet: wallet.id,
+            status: "pending",
+            id: data.position.toBase58(),
+          })
+          .onConflictDoNothing({
+            target: [positions.id],
+          })
+          .returning();
+
+        results.push(position);
+      }
+    } else if (event.name === "addLiquidity") {
+      const data = event.data;
+      const positionId = data.position.toBase58();
+      const position = await getPositionById(db, positionId);
+
+      if (position) {
+        const { pool } = position;
+        const [rawAmountX, rawAmountY] = data.amounts;
+        let baseAmount = position.baseAmount,
+          quoteAmount = position.quoteAmount,
+          amountUsd = position.amountUsd;
+
+        const price = (await coingecko.simple.tokenPrice.getID("solana", {
+          vs_currencies: "usd",
+          contract_addresses: [pool.baseToken.id, pool.quoteToken.id].join(","),
+        })) as Record<string, { usd: number }>;
+
+        if (rawAmountX) {
+          const priceUsd = price[pool.baseToken.id];
+          const amount = new Decimal(rawAmountX.toString())
+            .div(Math.pow(10, pool.baseToken.decimals))
+            .toNumber();
+          baseAmount += amount;
+          if (priceUsd) amountUsd += priceUsd.usd * amount;
+        }
+
+        if (rawAmountY) {
+          const priceUsd = price[pool.quoteToken.id];
+          const amount = new Decimal(rawAmountY.toString())
+            .div(Math.pow(10, pool.quoteToken.decimals))
+            .toNumber();
+          quoteAmount += amount;
+          if (priceUsd) amountUsd += priceUsd.usd * amount;
+        }
+
+        const values: Partial<typeof positions.$inferInsert> = {
+          baseAmount,
+          quoteAmount,
+          amountUsd,
+          active: true,
+          status: "successful",
+        };
+
+        const [updatedPosition] = await db
+          .update(positions)
+          .set(values)
+          .where(eq(positions.id, position.id))
+          .returning();
+
+        results.push(updatedPosition);
+      }
     } else if (event.name === "removeLiquidity") {
+      const data = event.data;
+      const positionId = data.position.toBase58();
+
+      const position = await getPositionById(db, positionId);
+
+      if (position) {
+        const { pool } = position;
+        const [rawAmountX, rawAmountY] = data.amounts;
+        let baseAmount = position.baseAmount,
+          quoteAmount = position.quoteAmount,
+          amountUsd = position.amountUsd;
+
+        const price = (await coingecko.simple.tokenPrice.getID("solana", {
+          vs_currencies: "usd",
+          contract_addresses: [pool.baseToken.id, pool.quoteToken.id].join(","),
+        })) as Record<string, { usd: number }>;
+
+        if (rawAmountX) {
+          const priceUsd = price[pool.baseToken.id];
+          const amount = new Decimal(rawAmountX.toString())
+            .div(Math.pow(10, pool.baseToken.decimals))
+            .toNumber();
+
+          baseAmount -= amount;
+          if (priceUsd) amountUsd -= priceUsd.usd * amount;
+        }
+
+        if (rawAmountY) {
+          const priceUsd = price[pool.quoteToken.id];
+          const amount = new Decimal(rawAmountY.toString())
+            .div(Math.pow(10, pool.quoteToken.decimals))
+            .toNumber();
+
+          quoteAmount -= amount;
+          if (priceUsd) amountUsd -= priceUsd.usd * amount;
+        }
+
+        const [updatedPosition] = await db
+          .update(positions)
+          .set({
+            baseAmount,
+            quoteAmount,
+            amountUsd,
+          })
+          .where(eq(positions.id, positionId))
+          .returning();
+
+        results.push(updatedPosition);
+      }
+    } else if (event.name === "positionClose") {
+      const data = event.data;
+      const positionId = data.position.toBase58();
+
+      const [position] = await db
+        .update(positions)
+        .set({
+          state: "closed",
+        })
+        .where(eq(positions.id, positionId))
+        .returning();
+
+      results.push(position);
     }
   }
+
+  return results;
 };
