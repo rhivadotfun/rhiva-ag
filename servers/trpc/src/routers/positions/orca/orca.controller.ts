@@ -2,10 +2,13 @@ import Decimal from "decimal.js";
 import type { z } from "zod/mini";
 import type Dex from "@rhiva-ag/dex";
 import { fetchWhirlpool } from "@orca-so/whirlpools-client";
-import { getTokenBalanceChangesFromSimulation } from "@rhiva-ag/dex";
 import { fromLegacyPublicKey, fromVersionedTransaction } from "@solana/compat";
 import { getAssociatedTokenAddressSync, NATIVE_MINT } from "@solana/spl-token";
 import { isNative, mapFilter, type SendTransaction } from "@rhiva-ag/shared";
+import {
+  getPreTokenBalanceForAccounts,
+  getTokenBalanceChangesFromSimulation,
+} from "@rhiva-ag/dex";
 import {
   type Keypair,
   PublicKey,
@@ -21,6 +24,7 @@ import {
   setTransactionMessageLifetimeUsingBlockhash,
   signTransactionMessageWithSigners,
   type RpcSimulateTransactionResult,
+  type Transaction,
 } from "@solana/kit";
 
 import type {
@@ -36,7 +40,7 @@ export const createPosition = async (
 ) => {
   const signer = await createKeyPairSignerFromBytes(owner.secretKey);
 
-  const { pair, inputAmount, inputMint, slippage } = args;
+  const { pair, inputAmount, inputMint, slippage, jitoConfig } = args;
   const pool = await fetchWhirlpool(dex.dlmm.rpc, pair);
 
   let tokenA = BigInt(0),
@@ -51,18 +55,19 @@ export const createPosition = async (
   if (isNative(inputMint)) {
     for (const token of poolToken) {
       const amount = inputAmount / 2;
+      const bigAmount = BigInt(
+        new Decimal(amount).mul(Math.pow(10, 9)).toFixed(),
+      );
+
       if (isNative(token)) {
-        const bigAmount = BigInt(
-          new Decimal(amount).mul(Math.pow(10, 9)).toFixed(),
-        );
         if (token === tokenXMint) {
           tokenA = bigAmount;
         } else if (token === tokenYMint) tokenB = bigAmount;
       } else {
         const { quote, transaction } = await dex.swap.jupiter.buildSwap({
-          amount,
           slippage,
           inputMint,
+          amount: bigAmount,
           owner: owner.publicKey,
           outputMint: new PublicKey(token),
         });
@@ -97,11 +102,18 @@ export const createPosition = async (
     .getLatestBlockhash()
     .send();
 
-  const createPositionV0Message = pipe(
+  const createPositionV0Message = await pipe(
     createTransactionMessage({ version: 0 }),
     (tx) => setTransactionMessageFeePayer(signer.address, tx),
     (tx) => setTransactionMessageLifetimeUsingBlockhash(recentBlockhash, tx),
-    (tx) => appendTransactionMessageInstructions(instructions, tx),
+    async (tx) =>
+      appendTransactionMessageInstructions(
+        [
+          await sender.processJitoTipFromTxMessage(signer, jitoConfig),
+          ...instructions,
+        ],
+        tx,
+      ),
   );
 
   const swapV0Transactions = mapFilter(
@@ -112,9 +124,8 @@ export const createPosition = async (
     },
   );
 
-  const createPositionV0Transaction = await signTransactionMessageWithSigners(
-    createPositionV0Message,
-  );
+  const createPositionV0Transaction: Transaction =
+    await signTransactionMessageWithSigners(createPositionV0Message);
 
   const transactions = [...swapV0Transactions, createPositionV0Transaction];
 
@@ -124,7 +135,17 @@ export const createPosition = async (
     transactions: transactions.map(getBase64EncodedWireTransaction),
   });
 
-  return bundleSimulationResponse;
+  return {
+    bundleSimulationResponse,
+    async execute() {
+      const {
+        result: { value },
+      } = await sender.sendBundle(
+        transactions.map(getBase64EncodedWireTransaction),
+      );
+      return value;
+    },
+  };
 };
 
 export const closePosition = async (
@@ -137,6 +158,7 @@ export const closePosition = async (
     pair,
     tokenA,
     tokenB,
+    jitoConfig,
   }: z.infer<typeof orcaClosePositionSchema>,
 ) => {
   const signer = await createKeyPairSignerFromBytes(owner.secretKey);
@@ -151,12 +173,20 @@ export const closePosition = async (
     .getLatestBlockhash()
     .send();
 
-  const closePositionV0Message = pipe(
+  const closePositionV0Message = await pipe(
     createTransactionMessage({ version: 0 }),
     (tx) => setTransactionMessageFeePayer(signer.address, tx),
     (tx) => setTransactionMessageLifetimeUsingBlockhash(recentBlockhash, tx),
-    (tx) => appendTransactionMessageInstructions(instructions, tx),
+    async (tx) =>
+      appendTransactionMessageInstructions(
+        [
+          await sender.processJitoTipFromTxMessage(signer, jitoConfig),
+          ...instructions,
+        ],
+        tx,
+      ),
   );
+
   const tokenAAta = getAssociatedTokenAddressSync(
     new PublicKey(pool.data.tokenMintA),
     owner.publicKey,
@@ -170,8 +200,12 @@ export const closePosition = async (
     new PublicKey(tokenB.owner),
   );
 
-  const closePositionV0Transaction = await signTransactionMessageWithSigners(
-    closePositionV0Message,
+  const closePositionV0Transaction: Transaction =
+    await signTransactionMessageWithSigners(closePositionV0Message);
+
+  const preTokenBalanceChanges = await getPreTokenBalanceForAccounts(
+    dex.connection,
+    [tokenAAta, tokenBAta],
   );
 
   const simulationResponse = await dex.dlmm.rpc
@@ -192,9 +226,11 @@ export const closePosition = async (
     )
     .send();
 
+  if (simulationResponse.value.err) throw simulationResponse.value.err;
+
   const tokenBalanceChanges = getTokenBalanceChangesFromSimulation(
     simulationResponse.value as unknown as RpcSimulateTransactionResult,
-    {},
+    preTokenBalanceChanges,
   );
 
   const swapV0Transactions = [];
@@ -209,17 +245,17 @@ export const closePosition = async (
           owner: owner.publicKey,
           outputMint: NATIVE_MINT,
           inputMint: new PublicKey(token.mint),
-          amount: new Decimal(quoteAmount.toString())
-            .div(Math.pow(10, token.decimals))
-            .toNumber(),
+          amount: quoteAmount.toString(),
         });
+
+        transaction.sign([owner]);
 
         swapV0Transactions.push(fromVersionedTransaction(transaction));
       }
     }
   }
 
-  const transactions = [...swapV0Transactions, closePositionV0Transaction];
+  const transactions = [closePositionV0Transaction, ...swapV0Transactions];
 
   const bundleSimulationResponse = await sender.simulateBundle({
     skipSigVerify: true,
@@ -227,5 +263,15 @@ export const closePosition = async (
     transactions: transactions.map(getBase64EncodedWireTransaction),
   });
 
-  return bundleSimulationResponse;
+  return {
+    bundleSimulationResponse,
+    async execute() {
+      const {
+        result: { value },
+      } = await sender.sendBundle(
+        transactions.map(getBase64EncodedWireTransaction),
+      );
+      return value;
+    },
+  };
 };

@@ -76,3 +76,21 @@ export type SolanaRPCResponse<T> = {
   id: string;
   result: T;
 };
+
+export type Percentile = "25" | "50" | "75" | "95" | "99" | "50ema";
+
+export type JitoFeeConfig =
+  | {
+      type: "dynamic";
+      priorityFeePercentitle?: Percentile;
+    }
+  | { type: "exact"; amountLamport: bigint };
+
+export const PercentileToKey = {
+  "25": "landed_tips_25th_percentile",
+  "50": "landed_tips_50th_percentile",
+  "75": "landed_tips_75th_percentile",
+  "95": "landed_tips_95th_percentile",
+  "99": "landed_tips_99th_percentile",
+  "50ema": "ema_landed_tips_50th_percentile",
+} as const;

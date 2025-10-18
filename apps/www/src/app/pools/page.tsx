@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 
@@ -16,10 +17,13 @@ export default function PoolPage() {
   const trpcClient = useTRPCClient();
   const searchParams = useSearchParams();
 
+  const [query, setQuery] = useState<string | undefined>();
+
   const { data } = useQuery({
-    queryKey: trpc.pool.list.queryKey(),
+    queryKey: trpc.pool.list.queryKey({ query }),
     queryFn: () =>
       trpcClient.pool.list.query({
+        query,
         sort: "h24_trending",
         include: "base_token,quote_token",
         ...Object.fromEntries(searchParams.entries()),
@@ -40,6 +44,10 @@ export default function PoolPage() {
                 <SearchInput
                   placeholder="Search pools"
                   className="lt-lg:flex-1 lg:self-start"
+                  onChange={(value) => {
+                    if (value) setQuery(value);
+                    else setQuery(undefined);
+                  }}
                 />
                 <PoolFilter className="lg:hidden" />
               </div>

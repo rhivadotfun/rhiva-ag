@@ -1,8 +1,10 @@
 import { ApiImpl } from "../api-impl";
 import type { Token } from "./models/token.model";
 
-type TokenArgs = {
+export type TokenArgs = {
+  limit?: number;
   query?: "verified" | "lst" | string;
+  timestamp?: "5m" | "1h" | "6h" | "24h";
   category:
     | "search"
     | "toporganicscore"
@@ -10,8 +12,6 @@ type TokenArgs = {
     | "toptrending"
     | "recent"
     | "tag";
-  timestamp?: "5m" | "1h" | "6h" | "24h";
-  limit?: number;
 };
 
 export default class TokenApi extends ApiImpl {

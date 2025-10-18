@@ -16,9 +16,10 @@ import TokenInput from "../TokenInput";
 import { useTRPC } from "@/trpc.client";
 import type { Token } from "./SelectTokenModal";
 import SelectTokenModal from "./SelectTokenModal";
+import { DefaultToken } from "@/constants/tokens";
 
 type SwapModalProps = {
-  tokens?: Token[];
+  tokens?: [Token, Token];
 } & React.ComponentProps<typeof Dialog>;
 
 export default function SwapModal({ tokens, ...props }: SwapModalProps) {
@@ -38,24 +39,7 @@ export default function SwapModal({ tokens, ...props }: SwapModalProps) {
 }
 
 function SwapForm({
-  tokens = [
-    {
-      name: "USD Coin",
-      symbol: "USDC",
-      balance: 0,
-      verified: true,
-      mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      icon: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png",
-    },
-    {
-      name: "Solana",
-      symbol: "SOL",
-      balance: 0,
-      verified: true,
-      mint: "So11111111111111111111111111111111111111112",
-      icon: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
-    },
-  ],
+  tokens = [DefaultToken.Usdc, DefaultToken.Sol],
   ...props
 }: React.ComponentProps<typeof Form> & Pick<SwapModalProps, "tokens">) {
   const trpc = useTRPC();
@@ -107,9 +91,18 @@ function SwapForm({
             onSwitch={() => setShowSelectInputTokenModal(true)}
             onChange={(value) => setFieldValue("inputAmount", value)}
           />
-          <div className="z-10 absolute self-center size-8 flex items-center justify-center bg-dark-secondary border border-white/10 rounded-full">
+          <button
+            type="button"
+            className="z-10 absolute self-center size-8 flex items-center justify-center bg-dark-secondary border border-white/10 rounded-full"
+            onClick={() => {
+              const inputToken = values.inputToken;
+              const outputToken = values.outputToken;
+              setFieldValue("outputToken", inputToken);
+              setFieldValue("inputToken", outputToken);
+            }}
+          >
             <MdSwapVert size={16} />
-          </div>
+          </button>
           <TokenInput
             label="Buy"
             value={values.outputAmount}

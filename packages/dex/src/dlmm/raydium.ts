@@ -1,5 +1,5 @@
 import assert from "assert";
-import type BN from "bn.js";
+import BN from "bn.js";
 import Decimal from "decimal.js";
 import {
   PoolUtils,
@@ -15,6 +15,7 @@ import {
   minExpirationTime,
   type TransferFeeDataBaseType,
   type PositionInfoLayout,
+  type ApiV3PoolInfoConcentratedItem,
 } from "@raydium-io/raydium-sdk-v2";
 
 type CreatePositionArgs = {
@@ -98,20 +99,25 @@ export class RaydiumCLMM {
   };
 
   buildClosePosition = async ({
-    pool,
+    poolInfo,
     position,
   }: {
-    pool: Awaited<ReturnType<Raydium["clmm"]["getPoolInfoFromRpc"]>>;
     position: ClmmPositionLayout;
+    poolInfo: ApiV3PoolInfoConcentratedItem;
   }) => {
     assert(this.raydium, "initialize raydium class to use this method");
-    const { poolInfo, poolKeys } = pool;
 
-    return this.raydium.clmm.closePosition({
+    return this.raydium.clmm.decreaseLiquidity({
       poolInfo,
-      poolKeys,
+      amountMinA: new BN(0),
+      amountMinB: new BN(0),
       ownerPosition: position,
+      liquidity: position.liquidity,
       txVersion: TxVersion.V0,
+      ownerInfo: {
+        closePosition: true,
+        useSOLBalance: true,
+      },
     });
   };
 

@@ -13,6 +13,7 @@ import {
   CLMM_PROGRAM_ID,
   TickArrayLayout,
   PositionInfoLayout,
+  getPdaPersonalPositionAddress,
 } from "@raydium-io/raydium-sdk-v2";
 import {
   chunkFetchMultipleAccounts,
@@ -85,7 +86,13 @@ export const syncRaydiumPositionsForWallet = async (
 
   if (walletPositions.length < 1) return;
   const clmmPositions = await chunkFetchMultipleAccounts(
-    walletPositions.map((position) => new PublicKey(position.id)),
+    walletPositions.map(
+      (position) =>
+        getPdaPersonalPositionAddress(
+          CLMM_PROGRAM_ID,
+          new PublicKey(position.id),
+        ).publicKey,
+    ),
     connection.getMultipleAccountsInfo.bind(connection),
     (account) => PositionInfoLayout.decode(account.data),
   );

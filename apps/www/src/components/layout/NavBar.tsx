@@ -54,19 +54,21 @@ export default function NavBar(props: React.ComponentProps<"div">) {
   return (
     <div
       {...props}
+      aria-hidden="true"
       className={clsx(
         props.className,
         expanded ? "xl:w-xs" : "xl:w-[96px]",
-        "transition-all duration-300 flex flex-col  bg-dark-secondary lt-sm:border lt-md:border-b-none lt-sm:border-primary/25 lt-sm:rounded-t-2xl sm:space-y-4",
+        "transition-all duration-300 flex flex-col bg-dark-secondary lt-sm:border lt-md:border-b-none lt-sm:border-primary/25 lt-sm:rounded-t-2xl sm:space-y-4",
       )}
+      onMouseLeave={() => toggleExpanded(false)}
     >
-      <div className={clsx("py-4 lt-xl:h-32", expanded && "xl:px-4")}>
+      <div className={clsx("py-4 lt-sm:hidden xl:h-14", expanded && "xl:px-4")}>
         <Image
           src={Logo}
           width={189}
           height={61}
           alt="Rhiva"
-          className={clsx("lt-xl:hidden", !expanded && "xl:hidden")}
+          className={clsx("w-40 h-12 lt-xl:hidden", !expanded && "xl:hidden")}
         />
         <Image
           src={LogoSmall}
@@ -78,7 +80,7 @@ export default function NavBar(props: React.ComponentProps<"div">) {
       </div>
 
       <nav className={clsx(props.className, "flex-1 flex sm:flex-col")}>
-        <ul className="flex-1 flex sm:flex-col sm:p-4">
+        <ul className="flex-1 flex sm:flex-col sm:space-y-4 sm:p-4">
           {navItems.map((navItem) => {
             const selected = navItem.path === pathname;
             const Button = Link;
@@ -91,13 +93,12 @@ export default function NavBar(props: React.ComponentProps<"div">) {
                 <Button
                   href={navItem.path}
                   className={clsx(
-                    "flex items-center p-2 lt-md:flex-col lt-md:space-y-2 sm:space-x-4 sm:py-8",
+                    "flex items-center p-4 lt-md:flex-col lt-md:space-y-2 sm:space-x-4 sm:p-4",
                     selected
                       ? "text-primary fill-primary"
                       : "text-white/70 fill-white/70",
                   )}
                   onMouseEnter={() => toggleExpanded(true)}
-                  onMouseLeave={() => toggleExpanded(false)}
                   onNavigate={(event) => {
                     if (navItem.protected) {
                       if (authenticated) return;
@@ -106,7 +107,7 @@ export default function NavBar(props: React.ComponentProps<"div">) {
                     }
                   }}
                 >
-                  <navItem.icon className="size-6" />
+                  <navItem.icon className="size-6 lt-sm:size-8" />
                   <span
                     className={clsx(
                       expanded ? "lt-xl:hidden" : "lt-xl:hidden xl:hidden",

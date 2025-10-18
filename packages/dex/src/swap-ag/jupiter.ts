@@ -28,7 +28,7 @@ export class Jupiter {
     owner: PublicKey;
     inputMint: PublicKey | string;
     outputMint: PublicKey | string;
-    amount: number;
+    amount: string | bigint;
     slippage: number;
   }) => {
     const inputMintAta = getAssociatedTokenAddressSync(
@@ -41,8 +41,9 @@ export class Jupiter {
     );
 
     const quoteResponse = await this.jupiter.quoteGet({
-      amount,
       slippageBps: slippage,
+      // @ts-expect-error jupiter v6 api expect bigint string
+      amount: amount.toString(),
       inputMint: inputMint.toString(),
       outputMint: outputMint.toString(),
     });

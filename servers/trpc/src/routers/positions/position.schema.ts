@@ -13,3 +13,11 @@ export const positionFilterSchema = z.object({
 export const positionSortSchema = orderByOperator(
   z.enum(["createdAt", "amountUsd"]),
 );
+
+export const jitoTipConfigSchema = z.union([
+  z.object({ type: z.literal("exact"), amountLamport: z.bigint() }),
+  z.object({
+    type: z.literal("dynamic"),
+    priorityFeePercentile: z.enum(["25", "50", "75", "95", "99", "50ema"]),
+  }),
+]);
