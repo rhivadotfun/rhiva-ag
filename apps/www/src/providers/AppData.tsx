@@ -14,8 +14,17 @@ export default function AppData() {
   const { connection } = useConnection();
 
   const { data } = useQuery({
-    queryKey: ["wallet", "tokens", user?.wallet?.id],
-    queryFn: async () => getWalletPNL(connection, dexApi, user!.wallet.id),
+    queryKey: [
+      "wallet",
+      "tokens",
+      "25kZHGK5ZhRVkPkdCxkLezycHYMFgSUdSpZB3yHZYPe5",
+    ],
+    queryFn: async () =>
+      getWalletPNL(
+        connection,
+        dexApi,
+        "25kZHGK5ZhRVkPkdCxkLezycHYMFgSUdSpZB3yHZYPe5",
+      ),
     enabled: Boolean(user),
   });
 

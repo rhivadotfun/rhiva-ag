@@ -76,7 +76,7 @@ function PortfolioCalender(props: React.ComponentProps<"div">) {
               <div
                 key={`${week}`}
                 className={clsx(
-                  "flex flex-col items-center justify-center md:aspect-square/2 text-center p-2",
+                  "flex flex-col items-center justify-center md:aspect-square/4 text-center p-2",
                   cell && "border border-primary/20 rounded bg-primary/5",
                 )}
               >
@@ -85,16 +85,20 @@ function PortfolioCalender(props: React.ComponentProps<"div">) {
                     <p className="text-gray font-medium text-sm">
                       {cell.moment.date()}
                     </p>
-                    {cell.pnl !== undefined && (
-                      <p
-                        className={clsx(
-                          "text-xs font-semibold",
-                          cell.pnl >= 0 ? "text-green-500" : "text-red-500",
-                        )}
-                      >
-                        {cell.pnl >= 0 ? "+" : ""}${cell.pnl.toFixed(2)}
-                      </p>
-                    )}
+                    <p
+                      className={clsx(
+                        "text-2/5 lg:text-xs font-semibold",
+                        cell.pnl !== undefined
+                          ? cell.pnl >= 0
+                            ? "text-green-500"
+                            : "text-red-500"
+                          : "text-white",
+                      )}
+                    >
+                      {cell.pnl !== undefined
+                        ? `${cell.pnl >= 0 ? "+" : ""}$${cell.pnl.toFixed(2)}`
+                        : "$0.00"}
+                    </p>
                   </>
                 )}
               </div>
