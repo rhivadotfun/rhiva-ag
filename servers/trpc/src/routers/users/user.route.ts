@@ -1,6 +1,6 @@
 import moment from "moment";
 import { TRPCError } from "@trpc/server";
-import { count, desc, eq, getTableColumns, sql, sum } from "drizzle-orm";
+import { count, eq, getTableColumns, sum } from "drizzle-orm";
 import {
   add,
   date,
@@ -14,6 +14,7 @@ import {
   userSelectSchema,
   wallets,
   rank,
+  count as countAll,
 } from "@rhiva-ag/datasource";
 
 import { privateProcedure, router } from "../../trpc";
@@ -48,9 +49,7 @@ export const userRoute = router({
     const qRanks = ctx.drizzle
       .select({
         id: users.id,
-        totalUsers: sql<number>`COUNT(*) OVER ()`
-          .mapWith(Number)
-          .as("totalUsers"),
+        totalUsers: countAll().mapWith(Number).as("totalUsers"),
         rank: rank(qRewards.xp).mapWith(Number).as("rank"),
         todayXp: coalesce(qRewards.todayXp, 0).mapWith(Number).as("todayXp"),
         referXp: coalesce(qReferrers.referXp, 0).mapWith(Number).as("referXp"),

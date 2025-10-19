@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import Image from "next/image";
-import { useTiers, type Tier } from "@/hooks/useTiers";
+import type { Tier } from "@/hooks/useTiers";
 
 export default function PointTier({
   tiers,

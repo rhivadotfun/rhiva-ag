@@ -50,7 +50,7 @@ export function useTiers() {
 
   const tier = useMemo(() => {
     const index = tiers.findIndex(
-      ({ xpRange: [start, end] }) => user!.xp >= start && user!.xp <= end,
+      ({ xpRange: [start, end] }) => user?.xp >= start && user?.xp <= end,
     );
     const currentTier = tiers[index];
     const nextTier = tiers[index + 1];

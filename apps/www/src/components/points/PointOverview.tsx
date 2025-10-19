@@ -17,10 +17,11 @@ export default function PointOverview({
   currentTier,
   ...props
 }: PointOverviewProps) {
-  const percentage = useMemo(
-    () => (xp / currentTier.xpRange[1]) * 100,
-    [xp, currentTier],
-  );
+  const percentage = useMemo(() => {
+    const [min, max] = currentTier.xpRange;
+    const raw = ((xp - min) / (max - min)) * 100;
+    return Math.min(100, Math.max(0, raw));
+  }, [xp, currentTier]);
 
   return (
     <div

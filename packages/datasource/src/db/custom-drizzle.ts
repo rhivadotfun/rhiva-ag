@@ -28,7 +28,9 @@ export const date = <T extends Column>(column: T) => sql`DATE(${column})`;
 
 export const rank = <T extends Column | SQL<unknown> | SQL.Aliased>(
   column: T,
-) => sql`RANK() OVER (ORDER BY ${column})`;
+) => sql`RANK() OVER (ORDER BY ${column} DESC)`;
+
+export const count = () => sql<number>`COUNT(*) OVER ()`;
 
 export const mul = <T extends Column | SQL<unknown> | SQL.Aliased>(
   column: T,
