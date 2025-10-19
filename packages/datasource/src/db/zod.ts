@@ -27,7 +27,10 @@ export const userInsertSchema = createInsertSchema(users);
 export const userUpdateSchema = createUpdateSchema(users);
 export const userSelectSchema = createSelectSchema(users).extend({
   xp: z.number(),
+  rank: z.number(),
   referXp: z.number(),
+  totalUsers: z.number(),
+  todayXp: z.number(),
   totalRefer: z.number(),
   settings: settingsSelectSchema.omit({ user: true }),
   wallet: walletSelectSchema.omit({ user: true, key: true }),

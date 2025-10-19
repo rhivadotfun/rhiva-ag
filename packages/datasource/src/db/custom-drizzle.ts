@@ -24,6 +24,12 @@ export const coalesce = <T extends Column | SQL.Aliased | SQL<unknown>>(
 export const day = <T extends Column>(column: T) =>
   sql`date_trunc('day', ${column})`.as(column._.name);
 
+export const date = <T extends Column>(column: T) => sql`DATE(${column})`;
+
+export const rank = <T extends Column | SQL<unknown> | SQL.Aliased>(
+  column: T,
+) => sql`RANK() OVER (ORDER BY ${column})`;
+
 export const mul = <T extends Column | SQL<unknown> | SQL.Aliased>(
   column: T,
   multiplier: number,

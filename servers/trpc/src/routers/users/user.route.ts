@@ -1,6 +1,9 @@
+import moment from "moment";
 import { TRPCError } from "@trpc/server";
-import { count, eq, getTableColumns, isNull, not, sum } from "drizzle-orm";
+import { count, desc, eq, getTableColumns, sql, sum } from "drizzle-orm";
 import {
+  add,
+  date,
   caseWhen,
   coalesce,
   mul,
@@ -10,16 +13,21 @@ import {
   users,
   userSelectSchema,
   wallets,
+  rank,
 } from "@rhiva-ag/datasource";
 
 import { privateProcedure, router } from "../../trpc";
 
 export const userRoute = router({
   me: privateProcedure.output(userSelectSchema).query(async ({ ctx }) => {
+    const today = moment().startOf("day").toDate();
     const qRewards = ctx.drizzle
       .select({
         user: rewards.user,
         xp: sum(rewards.xp).as("xp"),
+        todayXp: sum(caseWhen(eq(date(rewards.createdAt), today), rewards.xp))
+          .mapWith(Number)
+          .as("todayXp"),
       })
       .from(rewards)
       .groupBy(rewards.user)
@@ -37,22 +45,38 @@ export const userRoute = router({
       .groupBy(referrers.referer)
       .as("qReferrers");
 
-    const [user] = await ctx.drizzle
+    const qRanks = ctx.drizzle
       .select({
-        ...getTableColumns(users),
-        wallet: getTableColumns(wallets),
-        settings: getTableColumns(settings),
-        referXp: coalesce(qReferrers.referXp, 0).mapWith(Number),
-        totalRefer: coalesce(qReferrers.totalRefer, 0).mapWith(Number),
-        xp: coalesce(
-          caseWhen(not(isNull(referrers.user)), qRewards.xp),
-          0,
-        ).mapWith(Number),
+        id: users.id,
+        totalUsers: sql<number>`COUNT(*) OVER ()`
+          .mapWith(Number)
+          .as("totalUsers"),
+        rank: rank(qRewards.xp).mapWith(Number).as("rank"),
+        todayXp: coalesce(qRewards.todayXp, 0).mapWith(Number).as("todayXp"),
+        referXp: coalesce(qReferrers.referXp, 0).mapWith(Number).as("referXp"),
+        totalRefer: coalesce(qReferrers.totalRefer, 0)
+          .mapWith(Number)
+          .as("totalRefer"),
+        xp: coalesce(add(qRewards.xp, qReferrers.referXp), 0)
+          .mapWith(Number)
+          .as("xp"),
       })
       .from(users)
       .leftJoin(referrers, eq(referrers.user, users.id))
       .leftJoin(qReferrers, eq(qReferrers.referer, users.id))
       .leftJoin(qRewards, eq(qRewards.user, users.id))
+      .as("qRanks");
+
+    const [user] = await ctx.drizzle
+      .select({
+        ...qRanks._.selectedFields,
+        ...getTableColumns(users),
+        wallet: getTableColumns(wallets),
+        settings: getTableColumns(settings),
+      })
+      .from(users)
+      .where(eq(users.id, ctx.user.id))
+      .leftJoin(qRanks, eq(qRanks.id, users.id))
       .innerJoin(settings, eq(settings.user, users.id))
       .innerJoin(wallets, eq(wallets.user, users.id));
 
