@@ -76,7 +76,7 @@ function PortfolioCalender(props: React.ComponentProps<"div">) {
               <div
                 key={`${week}`}
                 className={clsx(
-                  "flex flex-col items-center justify-center aspect-square text-center p-1",
+                  "flex flex-col items-center justify-center md:aspect-square/2 text-center p-2",
                   cell && "border border-primary/20 rounded bg-primary/5",
                 )}
               >
