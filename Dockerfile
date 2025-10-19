@@ -21,7 +21,7 @@ COPY package.json ./package.json
 
 # Run turbo prune for docker build
 RUN bun install turbo --global && \
-    bun x turbo prune @rhiva-ag/trpc --docker
+    bun x turbo prune @rhiva-ag/trpc @rhiva-ag/cron --docker
 
 FROM base as builder
 WORKDIR /usr/src/app
