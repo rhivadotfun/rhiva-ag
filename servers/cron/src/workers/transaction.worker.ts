@@ -25,12 +25,12 @@ import {
 } from "@rhiva-ag/decoder/programs/meteora/index";
 
 import { Work } from "../constants";
+import { createRedis } from "../instances";
 import { syncOrcaPositionStateFromEvent } from "../controllers/sync/orca";
 import { syncRaydiumPositionStateFromEvent } from "../controllers/sync/raydium";
 import { syncMeteoraPositionStateFromEvent } from "../controllers/sync/meteora";
-import { createRedis } from "../instances";
 
-const workSchema = z
+export const workSchema = z
   .union([
     z
       .union([
@@ -63,74 +63,92 @@ const workSchema = z
 export const createTransactionPipeline = ({
   db,
   rpc,
+  type,
+  wallet,
   coingecko,
   connection,
   positionNftMint,
-  wallet,
 }: {
   db: Database;
+  coingecko: Coingecko;
   rpc: Rpc<SolanaRpcApi>;
   connection: Connection;
-  coingecko: Coingecko;
   positionNftMint?: PublicKey;
   wallet: Pick<z.infer<typeof walletSelectSchema>, "id">;
+  type?: "closed-position" | "create-position" | "claim-reward";
 }) =>
   new Pipeline([
-    new MeteoraProgramEventProcessor(connection).addConsumer((...args) =>
-      syncMeteoraPositionStateFromEvent(
+    new MeteoraProgramEventProcessor(connection).addConsumer((events, extra) =>
+      syncMeteoraPositionStateFromEvent({
         db,
-        connection,
-        coingecko,
+        type,
+        extra,
+        events,
         wallet,
-        ...args,
-      ),
+        coingecko,
+        connection,
+      }),
     ),
-    new RaydiumProgramEventProcessor(connection).addConsumer((...args) =>
-      syncRaydiumPositionStateFromEvent(
+    new RaydiumProgramEventProcessor(connection).addConsumer((events, extra) =>
+      syncRaydiumPositionStateFromEvent({
         db,
-        connection,
-        coingecko,
+        type,
+        extra,
+        events,
         wallet,
+        coingecko,
+        connection,
         positionNftMint,
-        ...args,
-      ),
+      }),
     ),
-    new WhirlpoolProgramEventProcessor(connection).addConsumer((...args) =>
-      syncOrcaPositionStateFromEvent(db, rpc, coingecko, wallet, ...args),
+    new WhirlpoolProgramEventProcessor(connection).addConsumer(
+      (events, extra) =>
+        syncOrcaPositionStateFromEvent({
+          db,
+          rpc,
+          type,
+          wallet,
+          events,
+          extra,
+          coingecko,
+        }),
     ),
     new MeteoraProgramInstructionEventProcessor(connection).addConsumer(
       (instructions, extra) =>
-        syncMeteoraPositionStateFromEvent(
+        syncMeteoraPositionStateFromEvent({
           db,
-          connection,
-          coingecko,
-          wallet,
-          instructions.map((instruction) => instruction.parsed),
+          type,
           extra,
-        ),
+          wallet,
+          coingecko,
+          connection,
+          events: instructions.map((instruction) => instruction.parsed),
+        }),
     ),
     new RaydiumProgramInstructionEventProcessor(connection).addConsumer(
       (instructions, extra) =>
-        syncRaydiumPositionStateFromEvent(
+        syncRaydiumPositionStateFromEvent({
           db,
-          connection,
-          coingecko,
-          wallet,
-          positionNftMint,
-          instructions.map((instruction) => instruction.parsed),
+          type,
           extra,
-        ),
+          wallet,
+          coingecko,
+          connection,
+          positionNftMint,
+          events: instructions.map((instruction) => instruction.parsed),
+        }),
     ),
     new WhirlpoolProgramInstructionEventProcessor(connection).addConsumer(
       (instructions, extra) =>
-        syncOrcaPositionStateFromEvent(
+        syncOrcaPositionStateFromEvent({
           db,
           rpc,
-          coingecko,
-          wallet,
-          instructions.map((instruction) => instruction.parsed),
+          type,
           extra,
-        ),
+          wallet,
+          coingecko,
+          events: instructions.map((instruction) => instruction.parsed),
+        }),
     ),
   ]);
 
@@ -164,27 +182,21 @@ export default async function createWorker({
             "positionNftMint" in data ? data.positionNftMint : undefined,
         });
 
-        const {
-          result: { value },
-        } = await sender.getBundleStatuses(data.bundleId);
-        if (value) {
-          if (value.err) throw value.err;
+        const bundles = await sender.getBundles(data.bundleId);
 
-          const response = mapFilter(
-            await connection.getParsedTransactions(value.transactions),
-            (transaction) => transaction,
-          );
+        return Promise.all(
+          bundles.map(async (bundle) => {
+            const response = mapFilter(
+              await connection.getParsedTransactions(bundle.txSignatures, {
+                maxSupportedTransactionVersion: 0,
+              }),
+              (transaction) => transaction,
+            );
 
-          return pipeline.process(...response);
-        }
-
-        return Promise.reject(new Error("bundle not found."));
+            return pipeline.process(...response);
+          }),
+        );
       }
-
-      logger.error(
-        { data, error: "Invalid job payload" },
-        "worker.transaction.sync.error",
-      );
     },
     {
       connection: createRedis({ maxRetriesPerRequest: null }),
@@ -192,6 +204,7 @@ export default async function createWorker({
   );
 
   worker.on("failed", (job, error) => {
+    console.error(error);
     logger.error(
       { error, job: { id: job?.id, data: job?.data } },
       "worker.transaction.sync.failed",

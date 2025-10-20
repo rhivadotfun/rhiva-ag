@@ -19,6 +19,17 @@ module.exports = {
     {
       interpreter,
       instances: 1,
+      name: "mcp",
+      exec_mode: "fork",
+      increment_var: "PORT",
+      script: "mcp/src/index.ts",
+      env: {
+        PORT: 8001,
+      },
+    },
+    {
+      interpreter,
+      instances: 1,
       name: "schedules",
       exec_mode: "fork",
       script: "cron/src/schedules/index.ts",

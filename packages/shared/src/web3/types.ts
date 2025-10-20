@@ -59,6 +59,7 @@ export type SendBundleResponse = {
 
 export type GetBundleStatusesRequest = {
   params: [string[]];
+  method: "getBundleStatuses";
 };
 
 export type GetBundleStatusesResponse = null | {
@@ -69,6 +70,17 @@ export type GetBundleStatusesResponse = null | {
   err: {
     ok: null;
   };
+};
+
+export type GetInflightBundleStatusesRequest = {
+  params: [string[]];
+  method: "getInflightBundleStatuses";
+};
+
+export type GetInflightBundleStatusesResponse = null | {
+  bundle_id: string;
+  landed_slot: number | null;
+  status: "Invalid" | "Pending" | "Failed" | "Landed";
 };
 
 export type SolanaRPCResponse<T> = {
@@ -94,3 +106,15 @@ export const PercentileToKey = {
   "99": "landed_tips_99th_percentile",
   "50ema": "ema_landed_tips_50th_percentile",
 } as const;
+
+export type BundleResponse = {
+  bundleId: string;
+  slot: number;
+  validator: string;
+  tippers: string[];
+  landedTipLamports: number;
+  landedCu: number;
+  blockIndex: number;
+  timestamp: string;
+  txSignatures: string[];
+};

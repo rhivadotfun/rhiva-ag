@@ -138,12 +138,10 @@ export const createPosition = async (
   return {
     bundleSimulationResponse,
     async execute() {
-      const {
-        result: { value },
-      } = await sender.sendBundle(
+      const { result } = await sender.sendBundle(
         transactions.map(getBase64EncodedWireTransaction),
       );
-      return value;
+      return result;
     },
   };
 };
@@ -266,12 +264,10 @@ export const closePosition = async (
   return {
     bundleSimulationResponse,
     async execute() {
-      const {
-        result: { value },
-      } = await sender.sendBundle(
+      const { result } = await sender.sendBundle(
         transactions.map(getBase64EncodedWireTransaction),
       );
-      return value;
+      return result;
     },
   };
 };

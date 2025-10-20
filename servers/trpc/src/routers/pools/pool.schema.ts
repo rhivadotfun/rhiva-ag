@@ -2,35 +2,107 @@ import z from "zod";
 import { commaEnum } from "@rhiva-ag/datasource";
 
 export const poolFilterSchema = z.object({
-  fdv_usd_min: z.number().optional(),
-  fdv_usd_max: z.number().optional(),
-  buys_min: z.number().int().optional(),
-  buys_max: z.number().int().optional(),
-  sells_min: z.number().int().optional(),
-  sells_max: z.number().int().optional(),
-  page: z.number().optional(),
-  tx_count_min: z.number().int().optional(),
-  tx_count_max: z.number().int().optional(),
-  reserve_in_usd_min: z.number().optional(),
-  reserve_in_usd_max: z.number().optional(),
-  h24_volume_usd_min: z.number().optional(),
-  h24_volume_usd_max: z.number().optional(),
-  networks: commaEnum(["solana"]).default("solana"),
-  pool_created_hour_min: z.number().optional(),
-  pool_created_hour_max: z.number().optional(),
-  buy_tax_percentage_min: z.number().optional(),
-  buy_tax_percentage_max: z.number().optional(),
-  sell_tax_percentage_min: z.number().optional(),
-  sell_tax_percentage_max: z.number().optional(),
-  include_unknown_honeypot_tokens: z.boolean().optional(),
-  buys_duration: z.enum(["5m", "1h", "6h", "24h"]).optional(),
-  sells_duration: z.enum(["5m", "1h", "6h", "24h"]).optional(),
-  tx_count_duration: z.enum(["5m", "1h", "6h", "24h"]).optional(),
+  page: z.number().describe("page through results").optional(),
+  reserve_in_usd_min: z.number().describe("minimum reserve in USD").optional(),
+  reserve_in_usd_max: z.number().describe("maximum reserve in USD").optional(),
+  fdv_usd_min: z
+    .number()
+    .describe("minimum fully diluted value in USD")
+    .optional(),
+  fdv_usd_max: z
+    .number()
+    .describe("maximum fully diluted value in USD")
+    .optional(),
+  tx_count_min: z
+    .number()
+    .int()
+    .describe("minimum transaction count")
+    .optional(),
+  tx_count_max: z
+    .number()
+    .int()
+    .describe("maximum transaction count")
+    .optional(),
+  h24_volume_usd_min: z
+    .number()
+    .describe("minimum 24hr volume in USD")
+    .optional(),
+  h24_volume_usd_max: z
+    .number()
+    .describe("maximum 24hr volume in USD")
+    .optional(),
+  pool_created_hour_min: z
+    .number()
+    .describe("minimum pool age in hours")
+    .optional(),
+  pool_created_hour_max: z
+    .number()
+    .describe("maximum pool age in hours")
+    .optional(),
+  buys_min: z
+    .number()
+    .int()
+    .describe("minimum number of buy transactions")
+    .optional(),
+  buys_max: z
+    .number()
+    .int()
+    .describe("maximum number of buy transactions")
+    .optional(),
+  sells_min: z
+    .number()
+    .int()
+    .describe("minimum number of sell transactions")
+    .optional(),
+  sells_max: z
+    .number()
+    .int()
+    .describe("minimum number of sell transactions")
+    .optional(),
+  networks: commaEnum(["solana"])
+    .describe("filter pools by networks")
+    .default("solana"),
+  buy_tax_percentage_min: z
+    .number()
+    .describe("minimum buy tax percentage")
+    .optional(),
+  buy_tax_percentage_max: z
+    .number()
+    .describe("maximum buy tax percentage")
+    .optional(),
+  sell_tax_percentage_min: z
+    .number()
+    .describe("minimum sell tax percentage")
+    .optional(),
+  sell_tax_percentage_max: z
+    .number()
+    .describe("maximum sell tax percentage")
+    .optional(),
+  include_unknown_honeypot_tokens: z
+    .boolean()
+    .describe(
+      "when checks includes no_honeypot, set to true to also include 'unknown honeypot' tokens",
+    )
+    .optional(),
+  buys_duration: z
+    .enum(["5m", "1h", "6h", "24h"])
+    .describe("duration for buy transactions metric")
+    .optional(),
+  sells_duration: z
+    .enum(["5m", "1h", "6h", "24h"])
+    .describe("duration for sell transactions metric")
+    .optional(),
+  tx_count_duration: z
+    .enum(["5m", "1h", "6h", "24h"])
+    .describe("duration for transaction count metric")
+    .optional(),
   dexes: commaEnum(["orca", "saros-dlmm", "meteora", "raydium-clmm"])
     .default("orca,meteora,raydium-clmm")
+    .describe("filter pools by Dexes.")
     .optional(),
   include: commaEnum(["base_token", "quote_token", "dex", "network"])
     .default("base_token,quote_token,dex,network")
+    .describe("attributes to include")
     .optional(),
   checks: commaEnum([
     "no_honeypot",
@@ -60,6 +132,7 @@ export const poolFilterSchema = z.object({
       "h6_price_change_percentage_desc",
       "h24_price_change_percentage_desc",
     ])
+    .describe("sort the pools by field.")
     .optional(),
 });
 
