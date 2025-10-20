@@ -14,6 +14,7 @@ module.exports = {
       script: "trpc/src/index.ts",
       env: {
         PORT: 8000,
+        APP_PORT: 8000,
       },
     },
     {
@@ -25,6 +26,7 @@ module.exports = {
       script: "mcp/src/index.ts",
       env: {
         PORT: 8001,
+        APP_PORT: 8001,
       },
     },
     {

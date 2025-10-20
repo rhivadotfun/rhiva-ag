@@ -11,7 +11,7 @@ type Env =
   | "DEV_WALLET";
 
 export const getEnv = <T>(name: Env, refine?: <K>(value: K) => T): T => {
-  const value = process.env[format("APP_%s", name)] || process.env[name];
+  const value = process.env[name] || process.env[format("APP_%s", name)];
   if (value)
     try {
       const parsed = JSON.parse(value) as T;
