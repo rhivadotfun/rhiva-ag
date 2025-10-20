@@ -228,6 +228,7 @@
         "@modelcontextprotocol/sdk": "^1.20.1",
         "@openai/agents": "^0.1.10",
         "@rhiva-ag/datasource": "*",
+        "@rhiva-ag/dex-api": "*",
         "@rhiva-ag/trpc": "*",
         "fastify": "^5.6.1",
         "fastify-mcp": "^2.0.8",
