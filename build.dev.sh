@@ -6,6 +6,7 @@ services:
       target: dev
     ports:
       - "8000:8000"
+      - "8001:8001"
     restart: on-failure
     networks:
       - webnet
