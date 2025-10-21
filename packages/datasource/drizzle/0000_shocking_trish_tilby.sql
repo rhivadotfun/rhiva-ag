@@ -61,6 +61,21 @@ CREATE TABLE "wallets" (
 	CONSTRAINT "wallets_user_unique" UNIQUE("user")
 );
 --> statement-breakpoint
+CREATE TABLE "messages" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"content" jsonb NOT NULL,
+	"role" text NOT NULL,
+	"thread" uuid NOT NULL,
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "threads" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"name" text,
+	"user" uuid NOT NULL,
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "rewards" (
 	"id" uuid DEFAULT gen_random_uuid() NOT NULL,
 	"user" uuid NOT NULL,
@@ -105,7 +120,7 @@ CREATE TABLE "positions" (
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "messages" (
+CREATE TABLE "notifications" (
 	"id" uuid DEFAULT gen_random_uuid() NOT NULL,
 	"type" text NOT NULL,
 	"user" uuid NOT NULL,
@@ -121,10 +136,12 @@ ALTER TABLE "pools" ADD CONSTRAINT "pools_baseToken_mints_id_fk" FOREIGN KEY ("b
 ALTER TABLE "pools" ADD CONSTRAINT "pools_quoteToken_mints_id_fk" FOREIGN KEY ("quoteToken") REFERENCES "public"."mints"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "poolFilters" ADD CONSTRAINT "poolFilters_user_users_id_fk" FOREIGN KEY ("user") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "wallets" ADD CONSTRAINT "wallets_user_users_id_fk" FOREIGN KEY ("user") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "messages" ADD CONSTRAINT "messages_thread_threads_id_fk" FOREIGN KEY ("thread") REFERENCES "public"."threads"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "threads" ADD CONSTRAINT "threads_user_users_id_fk" FOREIGN KEY ("user") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "rewards" ADD CONSTRAINT "rewards_user_users_id_fk" FOREIGN KEY ("user") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "settings" ADD CONSTRAINT "settings_user_users_id_fk" FOREIGN KEY ("user") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "referrers" ADD CONSTRAINT "referrers_referer_users_id_fk" FOREIGN KEY ("referer") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "referrers" ADD CONSTRAINT "referrers_user_users_id_fk" FOREIGN KEY ("user") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "positions" ADD CONSTRAINT "positions_wallet_wallets_id_fk" FOREIGN KEY ("wallet") REFERENCES "public"."wallets"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "positions" ADD CONSTRAINT "positions_pool_pools_id_fk" FOREIGN KEY ("pool") REFERENCES "public"."pools"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "messages" ADD CONSTRAINT "messages_user_users_id_fk" FOREIGN KEY ("user") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_user_users_id_fk" FOREIGN KEY ("user") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;

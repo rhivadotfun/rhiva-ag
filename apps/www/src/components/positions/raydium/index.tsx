@@ -4,6 +4,7 @@ import { number, object } from "yup";
 import { PublicKey } from "@solana/web3.js";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { IoArrowBack } from "react-icons/io5";
+import type { Pair } from "@rhiva-ag/dex-api";
 import { Form, FormikContext, useFormik } from "formik";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useConnection } from "@solana/wallet-adapter-react";
@@ -11,13 +12,12 @@ import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 
 import { useTRPC } from "@/trpc.client";
 import DepositInput from "../DepositInput";
-import type { getPair } from "@/lib/dex-api";
 import PriceRangeInput from "./PriceRangeInput";
 import PositionOverview from "../PositionOverview";
-import { getPoolState } from "@/lib/raydium-patch";
+import { getPoolState } from "@/lib/web3/raydium-patch";
 
 type RaydiumOpenPositionProps = {
-  pool: Awaited<ReturnType<typeof getPair>>;
+  pool: Pair;
 } & React.ComponentProps<typeof Dialog>;
 
 export default function RaydiumOpenPosition({

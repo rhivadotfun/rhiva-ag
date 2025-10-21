@@ -4,7 +4,7 @@ import { useCallback, useMemo } from "react";
 import { BarElement, CategoryScale, LinearScale } from "chart.js";
 import { TickMath, SqrtPriceMath } from "@raydium-io/raydium-sdk-v2";
 
-import type { getPair } from "@/lib/dex-api";
+import type { getPair } from "@/lib/web3/dex-api";
 import PriceRangeInput from "../PriceRangeInput";
 import type { getPoolState } from "@/lib/raydium-patch";
 

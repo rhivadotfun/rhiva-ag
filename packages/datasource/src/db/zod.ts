@@ -12,8 +12,10 @@ import {
   referrers,
   rewards,
   settings,
+  threads,
   users,
   wallets,
+  messages,
 } from "./schema";
 
 export * from "./zod-custom";
@@ -69,3 +71,9 @@ export const pnlInsertSchema = createInsertSchema(pnls, {
 
 export const rewardInsertSchema = createInsertSchema(rewards);
 export const rewardSelectSchema = createSelectSchema(rewards);
+
+export const threadInsertSchema = createInsertSchema(threads);
+export const threadSelectSchema = createSelectSchema(threads);
+
+export const messageInsertSchema = createInsertSchema(messages);
+export const messageSelectSchema = createSelectSchema(messages);

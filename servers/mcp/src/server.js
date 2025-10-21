@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v3";
 import { getPools, getWalletPositions } from "@rhiva-ag/trpc";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 

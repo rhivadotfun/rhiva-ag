@@ -3,6 +3,7 @@ import type { XiorInstance } from "xior";
 
 import TokenApi from "./token.api";
 import { PriceApi } from "./price.api";
+import type { ApiConfig } from "../type";
 
 export class JupApi {
   private readonly xior: XiorInstance;
@@ -10,9 +11,12 @@ export class JupApi {
   readonly token: TokenApi;
   readonly price: PriceApi;
 
-  constructor(baseURL: string) {
+  constructor({ baseURL, apiKey }: ApiConfig) {
     this.xior = xior.create({
       baseURL,
+      params: {
+        apiKey,
+      },
     });
 
     this.price = new PriceApi(this.xior);

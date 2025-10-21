@@ -1,11 +1,12 @@
 import clsx from "clsx";
+import { useMemo } from "react";
+
 import Decimal from "../Decimal";
 import {
   compactCurrencyIntlArgs,
   currencyIntlArgs,
   percentageIntlArgs,
 } from "@/constants/format";
-import { useMemo } from "react";
 
 type PoolAnalyticProps = {
   binStep: number;

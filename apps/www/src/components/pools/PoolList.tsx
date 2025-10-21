@@ -1,19 +1,20 @@
 import { format } from "util";
+import Link from "next/link";
 import { MdContentCopy } from "react-icons/md";
 import type { AppRouter } from "@rhiva-ag/trpc";
+import type { NonNullable } from "@rhiva-ag/shared";
 
 import Image from "../Image";
 import Decimal from "../Decimal";
 import { PoolTabSmall } from "./PoolTab";
+import IcDex from "@/assets/icons/ic_dex";
 import IcOrcaIcon from "@/assets/icons/ic_orca";
 import IcRaydiumIcon from "@/assets/icons/ic_raydium";
 import IcMeteoraIcon from "@/assets/icons/ic_meteora";
 import { compactCurrencyIntlArgs, currencyIntlArgs } from "@/constants/format";
-import Link from "next/link";
-import IcDex from "@/assets/icons/ic_dex";
 
 type PoolListProps = {
-  pools: Awaited<ReturnType<AppRouter["pool"]["list"]>>;
+  pools: NonNullable<Awaited<ReturnType<AppRouter["pool"]["list"]>>>;
 };
 
 export default function PoolList({ pools }: PoolListProps) {
@@ -96,7 +97,7 @@ export default function PoolList({ pools }: PoolListProps) {
 }
 
 type PoolListSmallProps = {
-  pools: Awaited<ReturnType<AppRouter["pool"]["list"]>>;
+  pools: NonNullable<Awaited<ReturnType<AppRouter["pool"]["list"]>>>;
 };
 
 export function PoolListSmall({ pools }: PoolListSmallProps) {
@@ -144,7 +145,11 @@ export function PoolListSmall({ pools }: PoolListSmallProps) {
                 <MdContentCopy className="text-gray mr-1 lt-sm:text-xs" />
                 <IcDex
                   dex={
-                    pool.dex.id as "orca" | "saros" | "raydium-clmm" | "meteora"
+                    pool.dex.id as
+                      | "orca"
+                      | "saros-dlmm"
+                      | "raydium-clmm"
+                      | "meteora"
                   }
                   width={16}
                   height={16}

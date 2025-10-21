@@ -1,13 +1,13 @@
 "use client";
+import clsx from "clsx";
+import { Fragment } from "react";
 import { Tab, TabGroup, TabList, TabPanels } from "@headlessui/react";
 
 import Header from "@/components/layout/Header";
 import PortfolioInfo from "@/components/portfolio/PorfolioInfo";
-import { PortfolioHistory } from "@/components/portfolio/PorfolioHistory";
 import PorfolioTokenTab from "@/components/portfolio/PorfolioTokenTab";
+import { PortfolioHistory } from "@/components/portfolio/PorfolioHistory";
 import PortfolioPositionTab from "@/components/portfolio/PortfolioPositionTab";
-import { Fragment } from "react";
-import clsx from "clsx";
 
 export default function PortfolioPage() {
   const Tabs = {

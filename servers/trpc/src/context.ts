@@ -2,13 +2,14 @@ import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify"
 
 import { CivicAuthMiddleware } from "./controllers/auth.controller";
 import {
-  coingecko,
-  drizzle,
   redis,
   secret,
+  drizzle,
+  mcpClient,
+  coingecko,
+  solanatracker,
   sendTransaction,
   solanaConnection,
-  solanatracker,
 } from "./instances";
 
 const authMiddleware = new CivicAuthMiddleware(redis, secret, drizzle, {
@@ -22,8 +23,9 @@ export const createContext = async ({ req }: CreateFastifyContextOptions) => {
     user,
     redis,
     secret,
-    coingecko,
     drizzle,
+    coingecko,
+    mcpClient,
     solanatracker,
     sendTransaction,
     connection: solanaConnection,

@@ -4,12 +4,13 @@ import { pnls } from "./pnls";
 import { users } from "./users";
 import { mints } from "./mints";
 import { wallets } from "./wallets";
+import { rewards } from "./rewards";
 import { settings } from "./settings";
 import { poolFilters } from "./filters";
 import { referrers } from "./referrers";
 import { positions } from "./positions";
+import { messages, threads } from "./messages";
 import { notifications } from "./notifications";
-import { rewards } from "./rewards";
 import { poolRewardTokens, pools } from "./pools";
 
 export const userRelations = relations(users, ({ many, one }) => ({
@@ -82,6 +83,16 @@ export const pnlRelations = relations(pnls, ({ one }) => ({
     references: [positions.id],
   }),
 }));
+
 export const rewardRelations = relations(rewards, ({ one }) => ({
   user: one(users, { fields: [rewards.user], references: [users.id] }),
+}));
+
+export const threadRelations = relations(threads, ({ many, one }) => ({
+  messages: many(messages),
+  user: one(users, { fields: [threads.user], references: [users.id] }),
+}));
+
+export const messageRelations = relations(messages, ({ one }) => ({
+  thread: one(threads, { fields: [messages.thread], references: [threads.id] }),
 }));

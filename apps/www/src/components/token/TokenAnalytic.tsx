@@ -74,7 +74,7 @@ export default function TokenAnalytic({
       </div>
       <div className="flex flex-col">
         <p className="text-xs text-gray md:text-sm">{timeframe} Net Buyers</p>
-        <p>{buys}</p>
+        <Decimal value={buys} />
       </div>
       <div className="flex flex-col">
         <p className="text-xs text-gray md:text-sm">{timeframe} Sells</p>

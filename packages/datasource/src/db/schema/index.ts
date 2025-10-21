@@ -4,6 +4,7 @@ export * from "./mints";
 export * from "./pools";
 export * from "./filters";
 export * from "./wallets";
+export * from "./messages";
 export * from "./rewards";
 export * from "./settings";
 export * from "./referrers";

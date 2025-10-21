@@ -30,5 +30,8 @@
     "packages/*",
     "servers/*",
     "apps/*"
-  ]
+  ],
+  "dependencies": {
+    "@openai/agents": "^0.1.10"
+  }
 }

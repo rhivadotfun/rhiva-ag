@@ -1,11 +1,20 @@
 import type Redis from "ioredis";
 import { Connection } from "@solana/web3.js";
+import { McpClient } from "@rhiva-ag/mcp/client";
 import { Client } from "@solana-tracker/data-api";
 import Coingecko from "@coingecko/coingecko-typescript";
 import { Secret, SendTransaction } from "@rhiva-ag/shared";
 import { createDB, createRedis } from "@rhiva-ag/datasource";
+import {
+  MCPServerStreamableHttp,
+  setDefaultOpenAIKey,
+  setTracingExportApiKey,
+} from "@openai/agents";
 
 import { getEnv } from "./env";
+
+setDefaultOpenAIKey(getEnv("OPEN_API_KEY"));
+setTracingExportApiKey(getEnv("OPEN_API_KEY"));
 
 export const secret = new Secret(getEnv("SECRET_KEY"), {
   ivLength: 12,
@@ -41,3 +50,10 @@ if (process.env.NODE_ENV === "production")
 else redis = createRedis(getEnv("REDIS_URL"));
 
 export { redis };
+
+export const mcpClient = new McpClient(
+  new MCPServerStreamableHttp({
+    url: new URL(getEnv("MCP_SERVER_URL")),
+  }),
+  { name: "RhivaAg Bot" },
+);

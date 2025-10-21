@@ -1,4 +1,4 @@
-import type { getPair } from "@/lib/dex-api";
+import type { Pair } from "@rhiva-ag/dex-api";
 
 import OrcaOpenPosition from "./orca";
 import RaydiumOpenPosition from "./raydium";
@@ -6,8 +6,8 @@ import MeteoraOpenPosition from "./meteora";
 
 type OpenPositionProps = {
   open: boolean;
-  dex: "meteora" | "orca" | "raydium-clmm";
-  pool: Awaited<ReturnType<typeof getPair>>;
+  pool: Pair;
+  dex: "meteora" | "orca" | "saros-dlmm" | "raydium-clmm";
   onClose: React.Dispatch<React.SetStateAction<boolean>>;
 };
 export default function OpenPosition({ dex, ...props }: OpenPositionProps) {

@@ -3,12 +3,13 @@ import clsx from "clsx";
 import Link from "next/link";
 import { MdChevronRight } from "react-icons/md";
 import { useQuery } from "@tanstack/react-query";
+import type { Token } from "@rhiva-ag/dex-api/jup/types";
 
 import { dexApi } from "@/instances";
 import TokenCard from "../token/TokenCard";
 
 type PeekHotTokenList = {
-  initialData?: null;
+  initialData?: Token[] | null;
 } & React.ComponentProps<"section">;
 
 export default function PeekHotTokenList({
@@ -20,9 +21,9 @@ export default function PeekHotTokenList({
     queryKey: ["token", "toptrending"],
     queryFn: () =>
       dexApi.jup.token.list({
-        category: "toptrending",
-        timestamp: "5m",
         limit: 4,
+        timestamp: "1h",
+        category: "toptrending",
       }),
   });
 

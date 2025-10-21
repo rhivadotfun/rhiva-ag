@@ -57,3 +57,9 @@ export function generateLiquidityDistribution(
 
   return liquidityDistribution;
 }
+
+const supportedDexes = ["orca", "saros-dlmm", "raydium-clmm", "meteora"];
+export const isSupportedDex = (
+  value: string,
+): value is "orca" | "saros-dlmm" | "raydium-clmm" | "meteora" =>
+  value in supportedDexes;
