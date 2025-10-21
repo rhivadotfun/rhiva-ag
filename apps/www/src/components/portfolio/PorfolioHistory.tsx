@@ -15,8 +15,15 @@ import {
 import { getCalender, type DailyPnL } from "@/lib/calender";
 import { currencyIntlArgs } from "@/constants/format";
 
-export function PortfolioHistory(props: React.ComponentProps<"div">) {
-  const calender = <PortfolioCalender />;
+interface PortfolioHistoryProps extends React.ComponentProps<"div"> {
+  dailyPnLData?: DailyPnL[];
+}
+
+export function PortfolioHistory({
+  dailyPnLData,
+  ...props
+}: PortfolioHistoryProps) {
+  const calender = <PortfolioCalender dailyPnLData={dailyPnLData} />;
   return (
     <>
       <div className={clsx("lt-sm:hidden", props.className)}>
@@ -30,21 +37,16 @@ export function PortfolioHistory(props: React.ComponentProps<"div">) {
   );
 }
 
-function PortfolioCalender(props: React.ComponentProps<"div">) {
+interface PortfolioCalenderProps extends React.ComponentProps<"div"> {
+  dailyPnLData?: DailyPnL[];
+}
+
+function PortfolioCalender({ dailyPnLData, ...props }: PortfolioCalenderProps) {
   const [calender, setCalender] = useState<ReturnType<typeof getCalender>>();
 
   useEffect(() => {
-    // Mock P&L data for demonstration - replace with actual API call
-    const mockPnLData: DailyPnL[] = [
-      { date: "2025-10-01", pnl: 41.16 },
-      { date: "2025-10-03", pnl: -4.16 },
-      { date: "2025-10-15", pnl: 125.5 },
-      { date: "2025-10-20", pnl: -41.16 },
-      { date: "2025-10-25", pnl: 87.25 },
-    ];
-
-    setCalender(getCalender(undefined, mockPnLData));
-  }, []);
+    setCalender(getCalender(undefined, dailyPnLData));
+  }, [dailyPnLData]);
 
   if (calender) {
     const [peek] = calender.dates;

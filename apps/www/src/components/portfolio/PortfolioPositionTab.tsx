@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { TabPanel } from "@headlessui/react";
 import { useQuery } from "@tanstack/react-query";
 import { MdContentCopy } from "react-icons/md";
+import type { AppRouter } from "@rhiva-ag/trpc";
+import type { inferRouterOutputs } from "@trpc/server";
 
 import PositionsTable, {
   type TableColumn,
@@ -13,7 +15,12 @@ import Decimal from "../Decimal";
 import { useTRPC, useTRPCClient } from "@/trpc.client";
 import { currencyIntlArgs, percentageIntlArgs } from "@/constants/format";
 
-// Mock position data interface - replace with actual TRPC response type
+// Infer types from TRPC router
+type RouterOutput = inferRouterOutputs<AppRouter>;
+type PositionListOutput = RouterOutput["position"]["list"];
+type PositionData = PositionListOutput[number];
+
+// Transform position data for display
 interface Position {
   id: string;
   pool: {
@@ -68,85 +75,69 @@ interface ClosedPosition {
   closed: string;
 }
 
-// Mock open positions data - replace with actual API data
-const mockOpenPositions: Position[] = [
-  {
-    id: "1",
-    pool: {
-      tokenA: { symbol: "SOL", icon: "/tokens/sol.png" },
-      tokenB: { symbol: "USDC", icon: "/tokens/usdc.png" },
-    },
-    age: "2d 14h",
-    value: 1234.56,
-    collectedFee: { amount: 12.34, percentage: 0.089 },
-    uncollectedFee: { amount: 5.67, percentage: 0.045 },
-    unrealizedPnl: { amount: 89.12, percentage: 0.072 },
-  },
-  {
-    id: "2",
-    pool: {
-      tokenA: { symbol: "SOL", icon: "/tokens/sol.png" },
-      tokenB: { symbol: "USDC", icon: "/tokens/usdc.png" },
-    },
-    age: "1d 8h",
-    value: 2456.78,
-    collectedFee: { amount: 23.45, percentage: 0.095 },
-    uncollectedFee: { amount: 8.91, percentage: 0.036 },
-    unrealizedPnl: { amount: -15.67, percentage: -0.006 },
-  },
-  {
-    id: "3",
-    pool: {
-      tokenA: { symbol: "SOL", icon: "/tokens/sol.png" },
-      tokenB: { symbol: "USDC", icon: "/tokens/usdc.png" },
-    },
-    age: "5d 2h",
-    value: 567.89,
-    collectedFee: { amount: 6.78, percentage: 0.119 },
-    uncollectedFee: { amount: 2.34, percentage: 0.041 },
-    unrealizedPnl: { amount: 34.56, percentage: 0.061 },
-  },
-  {
-    id: "4",
-    pool: {
-      tokenA: { symbol: "SOL", icon: "/tokens/sol.png" },
-      tokenB: { symbol: "USDC", icon: "/tokens/usdc.png" },
-    },
-    age: "12h",
-    value: 890.12,
-    collectedFee: { amount: 4.56, percentage: 0.051 },
-    uncollectedFee: { amount: 1.23, percentage: 0.014 },
-    unrealizedPnl: { amount: 45.67, percentage: 0.051 },
-  },
-];
+// Helper function to transform API position data to display format
+function transformPositionData(positionData: PositionData): Position {
+  const latestPnl = positionData.pnls[0];
 
-// Mock closed positions data
-const mockClosedPositions: ClosedPosition[] = [
-  {
-    id: "5",
+  return {
+    id: positionData.id,
     pool: {
-      tokenA: { symbol: "SOL", icon: "/tokens/sol.png" },
-      tokenB: { symbol: "USDC", icon: "/tokens/usdc.png" },
+      tokenA: {
+        symbol: positionData.pool.baseToken.symbol || "",
+        icon: positionData.pool.baseToken.image || "/tokens/default.png",
+      },
+      tokenB: {
+        symbol: positionData.pool.quoteToken.symbol || "",
+        icon: positionData.pool.quoteToken.image || "/tokens/default.png",
+      },
     },
-    age: "3d 5h",
-    invested: 1000.0,
-    earned: { amount: 45.23, percentage: 0.045 },
-    unrealizedPnl: { amount: 125.5, percentage: 0.125 },
-    closed: "1 day ago",
-  },
-  {
-    id: "6",
-    pool: {
-      tokenA: { symbol: "SOL", icon: "/tokens/sol.png" },
-      tokenB: { symbol: "USDC", icon: "/tokens/usdc.png" },
+    age: formatAge(positionData.createdAt),
+    value: latestPnl?.amountUsd ?? positionData.amountUsd ?? 0,
+    collectedFee: {
+      amount: latestPnl?.claimedFeeUsd ?? 0,
+      percentage: calculatePercentage(
+        latestPnl?.claimedFeeUsd ?? 0,
+        latestPnl?.amountUsd ?? positionData.amountUsd ?? 1,
+      ),
     },
-    age: "7d 12h",
-    invested: 2500.0,
-    earned: { amount: 78.9, percentage: 0.032 },
-    unrealizedPnl: { amount: -50.25, percentage: -0.02 },
-    closed: "3 days ago",
-  },
-];
+    uncollectedFee: {
+      amount: latestPnl?.feeUsd ?? 0,
+      percentage: calculatePercentage(
+        latestPnl?.feeUsd ?? 0,
+        latestPnl?.amountUsd ?? positionData.amountUsd ?? 1,
+      ),
+    },
+    unrealizedPnl: {
+      amount: latestPnl?.pnlUsd ?? 0,
+      percentage: calculatePercentage(
+        latestPnl?.pnlUsd ?? 0,
+        latestPnl?.amountUsd ?? positionData.amountUsd ?? 1,
+      ),
+    },
+  };
+}
+
+// Helper function to calculate percentage
+function calculatePercentage(value: number, total: number): number {
+  if (total === 0) return 0;
+  return value / total;
+}
+
+// Helper function to format age
+function formatAge(createdAt: Date | string): string {
+  const now = new Date();
+  const created = new Date(createdAt);
+  const diffMs = now.getTime() - created.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffHours = Math.floor(
+    (diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+  );
+
+  if (diffDays > 0) {
+    return `${diffDays}d ${diffHours}h`;
+  }
+  return `${diffHours}h`;
+}
 
 export default function PortfolioPositionTab() {
   const trpc = useTRPC();
@@ -163,10 +154,48 @@ export default function PortfolioPositionTab() {
     queryFn: () => trpcClient.position.list.query(),
   });
 
-  // Use mock data for now - replace with actual data when available
-  const openPositions = mockOpenPositions;
-  const closedPositions = mockClosedPositions;
-  const totalPositions = 100; // Mock total
+  // Transform API data for display
+  const allPositions = useMemo(() => {
+    if (!data) return [];
+    return data.map(transformPositionData);
+  }, [data]);
+
+  // Separate open and closed positions based on state
+  const openPositions = useMemo(() => {
+    return allPositions.filter((_, index) => {
+      const positionData = data?.[index];
+      return (
+        positionData?.state === "open" ||
+        positionData?.state === "rebalanced" ||
+        positionData?.state === "repositioned"
+      );
+    });
+  }, [allPositions, data]);
+
+  const closedPositions = useMemo(() => {
+    return allPositions
+      .filter((_, index) => {
+        const positionData = data?.[index];
+        return positionData?.state === "closed";
+      })
+      .map((position) => {
+        // Transform to ClosedPosition format
+        const positionData = data?.find((p) => p.id === position.id);
+        return {
+          id: position.id,
+          pool: position.pool,
+          age: position.age,
+          invested: positionData?.amountUsd ?? 0,
+          earned: position.collectedFee,
+          unrealizedPnl: position.unrealizedPnl,
+          closed: formatAge(
+            positionData?.updatedAt ?? positionData?.createdAt ?? new Date(),
+          ),
+        } as ClosedPosition;
+      });
+  }, [allPositions, data]);
+
+  const totalPositions = data?.length ?? 0;
   const itemsPerPage = 5;
   const totalPages = Math.ceil(totalPositions / itemsPerPage);
 
