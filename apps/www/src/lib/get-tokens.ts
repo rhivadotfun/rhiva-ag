@@ -1,4 +1,5 @@
 import type { DexApi } from "@rhiva-ag/dex-api";
+import { collectionToMap } from "@rhiva-ag/shared";
 import { PublicKey, type Connection } from "@solana/web3.js";
 import {
   NATIVE_MINT,
@@ -6,7 +7,6 @@ import {
   TOKEN_2022_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { collectionToMap } from "@rhiva-ag/shared";
 
 type ParsedTokenAccount = {
   info: {

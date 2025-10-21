@@ -11,7 +11,7 @@ export default function HeroSection(props: React.ComponentProps<"section">) {
         "relative overflow-hidden flex items-center bg-white/5 backdrop-blur-2xl border border-white/10 rounded-xl min-h-[280px] md:min-h-[320px] lg:min-h-[400px]",
       )}
     >
-      <div className="relative z-10 flex flex-col justify-center p-6 space-y-4 md:px-8 lg:px-12 max-w-2xl">
+      <div className="relative z-10 flex flex-col justify-center p-6 space-y-4 lt-sm:max-w-6/10 md:px-8 lg:px-12 max-w-2xl">
         <p className="text-sm text-gray-400 md:text-base lg:text-lg">
           GM, User
         </p>
@@ -25,7 +25,7 @@ export default function HeroSection(props: React.ComponentProps<"section">) {
             Liquidity Yield Aggregator On Solana
           </p>
 
-          <p className="text-sm text-gray-400 md:text-base lg:text-lg max-w-xl pt-2">
+          <p className="text-sm text-gray-400 max-w-xl pt-2 lt-md:hidden md:text-base lg:text-lg ">
             Maximize your earnings with our simplified, AI-powered liquidity
             pool yield aggregator across top DEXes on Solana.
           </p>

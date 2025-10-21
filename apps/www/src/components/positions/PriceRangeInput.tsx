@@ -8,7 +8,7 @@ import { BarElement, CategoryScale, LinearScale } from "chart.js";
 
 import Decimal from "../Decimal";
 import NumberInput from "../NumberInput";
-import type { getPair } from "@/lib/dex-api";
+import type { getPair } from "@/lib/web3/dex-api";
 import { generateLiquidityDistribution } from "@/lib";
 
 Chart.register(CategoryScale, LinearScale, BarElement, Tooltip);

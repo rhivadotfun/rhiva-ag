@@ -8,7 +8,7 @@ import {
   priceToTickIndex,
 } from "@orca-so/whirlpools-core/dist/browser/orca_whirlpools_core_js_bindings";
 
-import type { getPair } from "@/lib/dex-api";
+import type { getPair } from "@/lib/web3/dex-api";
 import PriceRangeInput from "../PriceRangeInput";
 
 Chart.register(CategoryScale, LinearScale, BarElement, Tooltip);

@@ -4,7 +4,7 @@ import { useCallback, useMemo } from "react";
 import { BarElement, CategoryScale, LinearScale } from "chart.js";
 import { type BinLiquidity, getPriceOfBinByBinId } from "@meteora-ag/dlmm";
 
-import type { getPair } from "@/lib/dex-api";
+import type { getPair } from "@/lib/web3/dex-api";
 import PriceRangeInput from "../PriceRangeInput";
 
 Chart.register(CategoryScale, LinearScale, BarElement, Tooltip);

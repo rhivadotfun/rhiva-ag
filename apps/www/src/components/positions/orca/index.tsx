@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { useMemo } from "react";
 import { number, object } from "yup";
+import type { Pair } from "@rhiva-ag/dex-api";
 import { IoArrowBack } from "react-icons/io5";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { address, createSolanaRpc } from "@solana/kit";
@@ -11,13 +12,12 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 
 import { useTRPC } from "@/trpc.client";
-import type { getPair } from "@/lib/dex-api";
 import DepositInput from "../DepositInput";
 import PriceRangeInput from "./PriceRangeInput";
 import PositionOverview from "../PositionOverview";
 
 type OrcaOpenPositionProps = {
-  pool: Awaited<ReturnType<typeof getPair>>;
+  pool: Pair;
 } & React.ComponentProps<typeof Dialog>;
 
 export default function OrcaOpenPosition({

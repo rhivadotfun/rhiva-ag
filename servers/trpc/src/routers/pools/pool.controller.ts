@@ -1,6 +1,6 @@
 import type z from "zod";
-import { mapFilter } from "@rhiva-ag/shared";
 import type Coingecko from "@coingecko/coingecko-typescript";
+import { mapFilter, type NonNullable } from "@rhiva-ag/shared";
 import type { PoolGetResponse } from "@coingecko/coingecko-typescript/resources/onchain/networks.js";
 import type { MegafilterGetResponse } from "@coingecko/coingecko-typescript/resources/onchain/pools.js";
 

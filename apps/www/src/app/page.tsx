@@ -1,10 +1,17 @@
+import { dexApi } from "@/instances";
 import Header from "@/components/layout/Header";
 import HeroSection from "@/components/home/HeroSection";
 import ProductList from "@/components/home/ProductList";
 import OnchainAnalytic from "@/components/home/OnchainAnalytic";
 import PeekHotTokenList from "@/components/home/PeekHotTokenList";
 
-export default function Home() {
+export default async function Home() {
+  const hotTokens = await dexApi.jup.token.list({
+    limit: 4,
+    timestamp: "1h",
+    category: "toptrending",
+  });
+
   return (
     <div className="flex-1 flex flex-col overflow-y-scroll">
       <Header className="sticky top-0 z-10" />
@@ -14,7 +21,10 @@ export default function Home() {
           <ProductList className="px-4 md:px-8 max-w-7xl w-full" />
           <div className="flex-1 lt-xl:flex lt-xl:flex-col lt-xl:space-y-4 xl:grid xl:grid-cols-2 xl:gap-4">
             <OnchainAnalytic className="lt-xl:px-4 xl:flex-1 xl:ml-4 xl:md:ml-8" />
-            <PeekHotTokenList className="flex-1 lt-xl:mx- xl:mr-4 xl:md:mr-8" />
+            <PeekHotTokenList
+              initialData={hotTokens}
+              className="flex-1 lt-xl:mx- xl:mr-4 xl:md:mr-8"
+            />
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { object, number } from "yup";
 import { PublicKey } from "@solana/web3.js";
 import { useCallback, useMemo } from "react";
+import type { Pair } from "@rhiva-ag/dex-api";
 import { IoArrowBack } from "react-icons/io5";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { Form, FormikContext, useFormik } from "formik";
@@ -13,12 +14,11 @@ import TokenInput from "./TokenInput";
 import RatioInput from "./RatioInput";
 import Image from "@/components/Image";
 import { useTRPC } from "@/trpc.client";
-import type { getPair } from "@/lib/dex-api";
 import PriceRangeInput from "./PriceRangeInput";
-import { getActiveBin } from "@/lib/meteora-patch";
+import { getActiveBin } from "@/lib/web3/meteora-patch";
 
 type MeteoraOpenPositionProps = {
-  pool: Awaited<ReturnType<typeof getPair>>;
+  pool: Pair;
 } & React.ComponentProps<typeof Dialog>;
 
 export default function MeteoraOpenPosition({

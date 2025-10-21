@@ -1,4 +1,6 @@
 import clsx from "clsx";
+import { format } from "util";
+import { useRouter } from "next/navigation";
 import { MdContentCopy } from "react-icons/md";
 
 import Image from "../Image";
@@ -18,15 +20,18 @@ type PoolTokenMetadata = {
       alt: string;
     };
   };
-  dex: "meteora" | "saros" | "orca" | "raydium-clmm";
+  dex: "meteora" | "saros-dlmm" | "orca" | "raydium-clmm";
 } & React.ComponentProps<"div">;
 
 export default function PoolTokenMetadata({
+  id,
   name,
   image,
   dex,
   ...props
 }: PoolTokenMetadata) {
+  const router = useRouter();
+
   return (
     <div
       {...props}
@@ -67,6 +72,9 @@ export default function PoolTokenMetadata({
       <button
         type="button"
         className="flex items-center space-x-2 bg-primary/10 px-2 py-1 border border-primary/50 text-primary fill-primary rounded"
+        onClick={() =>
+          router.push(format("/ai?prompt=Analyse this pool %s", id))
+        }
       >
         <IcAiIcon
           width={18}

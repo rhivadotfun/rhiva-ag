@@ -17,5 +17,5 @@ export const percentageIntlArgs: Intl.NumberFormatOptions = {
   unit: "percent",
   unitDisplay: "narrow",
   signDisplay: "exceptZero",
-  maximumFractionDigits: 4,
+  maximumFractionDigits: 3,
 };

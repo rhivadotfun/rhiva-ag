@@ -1,25 +1,31 @@
 import clsx from "clsx";
+import { useRouter } from "next/navigation";
 
 import Decimal from "../Decimal";
 import IcAiIcon from "@/assets/icons/ic_ai";
 import { currencyIntlArgs } from "@/constants/format";
+import { format } from "util";
 
 type TokenInfoProps = {
-  liquidity: number;
-  marketCap: number;
-  volume: number;
+  mint: string;
   price: number;
   holders: number;
+  volume: number;
+  liquidity: number;
+  marketCap: number;
 } & React.ComponentProps<"div">;
 
 export default function TokenInfo({
-  liquidity,
-  marketCap,
+  mint,
   volume,
   price,
   holders,
+  liquidity,
+  marketCap,
   ...props
 }: TokenInfoProps) {
+  const router = useRouter();
+
   return (
     <div
       {...props}
@@ -32,6 +38,9 @@ export default function TokenInfo({
         <button
           type="button"
           className="flex items-center space-x-2 border border-green fill-green px-2 py-1 rounded-md"
+          onClick={() =>
+            router.push(format("/ai?prompt=Analyse this token %s", mint))
+          }
         >
           <IcAiIcon
             width={18}
