@@ -1,5 +1,5 @@
+import z from "zod";
 import { address } from "@rhiva-ag/datasource";
-import z, { number } from "zod";
 
 export const tokenChartFilter = z.object({
   before_timestamp: z.number().optional(),
@@ -16,8 +16,8 @@ export const tokenTradeFilter = z.object({
 });
 
 export const tokenSwapSchema = z.object({
-  amount: number(),
-  slippage: number(),
+  slippage: z.number(),
   inputMint: address(),
   outputMint: address(),
+  amount: z.union([z.string(), z.bigint()]),
 });

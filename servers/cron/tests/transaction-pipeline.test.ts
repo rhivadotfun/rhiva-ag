@@ -1,9 +1,15 @@
-import { Connection, PublicKey } from "@solana/web3.js";
+import type z from "zod";
 import { createSolanaRpc } from "@solana/kit";
 import { mapFilter } from "@rhiva-ag/shared";
+import { Connection, PublicKey } from "@solana/web3.js";
 import Coingecko from "@coingecko/coingecko-typescript";
 import { describe, beforeAll, test, afterAll, expect } from "bun:test";
-import { createDB, positions, type Database } from "@rhiva-ag/datasource";
+import {
+  createDB,
+  positions,
+  type walletSelectSchema,
+  type Database,
+} from "@rhiva-ag/datasource";
 
 import { getEnv } from "../src/env";
 import { createTransactionPipeline } from "../src/workers/transaction.worker";
@@ -12,6 +18,7 @@ describe("transaction pipeline", () => {
   let db: Database;
   let coingecko: Coingecko;
   let connection: Connection;
+  let wallet: z.infer<typeof walletSelectSchema> | undefined;
   let pipeline: ReturnType<typeof createTransactionPipeline>;
 
   beforeAll(async () => {
@@ -21,7 +28,7 @@ describe("transaction pipeline", () => {
       proAPIKey: getEnv("COINGECKO_API_KEY"),
     });
     connection = new Connection(getEnv("SOLANA_RPC_URL"));
-    const wallet = await db.query.wallets.findFirst();
+    wallet = await db.query.wallets.findFirst();
     pipeline = createTransactionPipeline({
       db,
       connection,
@@ -43,7 +50,7 @@ describe("transaction pipeline", () => {
       [
         "wcS2tmMLBhr1UeQa8V3i5rtfQDfJyiWY7sTqq1MGDBXqALq9daVcc2DBiwYnL2q9coGbaibLyiC8tFV326T5FLX",
         "3mZQFmjUBuwFyyejVJFYEUU9AwgigwH52K5icijC9T1qa9NsyC1zS6cHDdnYbTUnA9MscPMgjuEtM9TVD4RWFRT6",
-        "2i49ktFVyibwTDsDd4W7ErcBbwnoHTne9jNxxnafCFeEffDocxn1UnYQxzizs667FYqLSYGE5EpVxthPYxwonbFg",
+        "2C3yQVus1aeErteHBnP7JCSRRqiT4ASEZp4vCy2N5Rt5FoQVD1hFSx61iLqPLe4kSzXJecxxdzUYogxUCPM9VtVc",
       ],
       { maxSupportedTransactionVersion: 0 },
     );

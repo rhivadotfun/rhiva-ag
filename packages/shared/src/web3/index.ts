@@ -17,8 +17,10 @@ import {
 
 import {
   PercentileToKey,
+  type BundleResponse,
   type GetBundleStatusesRequest,
   type GetBundleStatusesResponse,
+  type GetInflightBundleStatusesRequest,
   type JitoFeeConfig,
   type Percentile,
   type SendBundleRequest,
@@ -59,7 +61,8 @@ export class SendTransaction {
     request:
       | SimulateBundleRequest
       | SendBundleRequest
-      | GetBundleStatusesRequest,
+      | GetBundleStatusesRequest
+      | GetInflightBundleStatusesRequest,
     headers?: Headers,
   ) => {
     return xior.post<T>(
@@ -100,14 +103,8 @@ export class SendTransaction {
   readonly sendBundle = async (
     transactions: (VersionedTransaction | string)[],
   ) => {
-    return this.sendRPCRequest<
-      SolanaRPCResponse<RpcResponseAndContext<string>>
-    >(
-      format(
-        "%s/api/v1/getBundleStatuses?uuid=%s",
-        this.jitoApiURL,
-        this.jitoUUID,
-      ),
+    return this.sendRPCRequest<SolanaRPCResponse<string>>(
+      format("%s/api/v1/bundles?uuid=%s", this.jitoApiURL, this.jitoUUID),
       {
         method: "sendBundle",
         params: [
@@ -122,9 +119,21 @@ export class SendTransaction {
     ).then(({ data }) => data);
   };
 
+  readonly getBundles = async (...bundleIds: string[]) => {
+    return xior
+      .get<BundleResponse[]>(
+        format(
+          "%s/api/v1/bundles/bundle/%s",
+          SendTransaction.blockEngineURL,
+          bundleIds.join(","),
+        ),
+      )
+      .then(({ data }) => data);
+  };
+
   readonly getBundleStatuses = async (...bundleIds: string[]) => {
     return this.sendRPCRequest<
-      SolanaRPCResponse<RpcResponseAndContext<GetBundleStatusesResponse>>
+      SolanaRPCResponse<RpcResponseAndContext<GetBundleStatusesResponse[]>>
     >(
       format(
         "%s/api/v1/getBundleStatuses?uuid=%s",
@@ -133,6 +142,23 @@ export class SendTransaction {
       ),
       {
         params: [bundleIds],
+        method: "getBundleStatuses",
+      },
+    ).then(({ data }) => data);
+  };
+
+  readonly getInflightBundleStatuses = async (...bundleIds: string[]) => {
+    return this.sendRPCRequest<
+      SolanaRPCResponse<RpcResponseAndContext<GetBundleStatusesResponse[]>>
+    >(
+      format(
+        "%s/api/v1/getInflightBundleStatuses?uuid=%s",
+        this.jitoApiURL,
+        this.jitoUUID,
+      ),
+      {
+        params: [bundleIds],
+        method: "getInflightBundleStatuses",
       },
     ).then(({ data }) => data);
   };

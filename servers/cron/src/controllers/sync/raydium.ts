@@ -3,7 +3,9 @@ import { format } from "util";
 import type { z } from "zod/mini";
 import Decimal from "decimal.js";
 import { RaydiumCLMM } from "@rhiva-ag/dex";
+import { MintLayout } from "@solana/spl-token";
 import { and, eq, inArray, not } from "drizzle-orm";
+import type { ProgramEventType } from "@rhiva-ag/decoder";
 import { PublicKey, type Connection } from "@solana/web3.js";
 import type Coingecko from "@coingecko/coingecko-typescript";
 import type { AmmV3 } from "@rhiva-ag/decoder/programs/idls/types/raydium";
@@ -35,8 +37,6 @@ import {
   type Database,
   type walletSelectSchema,
 } from "@rhiva-ag/datasource";
-import type { ProgramEventType } from "@rhiva-ag/decoder";
-import { MintLayout } from "@solana/spl-token";
 
 export const syncRaydiumPositionsForWallet = async (
   connection: Connection,
@@ -437,15 +437,24 @@ async function upsertPool(
   throw new Error(format("pool with id=%s not found.", poolId));
 }
 
-export const syncRaydiumPositionStateFromEvent = async (
-  db: Database,
-  connection: Connection,
-  coingecko: Coingecko,
-  wallet: Pick<z.infer<typeof walletSelectSchema>, "id">,
-  positionNftMint: PublicKey | undefined,
-  events: ProgramEventType<AmmV3>[],
-  _extra: { signature: string },
-) => {
+export const syncRaydiumPositionStateFromEvent = async ({
+  db,
+  coingecko,
+  connection,
+  type,
+  events,
+  wallet,
+  positionNftMint,
+}: {
+  db: Database;
+  connection: Connection;
+  coingecko: Coingecko;
+  extra?: { signature: string };
+  events: ProgramEventType<AmmV3>[];
+  positionNftMint: PublicKey | undefined;
+  wallet: Pick<z.infer<typeof walletSelectSchema>, "id">;
+  type?: "closed-position" | "create-position" | "claim-reward";
+}) => {
   const results = [];
   for (const event of events) {
     if (event.name === "createPersonalPositionEvent") {
@@ -562,6 +571,18 @@ export const syncRaydiumPositionStateFromEvent = async (
     } else if (event.name === "decreaseLiquidityEvent") {
       const data = event.data;
       const positionId = data.positionNftMint.toBase58();
+
+      if (type === "closed-position") {
+        const [position] = await db
+          .update(positions)
+          .set({ state: "closed" })
+          .where(eq(positions.id, positionId))
+          .returning();
+
+        results.push(position);
+
+        continue;
+      }
 
       const position = await getPositionById(db, positionId);
 

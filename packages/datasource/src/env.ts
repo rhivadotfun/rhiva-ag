@@ -3,16 +3,13 @@ import "dotenv/config";
 import { format } from "util";
 
 type Env =
-  | "REDIS_MAX_SENTINELS"
-  | "REDIS_SENTINEL_PORT"
-  | "REDIS_SENTINEL_HOSTNAME"
   | "REDIS_URL"
+  | "DATABASE_URL"
   | "COINGECKO_API_KEY"
-  | "SOLANA_TRACKER_API_KEY"
-  | "DATABASE_URL";
+  | "SOLANA_TRACKER_API_KEY";
 
 export const getEnv = <T>(name: Env, refine?: <K>(value: K) => T): T => {
-  const value = process.env[format("APP_%s", name)] || process.env[name];
+  const value = process.env[name] || process.env[format("APP_%s", name)];
   if (value)
     try {
       const parsed = JSON.parse(value) as T;

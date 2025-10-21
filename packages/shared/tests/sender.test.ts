@@ -15,18 +15,33 @@ import {
 
 import { getEnv } from "./env";
 import { loadWallet } from "./utils";
-import { batchSimulateTransactions } from "../src";
+import { batchSimulateTransactions, SendTransaction } from "../src";
 
 describe("sender", () => {
   let wallet: Keypair;
   let connection: Connection;
+  let sender: SendTransaction;
 
   beforeAll(() => {
     wallet = loadWallet(getEnv("DEV_WALLET"));
+    sender = new SendTransaction(
+      getEnv("HELIUS_API_URL"),
+      getEnv("HELIUS_API_KEY"),
+      getEnv("JITO_API_URL"),
+      getEnv("JITO_UUID"),
+    );
     connection = new Connection(clusterApiUrl("mainnet-beta"));
   });
 
-  test("simulate transactions", async () => {
+  test("getBundleStatuses", async () => {
+    const bundleId =
+      "038a0521f6bb76fb8f4a7e2a7bb909dc37b20642e6cbd7dc6f0c1406b490ba96";
+    const response = await sender.getBundleStatuses(bundleId);
+    console.log(response, { depth: null });
+    expect(response.result.value).toHaveLength(1);
+  });
+
+  test("batchSimulateTransactions", async () => {
     const to = new PublicKey("SKzz9oDd7auugMWr9YXyhmTDLaTFVKToodkYkiU18ET");
     const mint = new PublicKey("Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB");
     const toAta = getAssociatedTokenAddressSync(mint, to);
@@ -61,8 +76,8 @@ describe("sender", () => {
       },
     });
 
-    expect(
-      simulatedResponses.every((response) => response.value.err === null),
-    ).toBe(true);
+    expect(simulatedResponses.every((response) => response.err === null)).toBe(
+      true,
+    );
   });
 });

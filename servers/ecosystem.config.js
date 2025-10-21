@@ -14,6 +14,19 @@ module.exports = {
       script: "trpc/src/index.ts",
       env: {
         PORT: 8000,
+        APP_PORT: 8000,
+      },
+    },
+    {
+      interpreter,
+      instances: 1,
+      name: "mcp",
+      exec_mode: "fork",
+      increment_var: "PORT",
+      script: "mcp/src/index.ts",
+      env: {
+        PORT: 8001,
+        APP_PORT: 8001,
       },
     },
     {

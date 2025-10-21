@@ -374,14 +374,22 @@ async function upsertPool(
   throw new Error(format("pool with id=% not found", poolId));
 }
 
-export const syncMeteoraPositionStateFromEvent = async (
-  db: Database,
-  connection: Connection,
-  coingecko: Coingecko,
-  wallet: Pick<z.infer<typeof walletSelectSchema>, "id">,
-  events: ProgramEventType<LbClmm>[],
-  _extra: { signature: string },
-) => {
+export const syncMeteoraPositionStateFromEvent = async ({
+  db,
+  coingecko,
+  connection,
+  type,
+  events,
+  wallet,
+}: {
+  db: Database;
+  coingecko: Coingecko;
+  connection: Connection;
+  extra?: { signature: string };
+  events: ProgramEventType<LbClmm>[];
+  wallet: Pick<z.infer<typeof walletSelectSchema>, "id">;
+  type?: "closed-position" | "create-position" | "claim-reward";
+}) => {
   const results = [];
 
   for (const event of events) {
@@ -463,6 +471,8 @@ export const syncMeteoraPositionStateFromEvent = async (
         results.push(updatedPosition);
       }
     } else if (event.name === "removeLiquidity") {
+      if (type === "closed-position") continue;
+
       const data = event.data;
       const positionId = data.position.toBase58();
 

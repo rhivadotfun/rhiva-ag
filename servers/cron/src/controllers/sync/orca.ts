@@ -504,14 +504,22 @@ async function upsertPool(
   return getPoolById(db, poolId);
 }
 
-export const syncOrcaPositionStateFromEvent = async (
-  db: Database,
-  rpc: Rpc<SolanaRpcApi>,
-  coingecko: Coingecko,
-  wallet: Pick<z.infer<typeof walletSelectSchema>, "id">,
-  events: ProgramEventType<Whirlpool>[],
-  _extra: { signature: string },
-) => {
+export const syncOrcaPositionStateFromEvent = async ({
+  db,
+  rpc,
+  coingecko,
+  wallet,
+  events,
+  type,
+}: {
+  db: Database;
+  rpc: Rpc<SolanaRpcApi>;
+  coingecko: Coingecko;
+  extra?: { signature: string };
+  events: ProgramEventType<Whirlpool>[];
+  wallet: Pick<z.infer<typeof walletSelectSchema>, "id">;
+  type?: "closed-position" | "create-position" | "claim-reward";
+}) => {
   const results = [];
 
   for (const event of events) {
@@ -594,8 +602,19 @@ export const syncOrcaPositionStateFromEvent = async (
       }
     } else if (event.name === "liquidityDecreased") {
       const data = event.data;
-
       const positionId = data.position.toBase58();
+
+      if (type === "closed-position") {
+        const [position] = await db
+          .update(positions)
+          .set({ state: "closed" })
+          .where(eq(positions.id, positionId))
+          .returning();
+
+        results.push(position);
+
+        continue;
+      }
 
       const position = await getPositionById(db, positionId);
 
