@@ -1,10 +1,11 @@
 import clsx from "clsx";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   IoChevronBackOutline,
   IoChevronDownOutline,
   IoChevronForwardOutline,
 } from "react-icons/io5";
+import Decimal from "../Decimal";
 import {
   Disclosure,
   DisclosureButton,
@@ -12,6 +13,7 @@ import {
 } from "@headlessui/react";
 
 import { getCalender, type DailyPnL } from "@/lib/calender";
+import { currencyIntlArgs } from "@/constants/format";
 
 export function PortfolioHistory(props: React.ComponentProps<"div">) {
   const calender = <PortfolioCalender />;
@@ -95,9 +97,20 @@ function PortfolioCalender(props: React.ComponentProps<"div">) {
                           : "text-white",
                       )}
                     >
-                      {cell.pnl !== undefined
-                        ? `${cell.pnl >= 0 ? "+" : ""}$${cell.pnl.toFixed(2)}`
-                        : "$0.00"}
+                      {cell.pnl !== undefined ? (
+                        <>
+                          {cell.pnl >= 0 ? "+" : ""}
+                          <Decimal
+                            value={cell.pnl}
+                            intlArgs={currencyIntlArgs}
+                          />
+                        </>
+                      ) : (
+                        <Decimal
+                          value={0}
+                          intlArgs={currencyIntlArgs}
+                        />
+                      )}
                     </p>
                   </>
                 )}
@@ -116,8 +129,11 @@ function PortfolioCalender(props: React.ComponentProps<"div">) {
                 calender.monthlyTotal >= 0 ? "text-green-500" : "text-red-500",
               )}
             >
-              {calender.monthlyTotal >= 0 ? "+" : ""}$
-              {calender.monthlyTotal.toFixed(2)}
+              {calender.monthlyTotal >= 0 ? "+" : ""}
+              <Decimal
+                value={calender.monthlyTotal}
+                intlArgs={currencyIntlArgs}
+              />
             </span>
           </p>
         </div>
