@@ -1,9 +1,9 @@
+import { dexApi } from "@/instances";
 import Header from "@/components/layout/Header";
 import HeroSection from "@/components/home/HeroSection";
 import ProductList from "@/components/home/ProductList";
 import OnchainAnalytic from "@/components/home/OnchainAnalytic";
 import PeekHotTokenList from "@/components/home/PeekHotTokenList";
-import { dexApi } from "@/instances";
 
 export default async function Home() {
   const hotTokens = await dexApi.jup.token.list({
