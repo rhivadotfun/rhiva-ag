@@ -10,7 +10,7 @@ export default function PointTier({
   return (
     <div
       className={clsx(
-        "flex flex-col space-y-4 bg-white/3 p-4 rounded-xl",
+        "flex flex-col space-y-4 bg-white/3 p-4 rounded-xl sm:p-6",
         props.className,
       )}
     >
@@ -20,20 +20,23 @@ export default function PointTier({
           Progress through the ranks and unlock exclusive badges
         </p>
       </div>
-      <div className="flex flex-wrap gap-4">
+      <div className="grid grid-cols-5 gap-4 sm:gap-6">
         {tiers.map((tier) => {
           const selected = tier.name === currentTier.name;
 
           return (
-            <div key={tier.name}>
+            <div
+              key={tier.name}
+              className="flex justify-center"
+            >
               <Image
                 src={tier.icon}
-                width={128}
-                height={128}
+                width={256}
+                height={256}
                 alt={tier.name}
                 className={clsx(
-                  "w-16 h-14 sm:w-24 sm:h-20",
-                  !selected && "grayscale blur-sm",
+                  "w-20 h-auto sm:w-28 md:w-32 lg:w-50",
+                  !selected && "grayscale blur-sm opacity-50",
                 )}
               />
             </div>
