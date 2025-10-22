@@ -8,7 +8,7 @@ import PointOverview from "@/components/points/PointOverview";
 export default function PointPage() {
   const { tiers, nextTier, currentTier, user, stars } = useTiers();
   return (
-    <div className="flex-1 flex flex-col overflow-y-scroll lt-sm:fixed lt-sm:inset-0 lt-md:z-50 lt-sm:bg-dark">
+    <div className="flex-1 flex flex-col backdrop-blur-2xl overflow-y-scroll lt-sm:fixed lt-sm:inset-0 lt-md:z-50 lt-sm:bg-dark">
       <Header
         canBack
         className="sticky top-0 z-10 md:px-8"
