@@ -47,7 +47,6 @@ export default function PorfolioTokenTab() {
                   </span>
                 </div>
               </div>
-              <div></div>
             </div>
           )}
           <div className="flex items-center space-x-4 [&_button]:flex-1 [&_button]:min-w-32 [&_button]:bg-white/3 [&_button]:py-2 [&_button]:border [&_button]:border-white/10 [&_button]:rounded">
