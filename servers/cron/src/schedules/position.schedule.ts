@@ -37,7 +37,7 @@ export default async function createSchedule({
           syncQueue.add(
             Work.syncPosition,
             { dex, wallet },
-            { jobId: format("%s:%s", wallet.id, dex), removeOnComplete: true },
+            { jobId: format("%s/%s", dex, wallet.id), removeOnComplete: true },
           ),
         ),
       ),
