@@ -11,9 +11,15 @@ import LogoSmall from "@/assets/logo-sm.png";
 type HeaderProps = {
   canBack?: boolean;
   title?: string;
+  onMenuClick?: () => void;
 } & React.ComponentProps<"header">;
 
-export default function Header({ canBack, title, ...props }: HeaderProps) {
+export default function Header({
+  canBack,
+  title,
+  onMenuClick,
+  ...props
+}: HeaderProps) {
   const [showSideNav, setShowSideNav] = useState(false);
 
   return (
@@ -36,7 +42,13 @@ export default function Header({ canBack, title, ...props }: HeaderProps) {
           <button
             type="button"
             className="sm:hidden"
-            onClick={() => setShowSideNav(true)}
+            onClick={() => {
+              if (onMenuClick) {
+                onMenuClick();
+              } else {
+                setShowSideNav(true);
+              }
+            }}
           >
             <MdMenu
               color="white"
