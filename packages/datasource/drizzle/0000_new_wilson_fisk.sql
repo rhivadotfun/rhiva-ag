@@ -56,6 +56,7 @@ CREATE TABLE "poolFilters" (
 CREATE TABLE "wallets" (
 	"id" text PRIMARY KEY NOT NULL,
 	"key" text NOT NULL,
+	"wrappedDek" text,
 	"user" uuid NOT NULL,
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "wallets_user_unique" UNIQUE("user")
