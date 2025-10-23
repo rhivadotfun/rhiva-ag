@@ -1,16 +1,17 @@
-export default function IcSarosIcon() {
+export default function IcSarosIcon(props: React.ComponentProps<"svg">) {
   return (
     <svg
       version="1.0"
-      width="256.000000pt"
-      height="256.000000pt"
+      width="33"
+      height="29"
       viewBox="0 0 256.000000 256.000000"
       preserveAspectRatio="xMidYMid meet"
+      {...props}
     >
       <title>Saros Icon</title>
       <g
         transform="translate(0.000000,256.000000) scale(0.100000,-0.100000)"
-        fill="#000000"
+        fill="#FFFFFF"
         stroke="none"
       >
         <path
@@ -21,6 +22,7 @@ export default function IcSarosIcon() {
   591 -354 682 -685 32 -116 32 -373 0 -490 -87 -322 -342 -581 -668 -681 -83
   -26 -101 -28 -264 -28 -162 0 -182 2 -263 27 -360 111 -614 388 -683 745 -18
   94 -18 270 0 364 74 384 361 673 757 763 96 22 340 14 439 -15z"
+          fill="#8000FF"
         />
         <path
           d="M1170 1998 c-157 -22 -277 -85 -400 -208 -94 -94 -139 -163 -176
@@ -29,6 +31,7 @@ export default function IcSarosIcon() {
   719 -88 12 -114 12 -206 -1z m181 -308 c219 -41 377 -260 340 -471 -32 -183
   -171 -320 -354 -351 -268 -44 -518 211 -468 479 25 136 105 244 223 302 95 47
   167 58 259 41z"
+          fill="#8000FF"
         />
       </g>
     </svg>
