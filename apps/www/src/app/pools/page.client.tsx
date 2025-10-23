@@ -37,7 +37,7 @@ export default function PoolClientPage({ initialData }: PoolClientPageProps) {
   });
 
   return (
-    <div className="flex-1 flex flex-col overflow-y-scroll">
+    <div className="flex-1 flex flex-col backdrop-blur-2xl overflow-y-scroll">
       <Header
         title="Pools"
         className="sticky top-0 z-10"
