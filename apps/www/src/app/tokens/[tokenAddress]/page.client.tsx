@@ -109,7 +109,7 @@ export default function TokenPage({
             <div className="flex-1 flex flex-col">
               <iframe
                 title="gmgn"
-                className="focus:outline-none"
+                className="min-h-sm focus:outline-none"
                 src={format("https://www.gmgn.cc/kline/sol/%s", token.id)}
                 style={{ height: "100%", width: "100%" }}
               />
