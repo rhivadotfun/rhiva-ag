@@ -13,7 +13,6 @@ services:
       - alloy
     networks:
       - webnet
-      - redis
     env_file: 
       - .env
       - "$HOME/vps-infra/.env"
@@ -35,8 +34,6 @@ services:
 networks:
   webnet:
     driver: bridge
-  redis:
-    external: true
 EOF
 
 git pull

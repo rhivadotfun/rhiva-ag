@@ -1,16 +1,23 @@
 import "dotenv/config";
-
+import path from "path";
+import dotenv from "dotenv";
 import { format } from "util";
+import { execSync } from "child_process";
+
+if (process.env.NODE_ENV !== "production") {
+  const root = execSync("git rev-parse --show-toplevel").toString().trim();
+  dotenv.config({ path: path.resolve(root, ".env") });
+}
 
 type Env =
   | "PORT"
   | "HOST"
-  | "REDIS_MASTER_NAME"
   | "REDIS_MAX_SENTINELS"
+  | "REDIS_MASTER_NAME"
   | "REDIS_SENTINEL_PORT"
-  | "STATIC_REFERRAL_CODE"
   | "REDIS_URL"
   | "REDIS_SENTINEL_HOSTNAME"
+  | "STATIC_REFERRAL_CODE"
   | "MCP_SERVER_URL"
   | "DATABASE_URL"
   | "COINGECKO_API_KEY"
@@ -22,8 +29,8 @@ type Env =
   | "SOLANA_TRACKER_API_KEY"
   | "SECRET_KEY"
   | "SOLANA_RPC_URL"
-  | "AWS_KMS_KEY_ID"
   | "AWS_REGION"
+  | "AWS_KMS_KEY_ID"
   | "DEV_WALLET"
   | "OPEN_API_KEY";
 

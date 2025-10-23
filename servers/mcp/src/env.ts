@@ -1,6 +1,13 @@
 import "dotenv/config";
-
+import path from "path";
+import dotenv from "dotenv";
 import { format } from "util";
+import { execSync } from "child_process";
+
+if (process.env.NODE_ENV !== "production") {
+  const root = execSync("git rev-parse --show-toplevel").toString().trim();
+  dotenv.config({ path: path.resolve(root, ".env") });
+}
 
 type Env =
   | "PORT"
@@ -10,7 +17,6 @@ type Env =
   | "REDIS_SENTINEL_PORT"
   | "REDIS_URL"
   | "REDIS_SENTINEL_HOSTNAME"
-  | "MCP_SERVER_URL"
   | "DATABASE_URL"
   | "COINGECKO_API_KEY"
   | "CIVIC_CLIENT_ID"
@@ -18,11 +24,8 @@ type Env =
   | "JITO_UUID"
   | "HELIUS_API_URL"
   | "HELIUS_API_KEY"
-  | "SOLANA_TRACKER_API_KEY"
   | "SECRET_KEY"
-  | "SOLANA_RPC_URL"
-  | "DEV_WALLET"
-  | "OPEN_API_KEY";
+  | "SOLANA_RPC_URL";
 
 export const getEnv = <T>(name: Env, refine?: <K>(value: K) => T): T => {
   const value = process.env[name] || process.env[format("APP_%s", name)];
