@@ -1,8 +1,18 @@
 {
   "name": "@rhiva-ag/cron",
   "version": "0.0.0",
-  "type": "module",
   "private": true,
+  "types": "./src/external.ts",
+  "main": "./src/external.ts",
+  "module": "./src/external.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/external.ts",
+      "import": "./src/external.ts",
+      "default": "./src/external.ts"
+    }
+  },
   "scripts": {
     "check": "tsc --noEmit",
     "codegen": "bun x @rhiva-ag/env",

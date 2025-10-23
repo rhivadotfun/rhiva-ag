@@ -1,12 +1,21 @@
 import Dex from "@rhiva-ag/dex";
+import { Work } from "@rhiva-ag/cron";
 
+import { createQueue } from "../shared";
 import { loadWallet } from "../../../utils/wallet";
 import { privateProcedure, router } from "../../../trpc";
-import { closePosition, createPosition } from "./raydium.controller";
 import {
+  claimReward,
+  closePosition,
+  createPosition,
+} from "./raydium.controller";
+import {
+  raydiumClaimRewardSchema,
   raydiumCreatePositionSchema,
   raydiumClosePositionSchema,
 } from "./raydium.schema";
+
+const queue = createQueue();
 
 export const raydiumRoute = router({
   create: privateProcedure
@@ -15,14 +24,77 @@ export const raydiumRoute = router({
       const dex = new Dex(ctx.connection);
       const owner = loadWallet(ctx.user.wallet, ctx.secret);
 
-      return createPosition(dex, ctx.sendTransaction, owner, input);
+      const { execute } = await createPosition(
+        dex,
+        ctx.sendTransaction,
+        owner,
+        input,
+      );
+
+      const bundleId = await execute();
+      const response = await queue.add(
+        Work.syncTransaction,
+        {
+          bundleId,
+          dex: "raydium-clmm",
+          type: "create-position",
+          wallet: ctx.user.wallet,
+        },
+        { jobId: bundleId },
+      );
+
+      return {
+        jobId: response.id,
+        ...response.data,
+      };
     }),
+  claim: privateProcedure
+    .input(raydiumClaimRewardSchema)
+    .mutation(async ({ ctx, input }) => {
+      const dex = new Dex(ctx.connection);
+      const owner = loadWallet(ctx.user.wallet, ctx.secret);
+      const { execute } = await claimReward(
+        dex,
+        ctx.sendTransaction,
+        owner,
+        input,
+      );
+
+      const bundleId = await execute();
+
+      return {
+        bundleId,
+      };
+    }),
+
   close: privateProcedure
     .input(raydiumClosePositionSchema)
     .mutation(async ({ ctx, input }) => {
       const dex = new Dex(ctx.connection);
       const owner = loadWallet(ctx.user.wallet, ctx.secret);
 
-      return closePosition(dex, ctx.sendTransaction, owner, input);
+      const { execute } = await closePosition(
+        dex,
+        ctx.sendTransaction,
+        owner,
+        input,
+      );
+
+      const bundleId = await execute();
+      const response = await queue.add(
+        Work.syncTransaction,
+        {
+          bundleId,
+          dex: "raydium-clmm",
+          type: "close-position",
+          wallet: ctx.user.wallet,
+        },
+        { jobId: bundleId },
+      );
+
+      return {
+        jobId: response.id,
+        ...response.data,
+      };
     }),
 });

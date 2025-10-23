@@ -3,7 +3,11 @@ import assert from "assert";
 import Decimal from "decimal.js";
 import type { z } from "zod/mini";
 import type Dex from "@rhiva-ag/dex";
-import { isNative, type SendTransaction } from "@rhiva-ag/shared";
+import {
+  batchSimulateTransactions,
+  isNative,
+  type SendTransaction,
+} from "@rhiva-ag/shared";
 import { getAssociatedTokenAddressSync, NATIVE_MINT } from "@solana/spl-token";
 import {
   CLMM_PROGRAM_ID,
@@ -13,6 +17,7 @@ import {
 } from "@raydium-io/raydium-sdk-v2";
 import {
   getPreTokenBalanceForAccounts,
+  getTokenBalanceChangesFromBatchSimulation,
   getTokenBalanceChangesFromSimulation,
 } from "@rhiva-ag/dex";
 import {
@@ -22,6 +27,7 @@ import {
 } from "@solana/web3.js";
 
 import type {
+  raydiumClaimRewardSchema,
   raydiumClosePositionSchema,
   raydiumCreatePositionSchema,
 } from "./raydium.schema";
@@ -119,10 +125,125 @@ export const createPosition = async (
   return {
     bundleSimulationResponse,
     async execute() {
-      const {
-        result: { value },
-      } = await sender.sendBundle(transactions);
-      return value;
+      const { result } = await sender.sendBundle(transactions);
+      return result;
+    },
+  };
+};
+export const claimReward = async (
+  dex: Dex,
+  sender: SendTransaction,
+  owner: Keypair,
+  {
+    position: positionPubkey,
+    pair,
+    slippage,
+    jitoConfig,
+  }: z.infer<typeof raydiumClaimRewardSchema>,
+) => {
+  const accountInfo = await dex.connection.getAccountInfo(
+    getPdaPersonalPositionAddress(CLMM_PROGRAM_ID, positionPubkey).publicKey,
+  );
+  assert(accountInfo, "position not found.");
+
+  const position = PositionInfoLayout.decode(accountInfo.data);
+  const [poolInfo] = await dex.dlmm.raydium.raydium.api.fetchPoolById({
+    ids: pair.toBase58(),
+  });
+
+  assert(poolInfo, "pool not found.");
+
+  const { builder } = await dex.dlmm.raydium.buildClaimReward({
+    position,
+    poolInfo: poolInfo as ApiV3PoolInfoConcentratedItem,
+  });
+  const jitoTipInstruction = await sender.getJitoTipInstruction(
+    owner.publicKey,
+    jitoConfig,
+  );
+
+  if (jitoTipInstruction)
+    builder.addInstruction({ instructions: [jitoTipInstruction] });
+
+  const { transactions: claimRewardV0Transactions } =
+    await builder.buildV0MultiTx({});
+
+  const tokenAAta = getAssociatedTokenAddressSync(
+    new PublicKey(poolInfo.mintA.address),
+    owner.publicKey,
+    false,
+    new PublicKey(poolInfo.mintA.programId),
+  );
+  const tokenBAta = getAssociatedTokenAddressSync(
+    new PublicKey(poolInfo.mintB.address),
+    owner.publicKey,
+    false,
+    new PublicKey(poolInfo.mintB.programId),
+  );
+
+  const preTokenBalanceChanges = await getPreTokenBalanceForAccounts(
+    dex.connection,
+    [tokenAAta, tokenBAta],
+  );
+
+  const simulationResponses = await batchSimulateTransactions(dex.connection, {
+    transactions: claimRewardV0Transactions,
+    options: {
+      sigVerify: false,
+      replaceRecentBlockhash: true,
+      accounts: {
+        addresses: [tokenAAta.toBase58(), tokenBAta.toBase58()],
+        encoding: "base64",
+      },
+    },
+  });
+  const errors = simulationResponses
+    .filter((response) => response.err != null)
+    .map((response) => response.err);
+  if (errors.length > 0) throw errors;
+
+  const tokenBalanceChanges = getTokenBalanceChangesFromBatchSimulation(
+    simulationResponses,
+    preTokenBalanceChanges,
+  );
+
+  const swapV0Transactions = [];
+  const tokens = [poolInfo.mintA, poolInfo.mintB];
+
+  for (const token of tokens) {
+    if (!isNative(token.address)) {
+      const quoteAmount = tokenBalanceChanges[token.address] ?? 0n;
+      if (quoteAmount > 0n) {
+        const { transaction } = await dex.swap.jupiter.buildSwap({
+          slippage,
+          inputMint: new PublicKey(token.address),
+          outputMint: NATIVE_MINT,
+          owner: owner.publicKey,
+          amount: quoteAmount.toString(),
+        });
+
+        swapV0Transactions.push(transaction);
+      }
+    }
+  }
+
+  for (const transaction of swapV0Transactions) transaction.sign([owner]);
+  for (const transaction of claimRewardV0Transactions)
+    transaction.sign([owner]);
+
+  const transactions = [...claimRewardV0Transactions, ...swapV0Transactions];
+
+  const bundleSimulationResponse = await sender.simulateBundle({
+    transactions,
+    skipSigVerify: true,
+    replaceRecentBlockhash: true,
+  });
+
+  return {
+    bundleSimulationResponse,
+    async execute() {
+      const { result } = await sender.sendBundle(transactions);
+      return result;
     },
   };
 };
@@ -150,7 +271,7 @@ export const closePosition = async (
 
   assert(poolInfo, "pool not found.");
 
-  const { signers, builder } = await dex.dlmm.raydium.buildClosePosition({
+  const { builder } = await dex.dlmm.raydium.buildClosePosition({
     position,
     poolInfo: poolInfo as ApiV3PoolInfoConcentratedItem,
   });
@@ -221,7 +342,7 @@ export const closePosition = async (
     }
   }
 
-  closePositionV0Transaction.sign([owner, ...signers]);
+  closePositionV0Transaction.sign([owner]);
   for (const transaction of swapV0Transactions) transaction.sign([owner]);
   const transactions = [closePositionV0Transaction, ...swapV0Transactions];
   const bundleSimulationResponse = await sender.simulateBundle({
@@ -233,10 +354,8 @@ export const closePosition = async (
   return {
     bundleSimulationResponse,
     async execute() {
-      const {
-        result: { value },
-      } = await sender.sendBundle(transactions);
-      return value;
+      const { result } = await sender.sendBundle(transactions);
+      return result;
     },
   };
 };

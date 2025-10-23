@@ -8,15 +8,29 @@ export const raydiumCreatePositionSchema = z
     slippage: z.number().describe("swap slippage"),
     inputAmount: z.number().describe("input amount"),
     inputMint: publicKey().describe("input amount mint"),
-    priceChanges: z.tuple([z.number().min(0).max(1), z.number().min(0).max(1)]),
+    priceChanges: z.tuple([
+      z.number().min(-1).max(0),
+      z.number().min(0).max(1),
+    ]),
   })
   .extend({
-    jitoConfig: jitoTipConfigSchema
-      .default({
-        type: "dynamic",
-        priorityFeePercentile: "50ema",
-      })
-      .optional(),
+    jitoConfig: jitoTipConfigSchema.default({
+      type: "dynamic",
+      priorityFeePercentile: "50ema",
+    }),
+  });
+
+export const raydiumClaimRewardSchema = z
+  .object({
+    pair: publicKey().describe("pool address"),
+    slippage: z.number().describe("swap slippage"),
+    position: publicKey().describe("position address"),
+  })
+  .extend({
+    jitoConfig: jitoTipConfigSchema.default({
+      type: "dynamic",
+      priorityFeePercentile: "50ema",
+    }),
   });
 
 export const raydiumClosePositionSchema = z
@@ -26,10 +40,8 @@ export const raydiumClosePositionSchema = z
     position: publicKey().describe("position address"),
   })
   .extend({
-    jitoConfig: jitoTipConfigSchema
-      .default({
-        type: "dynamic",
-        priorityFeePercentile: "50ema",
-      })
-      .optional(),
+    jitoConfig: jitoTipConfigSchema.default({
+      type: "dynamic",
+      priorityFeePercentile: "50ema",
+    }),
   });

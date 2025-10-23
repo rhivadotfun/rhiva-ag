@@ -28,6 +28,7 @@ import {
 } from "@solana/kit";
 
 import type {
+  orcaClaimRewardSchema,
   orcaClosePositionSchema,
   orcaCreatePositionSchema,
 } from "./orca.schema";
@@ -128,6 +129,131 @@ export const createPosition = async (
     await signTransactionMessageWithSigners(createPositionV0Message);
 
   const transactions = [...swapV0Transactions, createPositionV0Transaction];
+
+  const bundleSimulationResponse = await sender.simulateBundle({
+    skipSigVerify: true,
+    replaceRecentBlockhash: true,
+    transactions: transactions.map(getBase64EncodedWireTransaction),
+  });
+
+  return {
+    bundleSimulationResponse,
+    async execute() {
+      const { result } = await sender.sendBundle(
+        transactions.map(getBase64EncodedWireTransaction),
+      );
+      return result;
+    },
+  };
+};
+
+export const claimReward = async (
+  dex: Dex,
+  sender: SendTransaction,
+  owner: Keypair,
+  {
+    pair,
+    tokenA,
+    tokenB,
+    position,
+    slippage,
+    jitoConfig,
+  }: z.infer<typeof orcaClaimRewardSchema>,
+) => {
+  const signer = await createKeyPairSignerFromBytes(owner.secretKey);
+  const pool = await fetchWhirlpool(dex.dlmm.rpc, pair);
+  const { instructions } = await dex.dlmm.orca.buildClaimReward({
+    position,
+    owner: signer,
+  });
+
+  const { value: recentBlockhash } = await dex.dlmm.rpc
+    .getLatestBlockhash()
+    .send();
+
+  const claimRewardV0Message = await pipe(
+    createTransactionMessage({ version: 0 }),
+    (tx) => setTransactionMessageFeePayer(signer.address, tx),
+    (tx) => setTransactionMessageLifetimeUsingBlockhash(recentBlockhash, tx),
+    async (tx) =>
+      appendTransactionMessageInstructions(
+        [
+          await sender.processJitoTipFromTxMessage(signer, jitoConfig),
+          ...instructions,
+        ],
+        tx,
+      ),
+  );
+
+  const tokenAAta = getAssociatedTokenAddressSync(
+    new PublicKey(pool.data.tokenMintA),
+    owner.publicKey,
+    false,
+    new PublicKey(tokenA.owner),
+  );
+  const tokenBAta = getAssociatedTokenAddressSync(
+    new PublicKey(pool.data.tokenMintB),
+    owner.publicKey,
+    false,
+    new PublicKey(tokenB.owner),
+  );
+
+  const claimRewardV0Transaction: Transaction =
+    await signTransactionMessageWithSigners(claimRewardV0Message);
+
+  const preTokenBalanceChanges = await getPreTokenBalanceForAccounts(
+    dex.connection,
+    [tokenAAta, tokenBAta],
+  );
+
+  const simulationResponse = await dex.dlmm.rpc
+    .simulateTransaction(
+      getBase64EncodedWireTransaction(claimRewardV0Transaction),
+      {
+        encoding: "base64",
+        sigVerify: false,
+        replaceRecentBlockhash: true,
+        accounts: {
+          addresses: [
+            fromLegacyPublicKey(tokenAAta),
+            fromLegacyPublicKey(tokenBAta),
+          ],
+          encoding: "base64",
+        },
+      },
+    )
+    .send();
+
+  if (simulationResponse.value.err) throw simulationResponse.value.err;
+
+  const tokenBalanceChanges = getTokenBalanceChangesFromSimulation(
+    simulationResponse.value as unknown as RpcSimulateTransactionResult,
+    preTokenBalanceChanges,
+  );
+
+  const swapV0Transactions = [];
+  const tokens = [tokenA, tokenB];
+
+  for (const token of tokens) {
+    if (!isNative(token.mint)) {
+      const quoteAmount = tokenBalanceChanges[token.mint] ?? 0n;
+      if (quoteAmount > 0n) {
+        const { transaction } = await dex.swap.jupiter.buildSwap({
+          slippage,
+          owner: owner.publicKey,
+          outputMint: NATIVE_MINT,
+          inputMint: new PublicKey(token.mint),
+          amount: quoteAmount.toString(),
+        });
+
+        transaction.sign([owner]);
+
+        swapV0Transactions.push(fromVersionedTransaction(transaction));
+      }
+    }
+  }
+
+  const transactions = [claimRewardV0Transaction, ...swapV0Transactions];
 
   const bundleSimulationResponse = await sender.simulateBundle({
     skipSigVerify: true,

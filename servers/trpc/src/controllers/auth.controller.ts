@@ -20,7 +20,14 @@ import { getEnv } from "../env";
 
 type User = Omit<
   z.infer<typeof userSelectSchema>,
-  "referXp" | "totalRefer" | "settings" | "xp" | "wallet"
+  | "referXp"
+  | "totalRefer"
+  | "settings"
+  | "xp"
+  | "wallet"
+  | "todayXp"
+  | "totalUsers"
+  | "rank"
 > & { wallet: z.infer<typeof walletSelectSchema> };
 
 export class CivicAuthMiddleware {

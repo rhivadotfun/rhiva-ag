@@ -10,7 +10,7 @@ import {
 } from "@trpc/server/adapters/fastify";
 
 import { getEnv } from "./env";
-import { redis } from "./instances";
+import { createRedis } from "./instances";
 import { createContext } from "./context";
 import { appRouter, type AppRouter } from "./routers";
 
@@ -31,7 +31,7 @@ server.register(fastifyCors, {
     /^https?:\/\/([a-z0-9-]+\.)*oasis-mystre\.workers\.dev$/,
   ],
 });
-server.register(fastifyRateLimit, { redis });
+server.register(fastifyRateLimit, { redis: createRedis() });
 server.register(fastifyTRPCPlugin, {
   prefix: "/",
   useWSS: true,

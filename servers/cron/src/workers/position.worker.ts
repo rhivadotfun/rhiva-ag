@@ -13,7 +13,7 @@ import { syncOrcaPositionsForWallet } from "../controllers/sync/orca";
 import { syncRaydiumPositionsForWallet } from "../controllers/sync/raydium";
 import { syncMeteoraPositionsForWallet } from "../controllers/sync/meteora";
 
-const workSchema = z.object({
+export const positionWorkSchema = z.object({
   wallet: z.object({
     id: z.string(),
     key: z.string(),
@@ -36,8 +36,8 @@ export default async function createWorker({
 }) {
   const worker = new Worker(
     Work.syncPosition,
-    async ({ data }: Job<z.infer<typeof workSchema>>) => {
-      const result = workSchema.safeParse(data);
+    async ({ data }: Job<z.infer<typeof positionWorkSchema>>) => {
+      const result = positionWorkSchema.safeParse(data);
 
       if (result.success)
         switch (data.dex) {
@@ -74,6 +74,7 @@ export default async function createWorker({
   );
 
   worker.on("failed", (job, error) => {
+    console.error(error);
     logger.error(
       { error, job: { id: job?.id, data: job?.data } },
       "worker.position.sync.failed",

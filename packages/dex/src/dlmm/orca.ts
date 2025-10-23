@@ -2,6 +2,7 @@ import { tickIndexToPrice } from "@orca-so/whirlpools-core";
 import type { Whirlpool } from "@orca-so/whirlpools-client";
 import {
   closePositionInstructions,
+  harvestPositionInstructions,
   openFullRangePositionInstructions,
   openPositionInstructions,
 } from "@orca-so/whirlpools";
@@ -58,7 +59,7 @@ export class OrcaDLMM {
         args.tokenBDecimals,
       );
 
-      const lowerPrice = currentPrice - currentPrice * lowerPriceChange;
+      const lowerPrice = currentPrice + currentPrice * lowerPriceChange;
       const upperPrice = currentPrice + currentPrice * upperPriceChange;
 
       return openPositionInstructions(
@@ -82,6 +83,16 @@ export class OrcaDLMM {
       slippage,
       args.owner,
     );
+  };
+
+  readonly buildClaimReward = async ({
+    position,
+    owner,
+  }: {
+    position: Address;
+    owner: TransactionSigner;
+  }) => {
+    return harvestPositionInstructions(this.rpc, position, owner);
   };
 
   readonly buildClosePosition = async ({

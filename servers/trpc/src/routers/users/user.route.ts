@@ -15,6 +15,7 @@ import {
   wallets,
   rank,
   count as countAll,
+  userUpdateSchema,
 } from "@rhiva-ag/datasource";
 
 import { privateProcedure, router } from "../../trpc";
@@ -83,4 +84,20 @@ export const userRoute = router({
 
     throw new TRPCError({ code: "NOT_FOUND", message: "user not found" });
   }),
+  update: privateProcedure
+    .input(
+      userUpdateSchema
+        .omit({ id: true, uid: true, referralCode: true, email: true })
+        .partial(),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [user] = await ctx.drizzle
+        .update(users)
+        .set(input)
+        .where(eq(users.id, ctx.user.id))
+        .returning();
+      if (user) return user;
+
+      throw new TRPCError({ code: "NOT_FOUND", message: "user not found" });
+    }),
 });

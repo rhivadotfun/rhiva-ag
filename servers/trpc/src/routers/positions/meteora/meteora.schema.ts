@@ -21,7 +21,7 @@ export const meteoraCreatePositionSchema = z
         "pool pair tokens addresses. for single sided position provide only one mint",
       ),
     priceChanges: z
-      .tuple([z.number().min(0).max(1), z.number().min(0).max(1)])
+      .tuple([z.number().min(-1).max(0), z.number().min(0).max(1)])
       .describe(
         "price changes in fractional percentile to provide liquidity for.",
       ),
@@ -33,12 +33,23 @@ export const meteoraCreatePositionSchema = z
       .optional(),
   })
   .extend({
-    jitoConfig: jitoTipConfigSchema
-      .default({
-        type: "dynamic",
-        priorityFeePercentile: "50ema",
-      })
-      .optional(),
+    jitoConfig: jitoTipConfigSchema.default({
+      type: "dynamic",
+      priorityFeePercentile: "50ema",
+    }),
+  });
+
+export const meteoraClaimRewardSchema = z
+  .object({
+    pair: publicKey().describe("pair address"),
+    slippage: z.number().describe("swap slippage"),
+    position: publicKey().describe("position address"),
+  })
+  .extend({
+    jitoConfig: jitoTipConfigSchema.default({
+      type: "dynamic",
+      priorityFeePercentile: "50ema",
+    }),
   });
 
 export const meteoraClosePositionSchema = z
@@ -48,10 +59,8 @@ export const meteoraClosePositionSchema = z
     position: publicKey().describe("position address"),
   })
   .extend({
-    jitoConfig: jitoTipConfigSchema
-      .default({
-        type: "dynamic",
-        priorityFeePercentile: "50ema",
-      })
-      .optional(),
+    jitoConfig: jitoTipConfigSchema.default({
+      type: "dynamic",
+      priorityFeePercentile: "50ema",
+    }),
   });

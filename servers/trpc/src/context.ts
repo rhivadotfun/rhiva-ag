@@ -2,7 +2,6 @@ import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify"
 
 import { CivicAuthMiddleware } from "./controllers/auth.controller";
 import {
-  redis,
   secret,
   drizzle,
   mcpClient,
@@ -10,8 +9,10 @@ import {
   solanatracker,
   sendTransaction,
   solanaConnection,
+  createRedis,
 } from "./instances";
 
+const redis = createRedis();
 const authMiddleware = new CivicAuthMiddleware(redis, secret, drizzle, {
   ttl: 86400,
 });

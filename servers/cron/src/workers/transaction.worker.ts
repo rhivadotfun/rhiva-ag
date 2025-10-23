@@ -30,7 +30,7 @@ import { syncOrcaPositionStateFromEvent } from "../controllers/sync/orca";
 import { syncRaydiumPositionStateFromEvent } from "../controllers/sync/raydium";
 import { syncMeteoraPositionStateFromEvent } from "../controllers/sync/meteora";
 
-export const workSchema = z
+export const transactionWorkSchema = z
   .union([
     z
       .union([
@@ -166,10 +166,10 @@ export default async function createWorker({
   sender: SendTransaction;
 }) {
   const rpc = createSolanaRpc(connection.rpcEndpoint);
-  const worker = new Worker<z.infer<typeof workSchema>>(
+  const worker = new Worker<z.infer<typeof transactionWorkSchema>>(
     Work.syncTransaction,
     async ({ data }) => {
-      const result = workSchema.safeParse(data);
+      const result = transactionWorkSchema.safeParse(data);
 
       if (result.success) {
         const pipeline = createTransactionPipeline({

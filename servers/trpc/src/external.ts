@@ -13,7 +13,4 @@ export {
   raydiumCreatePositionSchema,
 } from "./routers/positions/raydium/raydium.schema";
 
-export {
-  orcaClosePositionSchema,
-  orcaFlatCreatePositionSchema,
-} from "./routers/positions/orca/orca.schema";
+export { orcaClosePositionSchema } from "./routers/positions/orca/orca.schema";

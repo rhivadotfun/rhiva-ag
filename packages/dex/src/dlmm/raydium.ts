@@ -46,7 +46,7 @@ export class RaydiumCLMM {
     const { poolInfo, poolKeys } = rpcPoolInfo;
     const [lowerPriceChange, upperPriceChange] = priceChanges;
     const currentPrice = poolInfo.price;
-    const lowerPrice = currentPrice - currentPrice * lowerPriceChange;
+    const lowerPrice = currentPrice + currentPrice * lowerPriceChange;
     const upperPrice = currentPrice + currentPrice * upperPriceChange;
 
     const baseIn = poolInfo.mintA.address === inputMint;
@@ -95,6 +95,25 @@ export class RaydiumCLMM {
         useSOLBalance: true,
       },
       txVersion: TxVersion.V0,
+    });
+  };
+
+  readonly buildClaimReward = async ({
+    poolInfo,
+    position,
+  }: {
+    position: ClmmPositionLayout;
+    poolInfo: ApiV3PoolInfoConcentratedItem;
+  }) => {
+    assert(this.raydium, "initialize raydium class to use this method");
+
+    return this.raydium.clmm.harvestAllRewards({
+      txVersion: TxVersion.V0,
+      allPoolInfo: { [poolInfo.id]: poolInfo },
+      allPositions: { [poolInfo.id]: [position] },
+      ownerInfo: {
+        useSOLBalance: true,
+      },
     });
   };
 

@@ -1,10 +1,14 @@
 import type Redis from "ioredis";
+import type { RedisOptions } from "ioredis";
 import { Connection } from "@solana/web3.js";
 import { McpClient } from "@rhiva-ag/mcp/client";
 import { Client } from "@solana-tracker/data-api";
 import Coingecko from "@coingecko/coingecko-typescript";
 import { Secret, SendTransaction } from "@rhiva-ag/shared";
-import { createDB, createRedis } from "@rhiva-ag/datasource";
+import {
+  createDB,
+  createRedis as defaultCreateRedis,
+} from "@rhiva-ag/datasource";
 import {
   MCPServerStreamableHttp,
   setDefaultOpenAIKey,
@@ -38,22 +42,26 @@ export const solanatracker = new Client({
   apiKey: getEnv("SOLANA_TRACKER_API_KEY"),
 });
 
-let redis: Redis;
-
-if (process.env.NODE_ENV === "production")
-  redis = createRedis({
-    name: getEnv("REDIS_MASTER_NAME"),
-    max: getEnv("REDIS_MAX_SENTINELS", Number),
-    port: getEnv("REDIS_SENTINEL_PORT", Number),
-    host: getEnv("REDIS_SENTINEL_HOSTNAME"),
-  });
-else redis = createRedis(getEnv("REDIS_URL"));
-
-export { redis };
-
 export const mcpClient = new McpClient(
   new MCPServerStreamableHttp({
     url: new URL(getEnv("MCP_SERVER_URL")),
   }),
   { name: "RhivaAg Bot" },
 );
+
+export const createRedis = (options?: RedisOptions) => {
+  let redis: Redis;
+
+  if (process.env.NODE_ENV === "production")
+    redis = defaultCreateRedis({
+      name: getEnv("REDIS_MASTER_NAME"),
+      max: getEnv("REDIS_MAX_SENTINELS", Number),
+      port: getEnv("REDIS_SENTINEL_PORT", Number),
+      host: getEnv("REDIS_SENTINEL_HOSTNAME"),
+      ...options,
+    });
+  else if (options) redis = defaultCreateRedis(getEnv("REDIS_URL"), options);
+  else redis = defaultCreateRedis(getEnv("REDIS_URL"));
+
+  return redis;
+};

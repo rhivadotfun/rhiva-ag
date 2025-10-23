@@ -33,7 +33,7 @@ export class MeteoraDLMM {
 
     const [lowerPriceChange, upperPriceChange] = priceChanges;
 
-    const minPrice = price - price * lowerPriceChange;
+    const minPrice = price + price * lowerPriceChange;
     const maxPrice = price + price * upperPriceChange;
 
     const binIds = [
@@ -82,6 +82,18 @@ export class MeteoraDLMM {
 
       return transaction.instructions;
     }
+  };
+
+  readonly buildClaimReward = async ({
+    pool,
+    owner,
+    position,
+  }: {
+    pool: DLMM;
+    owner: PublicKey;
+    position: LbPosition;
+  }) => {
+    return pool.claimAllRewardsByPosition({ owner, position });
   };
 
   readonly buildClosePosition = async ({

@@ -53,6 +53,7 @@ export default async function createSchedule({
   );
 
   worker.on("failed", (job, error) => {
+    console.error(error);
     logger.error(
       { error, job: { id: job?.id, data: job?.data } },
       "worker.position.schedule.failed",
