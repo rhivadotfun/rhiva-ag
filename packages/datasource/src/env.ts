@@ -7,6 +7,7 @@ import { execSync } from "child_process";
 if (process.env.NODE_ENV !== "production") {
   const root = execSync("git rev-parse --show-toplevel").toString().trim();
   dotenv.config({ path: path.resolve(root, ".env") });
+  dotenv.config(); // local .env file have more priority than global .env file
 }
 
 type Env =
