@@ -85,7 +85,7 @@ export const messageRoute = router({
         where: where ? and(...where, eq(threads.user, ctx.user.id)) : undefined,
         with: {
           thread: {
-            column: {
+            columns: {
               user: true,
             },
           },

@@ -39,7 +39,7 @@ export const referRoute = router({
           ...input,
           user: ctx.user.id,
         })
-        .onConflictDoNothing({ target: [referers.user, referrers.referer] })
+        .onConflictDoNothing({ target: [referrers.user, referrers.referer] })
         .returning();
 
       if (referral) return referral;

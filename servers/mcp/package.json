@@ -2,13 +2,18 @@
   "name": "@rhiva-ag/mcp",
   "version": "0.0.0",
   "type": "module",
-  "types": "./src/client.ts",
-  "main": "./src/client.ts",
-  "module": "./src/client.ts",
+  "types": "./src/external.ts",
+  "main": "./src/external.ts",
+  "module": "./src/external.ts",
   "exports": {
     "./client": {
       "type": "./src/client.ts",
       "default": "./src/client.ts"
+    },
+    ".": {
+      "types": "./src/external.ts",
+      "import": "./src/external.ts",
+      "default": "./src/external.ts"
     }
   },
   "scripts": {

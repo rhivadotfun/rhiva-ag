@@ -28,6 +28,7 @@
     "@rhiva-ag/dex-api": "*",
     "@rhiva-ag/shared": "*",
     "@rhiva-ag/trpc": "*",
+    "@rhiva-ag/mcp": "*",
     "@solana-tracker/data-api": "^0.1.5",
     "@solana/kit": "^2.3.0",
     "@solana/spl-token": "^0.4.14",

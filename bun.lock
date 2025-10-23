@@ -37,6 +37,7 @@
         "@reduxjs/toolkit": "^2.9.0",
         "@rhiva-ag/datasource": "*",
         "@rhiva-ag/dex-api": "*",
+        "@rhiva-ag/mcp": "*",
         "@rhiva-ag/shared": "*",
         "@rhiva-ag/trpc": "*",
         "@solana-tracker/data-api": "^0.1.5",
