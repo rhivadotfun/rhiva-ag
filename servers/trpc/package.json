@@ -18,7 +18,6 @@
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-kms": "^3.914.0",
     "@civic/auth-verify": "^0.0.4",
     "@coingecko/coingecko-typescript": "^2.2.0",
     "@fastify/cookie": "^11.0.2",
