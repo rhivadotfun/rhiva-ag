@@ -1,6 +1,5 @@
 import assert from "assert";
 import crypto from "crypto";
-import { isUint8Array } from "util/types";
 
 export class Secret {
   private readonly key: Buffer | Uint8Array;
@@ -13,7 +12,9 @@ export class Secret {
     },
   ) {
     this.key =
-      Buffer.isBuffer(key) || isUint8Array(key) ? key : Buffer.from(key, "hex");
+      Buffer.isBuffer(key) || key instanceof Uint8Array
+        ? key
+        : Buffer.from(key, "hex");
     assert(this.key.length === 32, "key must be 32 bytes");
   }
 

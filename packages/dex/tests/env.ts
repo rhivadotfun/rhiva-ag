@@ -1,6 +1,13 @@
 import "dotenv/config";
-
+import path from "path";
+import dotenv from "dotenv";
 import { format } from "util";
+import { execSync } from "child_process";
+
+if (process.env.NODE_ENV !== "production") {
+  const root = execSync("git rev-parse --show-toplevel").toString().trim();
+  dotenv.config({ path: path.resolve(root, ".env") });
+}
 
 type Env =
   | "JITO_API_URL"
