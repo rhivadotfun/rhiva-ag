@@ -20,17 +20,25 @@ import {
   MenuItem,
 } from "@headlessui/react";
 
+import { useSignIn } from "@/hooks/useSignIn";
 import { useTRPC, useTRPCClient } from "@/trpc.client";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function PoolFilterDialog(
   props: React.ComponentPropsWithoutRef<typeof Dialog>,
 ) {
   const trpc = useTRPC();
+  const { user } = useAuth();
   const router = useRouter();
+  const signIn = useSignIn();
+  const { authStatus } = useUser();
   const trpcClient = useTRPCClient();
-  const { signIn, ...user } = useUser();
   const searchParams = useSearchParams();
 
+  const isAuthenticated = useMemo(
+    () => authStatus === AuthStatus.AUTHENTICATED && user,
+    [user, authStatus],
+  );
   const filterFields = useMemo(
     () => [
       { label: "Min Market Cap", name: "market_cap_min", placeholder: "Min" },
@@ -54,9 +62,9 @@ export default function PoolFilterDialog(
   );
 
   const { data } = useQuery({
+    enabled: Boolean(isAuthenticated),
     queryKey: trpc.poolFilter.list.queryKey(),
     queryFn: () => trpcClient.poolFilter.list.query(),
-    enabled: user.authStatus === AuthStatus.AUTHENTICATED,
   });
 
   const { mutateAsync } = useMutation(trpc.poolFilter.create.mutationOptions());
@@ -66,12 +74,12 @@ export default function PoolFilterDialog(
       validationSchema={object({ name: string().trim().required() })}
       initialValues={Object.fromEntries(searchParams.entries())}
       onSubmit={({ name, ...values }) => {
-        if (user.authStatus === AuthStatus.AUTHENTICATED)
-          return mutateAsync({
-            name,
-            data: values,
-          });
-        else return signIn();
+        if (!isAuthenticated) signIn();
+
+        return mutateAsync({
+          name,
+          data: values,
+        });
       }}
     >
       {({ values, setValues }) => (

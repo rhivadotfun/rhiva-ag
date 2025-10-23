@@ -1,6 +1,7 @@
 "use client";
-import { Provider as ReduxProvider } from "react-redux";
+import { CookiesProvider } from "react-cookie";
 import { NextIntlClientProvider } from "next-intl";
+import { Provider as ReduxProvider } from "react-redux";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import {
   ConnectionProvider,
@@ -22,7 +23,7 @@ export default function Provider({ children }: React.PropsWithChildren) {
           <WalletModalProvider>
             <NextIntlClientProvider locale="en">
               <TRPCProvider>
-                {children}
+                <CookiesProvider>{children}</CookiesProvider>
                 <AppData />
               </TRPCProvider>
             </NextIntlClientProvider>

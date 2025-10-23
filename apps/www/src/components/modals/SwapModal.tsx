@@ -17,6 +17,8 @@ import { useTRPC } from "@/trpc.client";
 import type { Token } from "./SelectTokenModal";
 import SelectTokenModal from "./SelectTokenModal";
 import { DefaultToken } from "@/constants/tokens";
+import { useAuth } from "@/hooks/useAuth";
+import { useSignIn } from "@/hooks/useSignIn";
 
 type SwapModalProps = {
   tokens?: [Token, Token];
@@ -43,16 +45,19 @@ function SwapForm({
   ...props
 }: React.ComponentProps<typeof Form> & Pick<SwapModalProps, "tokens">) {
   const trpc = useTRPC();
+  const { user } = useAuth();
+  const signIn = useSignIn();
   const { authStatus } = useUser();
-  const isAuthenticated = useMemo(
-    () => authStatus === AuthStatus.AUTHENTICATED,
-    [authStatus],
-  );
 
   const [showSelectInputTokenModal, setShowSelectInputTokenModal] =
     useState(false);
   const [showSelectOutputTokenModal, setShowSelectOutputTokenModal] =
     useState(false);
+
+  const isAuthenticated = useMemo(
+    () => user && authStatus === AuthStatus.AUTHENTICATED,
+    [authStatus, user],
+  );
 
   const { mutateAsync } = useMutation(trpc.token.swap.mutationOptions());
 
@@ -63,12 +68,15 @@ function SwapForm({
       inputAmount: undefined as unknown as number,
       outputAmount: undefined as unknown as number,
     },
-    onSubmit(values) {
-      mutateAsync({
+    async onSubmit(values) {
+      if (!isAuthenticated) await signIn();
+      return mutateAsync({
         slippage: 50,
-        amount: values.inputAmount,
         inputMint: values.inputToken.mint,
         outputMint: values.outputToken.mint,
+        amount:
+          BigInt(values.inputAmount) *
+          BigInt(Math.pow(10, values.inputToken.decimals)),
       });
     },
   });

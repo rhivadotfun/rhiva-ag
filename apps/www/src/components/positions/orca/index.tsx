@@ -149,19 +149,19 @@ function OrcaOpenPositionForm({
               />
             </div>
             <button
-              type="button"
+              type="submit"
               disabled={!isValid}
               className={clsx(
-                "p-2 rounded-md",
+                "flex items-center justify-center rounded-md",
                 isValid
                   ? "bg-primary text-black"
                   : "bg-gray/30 border border-white/10 text-gray",
               )}
             >
               {isSubmitting ? (
-                <div className="size-4 rounded-full" />
+                <div className="my-2 size-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
               ) : (
-                <span>Open Positon</span>
+                <span className="my-2">Open Positon</span>
               )}
             </button>
           </div>

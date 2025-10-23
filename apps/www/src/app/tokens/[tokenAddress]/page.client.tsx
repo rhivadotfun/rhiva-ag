@@ -1,11 +1,15 @@
 "use client";
 import moment from "moment";
 import { format } from "util";
-import { useState } from "react";
+import { AuthStatus } from "@civic/auth";
+import { useMemo, useState } from "react";
+import { useUser } from "@civic/auth/react";
 import { useQuery } from "@tanstack/react-query";
 import type { Token } from "@rhiva-ag/dex-api/jup/types";
 
 import { dexApi } from "@/instances";
+import { useAuth } from "@/hooks/useAuth";
+import { useSignIn } from "@/hooks/useSignIn";
 import Header from "@/components/layout/Header";
 import { DefaultToken } from "@/constants/tokens";
 import TokenSort from "@/components/token/TokenTab";
@@ -32,7 +36,15 @@ export default function TokenPage({
   params: { tokenAddress },
   searchParams: { timeframe },
 }: TokenPageProps) {
+  const { user } = useAuth();
+  const signIn = useSignIn();
+  const { authStatus } = useUser();
   const [showSwapModal, setShowSwapModal] = useState(false);
+
+  const isAuthenticated = useMemo(
+    () => user && authStatus === AuthStatus.AUTHENTICATED,
+    [authStatus, user],
+  );
 
   const { data } = useQuery({
     initialData,
@@ -67,6 +79,7 @@ export default function TokenPage({
                 className="md:order-1 md:grid-span-1"
               />
               <TokenInfo
+                mint={token.id}
                 liquidity={token.liquidity}
                 marketCap={token.mcap}
                 volume={
@@ -112,6 +125,7 @@ export default function TokenPage({
                   icon: token.icon,
                   name: token.name,
                   symbol: token.symbol,
+                  decimals: token.decimals,
                   verified: token.isVerified,
                 },
                 DefaultToken.Sol,
@@ -121,7 +135,10 @@ export default function TokenPage({
             <button
               type="button"
               className="bg-primary text-black px-2 py-3 rounded md:hidden"
-              onClick={() => setShowSwapModal(true)}
+              onClick={() => {
+                if (isAuthenticated) return setShowSwapModal(true);
+                signIn();
+              }}
             >
               Swap
             </button>

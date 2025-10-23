@@ -9,12 +9,12 @@ import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 
 import { truncateString } from "@/lib";
 import { useAuth } from "@/hooks/useAuth";
-import { useTRPCClient } from "@/trpc.client";
+import { useSignIn } from "@/hooks/useSignIn";
 
 export default function HeaderAction(props: React.ComponentProps<"div">) {
-  const trpcClient = useTRPCClient();
+  const signIn = useSignIn();
   const { user, setUser } = useAuth();
-  const { signIn, authStatus, signOut } = useUser();
+  const { authStatus, signOut } = useUser();
 
   const isAuthenticated = useMemo(
     () => authStatus === AuthStatus.AUTHENTICATED && user,
@@ -25,14 +25,6 @@ export default function HeaderAction(props: React.ComponentProps<"div">) {
     () => signOut().then(() => setUser(undefined)),
     [signOut, setUser],
   );
-  const onSignIn = useCallback(
-    async () =>
-      signIn().then(() => {
-        return trpcClient.user.me.query().then(setUser);
-      }),
-    [signIn, trpcClient, setUser],
-  );
-
   return (
     <div
       {...props}
@@ -83,7 +75,7 @@ export default function HeaderAction(props: React.ComponentProps<"div">) {
         <button
           type="button"
           className="bg-primary text-black px-4 py-1.5 rounded"
-          onClick={onSignIn}
+          onClick={signIn}
         >
           Login
         </button>

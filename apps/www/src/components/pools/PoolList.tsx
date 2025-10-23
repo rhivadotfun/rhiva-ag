@@ -8,9 +8,6 @@ import Image from "../Image";
 import Decimal from "../Decimal";
 import { PoolTabSmall } from "./PoolTab";
 import IcDex from "@/assets/icons/ic_dex";
-import IcOrcaIcon from "@/assets/icons/ic_orca";
-import IcRaydiumIcon from "@/assets/icons/ic_raydium";
-import IcMeteoraIcon from "@/assets/icons/ic_meteora";
 import { compactCurrencyIntlArgs, currencyIntlArgs } from "@/constants/format";
 
 type PoolListProps = {
@@ -48,15 +45,10 @@ export default function PoolList({ pools }: PoolListProps) {
                 {pool.name.replace(/\s/g, "").replace(/\//g, "-")}
               </p>
               <MdContentCopy className="text-gray mr-1 lt-sm:text-xs" />
-              {pool.dex.id === "orca" && (
-                <IcOrcaIcon className="size-4 rounded-full" />
-              )}
-              {pool.dex.id === "raydium-clmm" && (
-                <IcRaydiumIcon className="size-4 rounded-full" />
-              )}
-              {pool.dex.id === "meteora" && (
-                <IcMeteoraIcon className="size-4 rounded-full" />
-              )}
+              <IcDex
+                dex={pool.dex.id}
+                className="size-4 rounded-full"
+              />
             </div>
             <div className="flex flex-col space-y-2">
               <div className="flex justify-between">

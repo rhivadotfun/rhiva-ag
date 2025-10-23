@@ -82,7 +82,9 @@ export default function NavBar(props: React.ComponentProps<"div">) {
       <nav className={clsx(props.className, "flex-1 flex sm:flex-col")}>
         <ul className="flex-1 flex sm:flex-col sm:space-y-4 sm:p-4">
           {navItems.map((navItem) => {
-            const selected = navItem.path === pathname;
+            const [path] = pathname.split(/\//g).filter(Boolean);
+            const selected =
+              navItem.path === pathname || navItem.path.includes(path);
             const Button = Link;
 
             return (

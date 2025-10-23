@@ -62,4 +62,4 @@ const supportedDexes = ["orca", "saros-dlmm", "raydium-clmm", "meteora"];
 export const isSupportedDex = (
   value: string,
 ): value is "orca" | "saros-dlmm" | "raydium-clmm" | "meteora" =>
-  value in supportedDexes;
+  supportedDexes.includes(value);

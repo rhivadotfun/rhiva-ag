@@ -21,6 +21,7 @@ export type Token = {
   name: string;
   symbol: string;
   mint: string;
+  decimals: number;
   verified: boolean;
   balance: number;
 };
@@ -55,11 +56,11 @@ export default function SelectTokenModal({
       for (const token of [...walletTokens, ...data]) {
         if (added.has(token.id)) continue;
         added.set(token.id, {
+          mint: token.id,
           icon: token.icon,
           name: token.name,
           symbol: token.symbol,
-
-          mint: token.id,
+          decimals: token.decimals,
           verified: token.isVerified,
           balance: "balance" in token ? (token.balance as number) : 0,
         });
@@ -69,11 +70,14 @@ export default function SelectTokenModal({
     }
 
     return walletTokens.map((token) => ({
+      mint: token.id,
+
       icon: token.icon,
       name: token.name,
       symbol: token.symbol,
-      mint: token.id,
       balance: token.balance,
+      decimals: token.decimals,
+
       verified: token.isVerified,
     }));
   }, [data, walletTokens]);

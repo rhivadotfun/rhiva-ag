@@ -6,13 +6,14 @@ import type { Pair } from "@rhiva-ag/dex-api";
 import { useQuery } from "@tanstack/react-query";
 
 import { dexApi } from "@/instances";
+import { isSupportedDex } from "@/lib";
 import { useAuth } from "@/hooks/useAuth";
+import { useSignIn } from "@/hooks/useSignIn";
 import Header from "@/components/layout/Header";
 import PoolInfo from "@/components/pools/PoolInfo";
 import PoolAnalytic from "@/components/pools/PoolAnalytic";
 import OpenPosition from "@/components/positions/OpenPosition";
 import PoolTokenMetadata from "@/components/pools/PoolTokenMetadata";
-import { isSupportedDex } from "@/lib";
 
 type PoolClientPageProps = {
   initialData?: Pair | null;
@@ -27,7 +28,8 @@ export default function PoolClientPage({
   params: { dex, poolAddress },
 }: PoolClientPageProps) {
   const { user } = useAuth();
-  const { authStatus, signIn } = useUser();
+  const signIn = useSignIn();
+  const { authStatus } = useUser();
   const [showCreatePositionModal, setShowCreatePositionModal] = useState(false);
 
   const isAuthenticated = useMemo(
@@ -115,9 +117,9 @@ export default function PoolClientPage({
             <button
               type="button"
               className="bg-primary text-black p-2 rounded-md sm:hidden"
-              onClick={() => {
-                if (isAuthenticated) setShowCreatePositionModal(true);
-                else signIn();
+              onClick={async () => {
+                if (!isAuthenticated) await signIn();
+                setShowCreatePositionModal(true);
               }}
             >
               Open Position

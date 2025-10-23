@@ -1,6 +1,5 @@
 "use client";
 import clsx from "clsx";
-import type z from "zod";
 import { Fragment, useMemo } from "react";
 import { Tab, TabGroup, TabList, TabPanels } from "@headlessui/react";
 
@@ -11,10 +10,14 @@ import { PortfolioHistory } from "@/components/portfolio/PorfolioHistory";
 import PortfolioPositionTab from "@/components/portfolio/PortfolioPositionTab";
 
 type PortfolioClientPageProps = {
-  initialData?: {};
+  initialData?: {
+    pnlOverview?: unknown;
+    pnlCalender?: unknown;
+    tokenOverview?: unknown;
+  };
 };
 
-export default function PortfolioClientPage(props: PortfolioClientPageProps) {
+export default function PortfolioClientPage(_props: PortfolioClientPageProps) {
   const Tabs = useMemo(
     () => ({
       Tokens: PorfolioTokenTab,
