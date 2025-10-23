@@ -35,8 +35,6 @@ services:
 networks:
   webnet:
     driver: bridge
-  redis:
-    external: true
 EOF
 
 git pull
