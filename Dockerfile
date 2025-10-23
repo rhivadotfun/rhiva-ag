@@ -7,6 +7,10 @@ ENV NODE_ENV="production"
 RUN apt-get update \
     && apt-get install -y curl unzip bash ca-certificates 
 
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+RUN unzip awscliv2.zip
+RUN ./aws/install
+
 ENV PATH="/root/.bun/bin:$PATH"
 
 FROM base as codegen

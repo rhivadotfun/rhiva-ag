@@ -17,7 +17,8 @@ tr td {
   padding: 8px;
 }
 
-input:focus {
+input:focus,
+textarea:focus {
   outline: none;
 }
 

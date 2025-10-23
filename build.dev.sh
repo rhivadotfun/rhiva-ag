@@ -2,6 +2,7 @@ HOST_IP="127.0.0.1"
 cat > docker-compose.yml << EOF
 services:
   dev:
+    container_name: dev
     build:
       context: .
       target: dev
