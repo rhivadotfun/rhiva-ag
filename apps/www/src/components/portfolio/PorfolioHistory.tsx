@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
   IoChevronBackOutline,
   IoChevronDownOutline,
@@ -12,8 +12,8 @@ import {
   DisclosurePanel,
 } from "@headlessui/react";
 
-import { getCalender, type DailyPnL } from "@/lib/calender";
 import { currencyIntlArgs } from "@/constants/format";
+import { getCalender, type DailyPnL } from "@/lib/calender";
 
 interface PortfolioHistoryProps extends React.ComponentProps<"div"> {
   dailyPnLData?: DailyPnL[];
