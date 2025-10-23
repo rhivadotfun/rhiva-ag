@@ -204,72 +204,97 @@ export const tokenOutputSchema = z.object({
   isVerified: z.boolean().optional().nullable(),
   cexes: z.array(z.string()).optional().nullable(),
   tags: z.array(z.string()).optional().nullable(),
-  stats5m: z.object({
-    priceChange: z.number().optional().nullable(),
-    numBuys: z.number().optional().nullable(),
-    numSells: z.number().optional().nullable(),
-    numTraders: z.number().optional().nullable(),
-    buyVolume: z.number().optional().nullable(),
-    sellVolume: z.number().optional().nullable(),
-    volumeChange: z.number().optional().nullable(),
-    numNetBuyers: z.number().optional().nullable(),
-    liquidityChange: z.number().optional().nullable(),
-    numOrganicBuyers: z.number().optional().nullable(),
-    buyOrganicVolume: z.number().optional().nullable(),
-    sellOrganicVolume: z.number().optional().nullable(),
-  }),
-  stats1h: z.object({
-    priceChange: z.number().optional().nullable(),
-    numBuys: z.number().optional().nullable(),
-    numSells: z.number().optional().nullable(),
-    numTraders: z.number().optional().nullable(),
-    buyVolume: z.number().optional().nullable(),
-    sellVolume: z.number().optional().nullable(),
-    volumeChange: z.number().optional().nullable(),
-    numNetBuyers: z.number().optional().nullable(),
-    liquidityChange: z.number().optional().nullable(),
-    numOrganicBuyers: z.number().optional().nullable(),
-    buyOrganicVolume: z.number().optional().nullable(),
-    sellOrganicVolume: z.number().optional().nullable(),
-  }),
-  stats6h: z.object({
-    priceChange: z.number().optional().nullable(),
-    numBuys: z.number().optional().nullable(),
-    numSells: z.number().optional().nullable(),
-    numTraders: z.number().optional().nullable(),
-    buyVolume: z.number().optional().nullable(),
-    sellVolume: z.number().optional().nullable(),
-    volumeChange: z.number().optional().nullable(),
-    numNetBuyers: z.number().optional().nullable(),
-    liquidityChange: z.number().optional().nullable(),
-    numOrganicBuyers: z.number().optional().nullable(),
-    buyOrganicVolume: z.number().optional().nullable(),
-    sellOrganicVolume: z.number().optional().nullable(),
-  }),
-  stats24h: z.object({
-    priceChange: z.number().optional().nullable(),
-    numBuys: z.number().optional().nullable(),
-    numSells: z.number().optional().nullable(),
-    numTraders: z.number().optional().nullable(),
-    buyVolume: z.number().optional().nullable(),
-    sellVolume: z.number().optional().nullable(),
-    volumeChange: z.number().optional().nullable(),
-    numNetBuyers: z.number().optional().nullable(),
-    liquidityChange: z.number().optional().nullable(),
-    numOrganicBuyers: z.number().optional().nullable(),
-    buyOrganicVolume: z.number().optional().nullable(),
-    sellOrganicVolume: z.number().optional().nullable(),
-  }),
+  stats5m: z
+    .object({
+      priceChange: z.number().optional().nullable(),
+      numBuys: z.number().optional().nullable(),
+      numSells: z.number().optional().nullable(),
+      numTraders: z.number().optional().nullable(),
+      buyVolume: z.number().optional().nullable(),
+      sellVolume: z.number().optional().nullable(),
+      volumeChange: z.number().optional().nullable(),
+      numNetBuyers: z.number().optional().nullable(),
+      liquidityChange: z.number().optional().nullable(),
+      numOrganicBuyers: z.number().optional().nullable(),
+      buyOrganicVolume: z.number().optional().nullable(),
+      sellOrganicVolume: z.number().optional().nullable(),
+    })
+    .optional()
+    .nullable(),
+  stats1h: z
+    .object({
+      priceChange: z.number().optional().nullable(),
+      numBuys: z.number().optional().nullable(),
+      numSells: z.number().optional().nullable(),
+      numTraders: z.number().optional().nullable(),
+      buyVolume: z.number().optional().nullable(),
+      sellVolume: z.number().optional().nullable(),
+      volumeChange: z.number().optional().nullable(),
+      numNetBuyers: z.number().optional().nullable(),
+      liquidityChange: z.number().optional().nullable(),
+      numOrganicBuyers: z.number().optional().nullable(),
+      buyOrganicVolume: z.number().optional().nullable(),
+      sellOrganicVolume: z.number().optional().nullable(),
+    })
+    .optional()
+    .nullable(),
+  stats6h: z
+    .object({
+      priceChange: z.number().optional().nullable(),
+      numBuys: z.number().optional().nullable(),
+      numSells: z.number().optional().nullable(),
+      numTraders: z.number().optional().nullable(),
+      buyVolume: z.number().optional().nullable(),
+      sellVolume: z.number().optional().nullable(),
+      volumeChange: z.number().optional().nullable(),
+      numNetBuyers: z.number().optional().nullable(),
+      liquidityChange: z.number().optional().nullable(),
+      numOrganicBuyers: z.number().optional().nullable(),
+      buyOrganicVolume: z.number().optional().nullable(),
+      sellOrganicVolume: z.number().optional().nullable(),
+    })
+    .optional()
+    .nullable(),
+  stats24h: z
+    .object({
+      priceChange: z.number().optional().nullable(),
+      numBuys: z.number().optional().nullable(),
+      numSells: z.number().optional().nullable(),
+      numTraders: z.number().optional().nullable(),
+      buyVolume: z.number().optional().nullable(),
+      sellVolume: z.number().optional().nullable(),
+      volumeChange: z.number().optional().nullable(),
+      numNetBuyers: z.number().optional().nullable(),
+      liquidityChange: z.number().optional().nullable(),
+      numOrganicBuyers: z.number().optional().nullable(),
+      buyOrganicVolume: z.number().optional().nullable(),
+      sellOrganicVolume: z.number().optional().nullable(),
+    })
+    .nullable()
+    .optional(),
   organicScoreLabel: z.enum(["low", "medium", "high"]).optional().nullable(),
-  audit: z.object({
-    topHoldersPercentage: z.number().optional().nullable(),
-    mintAuthorityDisabled: z.boolean().optional().nullable(),
-    freezeAuthorityDisabled: z.boolean().optional().nullable(),
-  }),
-  firstPool: z.object({
-    id: z.string().optional().nullable(),
-    createdAt: z.string().optional().nullable(),
-  }),
+  audit: z
+    .object({
+      topHoldersPercentage: z.number().optional().nullable(),
+      mintAuthorityDisabled: z.boolean().optional().nullable(),
+      freezeAuthorityDisabled: z.boolean().optional().nullable(),
+    })
+    .nullable()
+    .optional(),
+  firstPool: z
+    .object({
+      id: z.string().optional().nullable(),
+      createdAt: z.string().optional().nullable(),
+    })
+    .nullable()
+    .optional(),
+  analysis: z
+    .object({
+      confidence: z.number().describe("analysis confidence"),
+      suggestedDeposit: z.number().describe("suggested deposit"),
+    })
+    .nullable()
+    .optional(),
 });
 
 export const poolOutputSchema = z.object({
@@ -279,8 +304,15 @@ export const poolOutputSchema = z.object({
   reserve_in_usd: z.string().optional().nullable(),
   base_token_price_usd: z.string().optional().nullable(),
   quote_token_price_usd: z.string().optional().nullable(),
-  quote_token_price_base_token: z.string().optional().nullable(),
   base_token_price_base_token: z.string().optional().nullable(),
+  dex: z
+    .object({
+      id: z.string().optional().nullable(),
+      name: z.string().optional().nullable(),
+    })
+    .optional()
+    .nullable(),
+  quote_token_price_base_token: z.string().optional().nullable(),
   base_token_price_native_currency: z.string().optional().nullable(),
   quote_token_price_native_currency: z.string().optional().nullable(),
   volume_usd: z
@@ -352,6 +384,19 @@ export const poolOutputSchema = z.object({
         })
         .optional()
         .nullable(),
+    })
+    .nullable()
+    .optional(),
+  analysis: z
+    .object({
+      confidence: z.number().describe("analysis confidence"),
+      suggestedDeposit: z.number().describe("suggested deposit"),
+      suggestedRange: z
+        .tuple([z.number(), z.number()])
+        .describe("suggested price range"),
+      strategy: z
+        .enum(["full", "spot", "curve", "bid-ask"])
+        .describe("suggested strategy"),
     })
     .nullable()
     .optional(),
