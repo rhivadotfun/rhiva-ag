@@ -90,7 +90,7 @@ export default function Onboarding({ children }: React.PropsWithChildren) {
         </div>
         <TabGroup
           as="div"
-          className="z-10"
+          className="z-10 sm:m-auto sm:min-w-md"
           selectedIndex={currentTab}
           onChange={setCurrentTab}
         >
