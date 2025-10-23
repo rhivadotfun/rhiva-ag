@@ -11,21 +11,24 @@ import TokenTimeSort from "@/components/token/TokenTimeSort";
 
 type TokensClientPageProps = {
   initialData?: Token[];
+  searchParams: { timestamp?: "5m" | "1h" | "6h" | "24h" };
 };
 
 export default function TokensClientPage({
   initialData,
+  searchParams,
 }: TokensClientPageProps) {
   const [search, setSearch] = useState<string | null | undefined>();
   const { data } = useQuery({
     initialData,
-    queryKey: ["tokens", search],
+    queryKey: ["tokens", search, searchParams.timestamp],
     queryFn: () =>
       dexApi.jup.token.list({
         limit: 50,
-        timestamp: "1h",
+        timestamp: "24h",
         query: search ? search : undefined,
-        category: search ? "toptraded" : "search",
+        category: search ? "search" : "toptraded",
+        ...searchParams,
       }),
   });
 
@@ -44,7 +47,12 @@ export default function TokensClientPage({
           />
           <TokenTimeSort />
         </div>
-        {data && <TokenList tokens={data} />}
+        {data && (
+          <TokenList
+            timestamp={searchParams.timestamp}
+            tokens={data}
+          />
+        )}
       </div>
     </div>
   );

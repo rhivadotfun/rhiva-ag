@@ -9,10 +9,14 @@ import Decimal from "../Decimal";
 import { compactCurrencyIntlArgs } from "@/constants/format";
 
 type TokenCardProps = {
+  timestamp?: string;
   token: Awaited<ReturnType<DexApi["jup"]["token"]["list"]>>[number];
 };
 
-export default function TokenCard({ token }: TokenCardProps) {
+export default function TokenCard({
+  timestamp = "24h",
+  token,
+}: TokenCardProps) {
   return (
     <Link
       key={token.id}
@@ -56,8 +60,6 @@ export default function TokenCard({ token }: TokenCardProps) {
             />
           </div>
         </div>
-
-        {/* allow wrap, but keep each pill in one line */}
         <div className="flex flex-wrap gap-2 text-sm">
           <p className="whitespace-nowrap text-gray/80">
             <span className="text-gray">Mcap: </span>
@@ -67,7 +69,9 @@ export default function TokenCard({ token }: TokenCardProps) {
             />
           </p>
           <p className="whitespace-nowrap">
-            <span>24h Vol: </span>
+            <span>
+              <span>{timestamp}</span> Vol:{" "}
+            </span>
             <Decimal
               value={
                 token.stats24h.buyOrganicVolume +

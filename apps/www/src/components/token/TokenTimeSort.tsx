@@ -1,27 +1,27 @@
+import clsx from "clsx";
 import Link from "next/link";
 import { format } from "util";
 import { useMemo } from "react";
+import { MdCheck } from "react-icons/md";
 import { IoChevronDown } from "react-icons/io5";
 import { useSearchParams } from "next/navigation";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import clsx from "clsx";
-import { MdCheck } from "react-icons/md";
 
 type Sort = {
   name: "5m" | "1h" | "6h" | "24h";
-  value: "5m_trending" | "1h_trending" | "24h_trending" | null;
+  value: "5m" | "1h" | "6h" | "24h" | null;
 };
 
 export default function TokenTimeSort() {
   const searchParams = useSearchParams();
-  const sortBy = searchParams.get("sort_by");
+  const sortBy = searchParams.get("timestamp");
 
   const sorts: Sort[] = useMemo(
     () => [
-      { name: "5m", value: "5m_trending" },
-      { name: "1h", value: "1h_trending" },
-      { name: "6h", value: null },
-      { name: "24h", value: "24h_trending" },
+      { name: "5m", value: "5m" },
+      { name: "1h", value: "1h" },
+      { name: "6h", value: "6h" },
+      { name: "24h", value: null },
     ],
     [],
   );
@@ -32,8 +32,8 @@ export default function TokenTimeSort() {
         {sorts.map((sort) => {
           const selected = sortBy === sort.value;
           const urlSearchParams = new URLSearchParams();
-          if (selected || !sort.value) urlSearchParams.delete("sort_by");
-          else if (sort.value) urlSearchParams.set("sort_by", sort.value);
+          if (selected || !sort.value) urlSearchParams.delete("timestamp");
+          else if (sort.value) urlSearchParams.set("timestamp", sort.value);
 
           return (
             <Link
@@ -57,7 +57,7 @@ type TokenTimeSortSmallProps = {
 
 function TokenTimeSortSmall({ sorts }: TokenTimeSortSmallProps) {
   const searchParams = useSearchParams();
-  const sortBy = searchParams.get("sort_by");
+  const sortBy = searchParams.get("timestamp");
   const sortTitle = useMemo(
     () => sorts.find((sort) => sort.value === sortBy)?.name,
     [sortBy, sorts],
@@ -76,8 +76,8 @@ function TokenTimeSortSmall({ sorts }: TokenTimeSortSmallProps) {
         {sorts.map((sort) => {
           const selected = sortBy === sort.value;
           const urlSearchParams = new URLSearchParams();
-          if (selected || !sort.value) urlSearchParams.delete("sort_by");
-          else if (sort.value) urlSearchParams.set("sort_by", sort.value);
+          if (selected || !sort.value) urlSearchParams.delete("timestamp");
+          else if (sort.value) urlSearchParams.set("timestamp", sort.value);
 
           return (
             <MenuItem key={sort.value}>

@@ -10,6 +10,7 @@ import Link from "next/link";
 import { format } from "util";
 
 type TokenListProps = {
+  timestamp?: string;
   tokens: Awaited<ReturnType<DexApi["jup"]["token"]["list"]>>;
 };
 export default function TokenList(props: TokenListProps) {
@@ -20,6 +21,7 @@ export default function TokenList(props: TokenListProps) {
           <TokenCard
             key={token.id}
             token={token}
+            timestamp={props.timestamp}
           />
         ))}
       </div>
@@ -28,7 +30,7 @@ export default function TokenList(props: TokenListProps) {
   );
 }
 
-function TokenListSmall({ tokens }: TokenListProps) {
+function TokenListSmall({ timestamp = "24H", tokens }: TokenListProps) {
   return (
     <table className="sm:hidden">
       <thead>
@@ -36,7 +38,9 @@ function TokenListSmall({ tokens }: TokenListProps) {
           <td>#</td>
           <td>Tokens</td>
           <td>Mcap</td>
-          <td>24H Vol</td>
+          <td>
+            <span className="uppercase">{timestamp}</span> Vol
+          </td>
         </tr>
       </thead>
       <tbody className="divide-y divide-white/10">
