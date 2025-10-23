@@ -179,10 +179,9 @@ describe("sync meteora", () => {
     if (!wallet) return;
 
     const results = await syncMeteoraPositionsForWallet(
-      connection,
-      secret,
-      coingecko,
       db,
+      connection,
+      coingecko,
       wallet,
     );
     console.log(results);

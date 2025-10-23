@@ -18,6 +18,7 @@
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-kms": "^3.914.0",
     "@civic/auth-verify": "^0.0.4",
     "@coingecko/coingecko-typescript": "^2.2.0",
     "@fastify/cookie": "^11.0.2",
@@ -28,9 +29,9 @@
     "@meteora-ag/dlmm": "^1.7.5",
     "@orca-so/whirlpools-client": "^4.0.1",
     "@raydium-io/raydium-sdk-v2": "^0.2.30-alpha",
+    "@rhiva-ag/cron": "*",
     "@rhiva-ag/datasource": "*",
     "@rhiva-ag/dex": "*",
-    "@rhiva-ag/cron": "*",
     "@rhiva-ag/env": "*",
     "@rhiva-ag/mcp": "*",
     "@rhiva-ag/shared": "*",

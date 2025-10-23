@@ -1,8 +1,8 @@
 import Dex from "@rhiva-ag/dex";
 import { Work } from "@rhiva-ag/cron";
+import { loadWallet } from "@rhiva-ag/shared";
 
 import { createQueue } from "../shared";
-import { loadWallet } from "../../../utils/wallet";
 import { privateProcedure, router } from "../../../trpc";
 import {
   claimReward,
@@ -22,7 +22,7 @@ export const raydiumRoute = router({
     .input(raydiumCreatePositionSchema)
     .mutation(async ({ ctx, input }) => {
       const dex = new Dex(ctx.connection);
-      const owner = loadWallet(ctx.user.wallet, ctx.secret);
+      const owner = await loadWallet(ctx.user.wallet, ctx.kmsSecret);
 
       const { execute } = await createPosition(
         dex,
@@ -52,7 +52,7 @@ export const raydiumRoute = router({
     .input(raydiumClaimRewardSchema)
     .mutation(async ({ ctx, input }) => {
       const dex = new Dex(ctx.connection);
-      const owner = loadWallet(ctx.user.wallet, ctx.secret);
+      const owner = await loadWallet(ctx.user.wallet, ctx.kmsSecret);
       const { execute } = await claimReward(
         dex,
         ctx.sendTransaction,
@@ -71,8 +71,7 @@ export const raydiumRoute = router({
     .input(raydiumClosePositionSchema)
     .mutation(async ({ ctx, input }) => {
       const dex = new Dex(ctx.connection);
-      const owner = loadWallet(ctx.user.wallet, ctx.secret);
-
+      const owner = await loadWallet(ctx.user.wallet, ctx.kmsSecret);
       const { execute } = await closePosition(
         dex,
         ctx.sendTransaction,

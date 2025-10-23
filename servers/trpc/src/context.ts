@@ -5,6 +5,7 @@ import {
   secret,
   drizzle,
   mcpClient,
+  kmsSecret,
   coingecko,
   solanatracker,
   sendTransaction,
@@ -13,7 +14,7 @@ import {
 } from "./instances";
 
 const redis = createRedis();
-const authMiddleware = new CivicAuthMiddleware(redis, secret, drizzle, {
+const authMiddleware = new CivicAuthMiddleware(redis, kmsSecret, drizzle, {
   ttl: 86400,
 });
 
@@ -24,6 +25,7 @@ export const createContext = async ({ req }: CreateFastifyContextOptions) => {
     user,
     redis,
     secret,
+    kmsSecret,
     drizzle,
     coingecko,
     mcpClient,

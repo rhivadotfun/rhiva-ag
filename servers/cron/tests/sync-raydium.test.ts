@@ -209,10 +209,9 @@ describe("sync raydium", () => {
     if (!wallet) return;
 
     const results = await syncRaydiumPositionsForWallet(
-      connection,
-      secret,
-      coingecko,
       db,
+      connection,
+      coingecko,
       wallet,
     );
 

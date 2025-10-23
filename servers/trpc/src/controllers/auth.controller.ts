@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { Keypair } from "@solana/web3.js";
 import { verify } from "@civic/auth-verify";
 import type { FastifyRequest } from "fastify";
-import type { Secret } from "@rhiva-ag/shared";
+import { KMSSecret, type Secret } from "@rhiva-ag/shared";
 import {
   type userInsertSchema,
   users,
@@ -33,7 +33,7 @@ type User = Omit<
 export class CivicAuthMiddleware {
   constructor(
     private readonly redis: Redis,
-    private readonly secret: Secret,
+    private readonly secret: KMSSecret | Secret,
     private readonly drizzle: Database,
     private readonly options?: {
       ttl?: number;
@@ -59,6 +59,14 @@ export class CivicAuthMiddleware {
       .returning();
     if (createdUser) {
       const keypair = Keypair.generate();
+      let wrappedDek: string, encryptedText: string;
+
+      if (this.secret instanceof KMSSecret) {
+        const { wrappedDek: dek, encryptedText: key } =
+          await this.secret.encrypt(keypair.secretKey.toBase64());
+        wrappedDek = dek;
+        encryptedText = key;
+      } else encryptedText = this.secret.encrypt(keypair.secretKey.toBase64());
       await this.drizzle.transaction(async (db) => {
         return Promise.all([
           db
@@ -70,9 +78,10 @@ export class CivicAuthMiddleware {
           db
             .insert(wallets)
             .values({
+              wrappedDek,
+              key: encryptedText,
               user: createdUser.id,
               id: keypair.publicKey.toBase58(),
-              key: this.secret.encrypt(keypair.secretKey.toBase64()),
             })
             .onConflictDoNothing({ target: [wallets.user] }),
         ]);

@@ -3,8 +3,8 @@ import type Redis from "ioredis";
 import { DexApi } from "@rhiva-ag/dex-api";
 import type { RedisOptions } from "ioredis";
 import { Connection } from "@solana/web3.js";
-import { Secret, SendTransaction } from "@rhiva-ag/shared";
 import { Coingecko } from "@coingecko/coingecko-typescript";
+import { KMSSecret, Secret, SendTransaction } from "@rhiva-ag/shared";
 import {
   createDB,
   createRedis as defaultCreateRedis,
@@ -15,10 +15,19 @@ import { getEnv } from "./env";
 export const logger = Pino();
 export const dexApi = new DexApi();
 export const db = createDB(getEnv("DATABASE_URL"));
+
 export const secret = new Secret(getEnv("SECRET_KEY"), {
-  ivLength: 32,
+  ivLength: 12,
   algorithm: "aes-256-gcm",
 });
+export const kmsSecret = new KMSSecret(
+  getEnv("AWS_KMS_KEY_ID"),
+  getEnv("AWS_REGION"),
+  {
+    ivLength: 12,
+    algorithm: "aes-256-gcm",
+  },
+);
 export const solanaConnection = new Connection(getEnv("SOLANA_RPC_URL"));
 export const sender = new SendTransaction(
   getEnv("HELIUS_API_URL"),

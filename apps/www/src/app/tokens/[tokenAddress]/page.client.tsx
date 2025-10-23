@@ -96,11 +96,11 @@ export default function TokenPage({
               />
               {stat && (
                 <TokenAnalytic
-                  timeframe={TimeFrame[timeframe] ?? "24H"}
                   buys={stat.numBuys}
                   sells={stat.numSells}
-                  totalSupply={token.totalSupply}
                   traders={stat.numTraders}
+                  totalSupply={token.totalSupply}
+                  timeframe={TimeFrame[timeframe] ?? "24H"}
                   volume24H={stat.buyOrganicVolume + stat.sellOrganicVolume}
                   className="md:order-3 md-col-span-2"
                 />

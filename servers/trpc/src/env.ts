@@ -22,6 +22,8 @@ type Env =
   | "SOLANA_TRACKER_API_KEY"
   | "SECRET_KEY"
   | "SOLANA_RPC_URL"
+  | "AWS_KMS_KEY_ID"
+  | "AWS_REGION"
   | "DEV_WALLET"
   | "OPEN_API_KEY";
 

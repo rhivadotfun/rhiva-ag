@@ -1,17 +1,19 @@
 import assert from "assert";
 import crypto from "crypto";
+import { isUint8Array } from "util/types";
 
 export class Secret {
-  private readonly key: Buffer;
+  private readonly key: Buffer | Uint8Array;
 
   constructor(
-    key: string,
+    key: string | Buffer | Uint8Array,
     private readonly options: {
       ivLength: number;
       algorithm: crypto.CipherGCMTypes;
     },
   ) {
-    this.key = Buffer.from(key, "hex");
+    this.key =
+      Buffer.isBuffer(key) || isUint8Array(key) ? key : Buffer.from(key, "hex");
     assert(this.key.length === 32, "key must be 32 bytes");
   }
 

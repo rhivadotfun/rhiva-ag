@@ -1,6 +1,5 @@
 import { dexApi } from "@/instances";
 import TokensClientPage from "./page.client";
-import type { AppProps } from "next/app";
 
 export default async function TokensPage(props: PageProps<"/tokens">) {
   const searchParams = await props.searchParams;

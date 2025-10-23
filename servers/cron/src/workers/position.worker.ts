@@ -2,7 +2,6 @@ import z from "zod";
 import type { Logger } from "pino";
 import { type Job, Worker } from "bullmq";
 import { createSolanaRpc } from "@solana/kit";
-import type { Secret } from "@rhiva-ag/shared";
 import type { Connection } from "@solana/web3.js";
 import type { Database } from "@rhiva-ag/datasource";
 import type Coingecko from "@coingecko/coingecko-typescript";
@@ -24,14 +23,12 @@ export const positionWorkSchema = z.object({
 export default async function createWorker({
   db,
   logger,
-  secret,
   coingecko,
   solanaConnection,
 }: {
   coingecko: Coingecko;
   db: Database;
   logger: Logger;
-  secret: Secret;
   solanaConnection: Connection;
 }) {
   const worker = new Worker(
@@ -47,18 +44,16 @@ export default async function createWorker({
           }
           case "meteora":
             return syncMeteoraPositionsForWallet(
-              solanaConnection,
-              secret,
-              coingecko,
               db,
+              solanaConnection,
+              coingecko,
               data.wallet,
             );
           case "raydium-clmm":
             return syncRaydiumPositionsForWallet(
-              solanaConnection,
-              secret,
-              coingecko,
               db,
+              solanaConnection,
+              coingecko,
               data.wallet,
             );
         }

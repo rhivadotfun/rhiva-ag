@@ -1,19 +1,11 @@
 import createPositionWorker from "./position.worker";
 import createTransactionWorker from "./transaction.worker";
-import {
-  db,
-  secret,
-  logger,
-  coingecko,
-  solanaConnection,
-  sender,
-} from "../instances";
+import { db, logger, sender, coingecko, solanaConnection } from "../instances";
 
 (async () => {
   const stopFns = await Promise.all([
     createPositionWorker({
       db,
-      secret,
       logger,
       coingecko,
       solanaConnection,

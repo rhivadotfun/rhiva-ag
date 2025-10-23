@@ -2,7 +2,6 @@ import Dex from "@rhiva-ag/dex";
 import { Work } from "@rhiva-ag/cron";
 
 import { createQueue } from "../shared";
-import { loadWallet } from "../../../utils/wallet";
 import { privateProcedure, router } from "../../../trpc";
 import { claimReward, closePosition, createPosition } from "./orca.controller";
 import {
@@ -10,6 +9,7 @@ import {
   orcaCreatePositionSchema,
   orcaClosePositionSchema,
 } from "./orca.schema";
+import { loadWallet } from "@rhiva-ag/shared";
 
 const queue = createQueue();
 
@@ -18,7 +18,7 @@ export const orcaRoute = router({
     .input(orcaCreatePositionSchema)
     .mutation(async ({ ctx, input }) => {
       const dex = new Dex(ctx.connection);
-      const owner = loadWallet(ctx.user.wallet, ctx.secret);
+      const owner = await loadWallet(ctx.user.wallet, ctx.kmsSecret);
 
       const { execute } = await createPosition(
         dex,
@@ -48,7 +48,7 @@ export const orcaRoute = router({
     .input(orcaClaimRewardSchema)
     .mutation(async ({ ctx, input }) => {
       const dex = new Dex(ctx.connection);
-      const owner = loadWallet(ctx.user.wallet, ctx.secret);
+      const owner = await loadWallet(ctx.user.wallet, ctx.kmsSecret);
       const { execute } = await claimReward(
         dex,
         ctx.sendTransaction,
@@ -67,8 +67,7 @@ export const orcaRoute = router({
     .input(orcaClosePositionSchema)
     .mutation(async ({ ctx, input }) => {
       const dex = new Dex(ctx.connection);
-      const owner = loadWallet(ctx.user.wallet, ctx.secret);
-
+      const owner = await loadWallet(ctx.user.wallet, ctx.kmsSecret);
       const { execute } = await closePosition(
         dex,
         ctx.sendTransaction,

@@ -1,23 +1,23 @@
 import DLMM from "@meteora-ag/dlmm";
 import { Chart, Tooltip } from "chart.js";
 import { useCallback, useMemo } from "react";
+import type { Pair } from "@rhiva-ag/dex-api";
 import { BarElement, CategoryScale, LinearScale } from "chart.js";
 import { type BinLiquidity, getPriceOfBinByBinId } from "@meteora-ag/dlmm";
 
-import type { getPair } from "@/lib/web3/dex-api";
 import PriceRangeInput from "../PriceRangeInput";
 
 Chart.register(CategoryScale, LinearScale, BarElement, Tooltip);
 
 type PriceRangeInputProps = {
+  pool: Pair;
   sides: boolean[];
-  amount?: number;
   label?: string;
+  amount?: number;
   value: [number, number];
   activeBin: BinLiquidity;
   liquidityRatio?: [number, number];
   curveType: "Spot" | "Curve" | "BidAsk";
-  pool: Awaited<ReturnType<typeof getPair>>;
   onChange: (value: [number, number]) => void;
 };
 

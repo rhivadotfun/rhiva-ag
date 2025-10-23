@@ -14,9 +14,7 @@ import {
   flatMapFilter,
   isNative,
   isTokenProgram,
-  loadWallet,
   mapFilter,
-  type Secret,
 } from "@rhiva-ag/shared";
 import {
   mints,
@@ -29,13 +27,11 @@ import {
 } from "@rhiva-ag/datasource";
 
 export const syncMeteoraPositionsForWallet = async (
-  connection: Connection,
-  secret: Secret,
-  coingecko: Coingecko,
   db: Database,
+  connection: Connection,
+  coingecko: Coingecko,
   wallet: Pick<z.infer<typeof walletSelectSchema>, "id" | "key">,
 ) => {
-  const owner = loadWallet(wallet, secret);
   const walletPositions = await db.query.positions.findMany({
     columns: {
       id: true,
@@ -83,7 +79,7 @@ export const syncMeteoraPositionsForWallet = async (
 
   const positionsV2 = await DLMM.getAllLbPairPositionsByUser(
     connection,
-    owner.publicKey,
+    new PublicKey(wallet.id),
   );
 
   const mints = new Set();

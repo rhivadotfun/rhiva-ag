@@ -2,7 +2,6 @@ import Dex from "@rhiva-ag/dex";
 import { Work } from "@rhiva-ag/cron";
 
 import { createQueue } from "../shared";
-import { loadWallet } from "../../../utils/wallet";
 import { privateProcedure, router } from "../../../trpc";
 import { closePosition, createPosition } from "./meteora.controller";
 import {
@@ -10,6 +9,7 @@ import {
   meteoraClosePositionSchema,
   meteoraClaimRewardSchema,
 } from "./meteora.schema";
+import { loadWallet } from "@rhiva-ag/shared";
 
 const queue = createQueue();
 
@@ -17,8 +17,8 @@ export const meteoraRoute = router({
   create: privateProcedure
     .input(meteoraCreatePositionSchema)
     .mutation(async ({ ctx, input }) => {
-      const owner = loadWallet(ctx.user.wallet, ctx.secret);
       const dex = new Dex(ctx.connection);
+      const owner = await loadWallet(ctx.user.wallet, ctx.kmsSecret);
       const { execute } = await createPosition(
         dex,
         ctx.sendTransaction,
@@ -46,8 +46,8 @@ export const meteoraRoute = router({
   claim: privateProcedure
     .input(meteoraClaimRewardSchema)
     .mutation(async ({ ctx, input }) => {
-      const owner = loadWallet(ctx.user.wallet, ctx.secret);
       const dex = new Dex(ctx.connection);
+      const owner = await loadWallet(ctx.user.wallet, ctx.kmsSecret);
       const { execute } = await closePosition(
         dex,
         ctx.sendTransaction,
@@ -64,8 +64,8 @@ export const meteoraRoute = router({
   close: privateProcedure
     .input(meteoraClosePositionSchema)
     .mutation(async ({ ctx, input }) => {
-      const owner = loadWallet(ctx.user.wallet, ctx.secret);
       const dex = new Dex(ctx.connection);
+      const owner = await loadWallet(ctx.user.wallet, ctx.kmsSecret);
       const { execute } = await closePosition(
         dex,
         ctx.sendTransaction,

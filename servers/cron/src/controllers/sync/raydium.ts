@@ -24,9 +24,7 @@ import {
   collectionToMap,
   isNative,
   isTokenProgram,
-  loadWallet,
   mapFilter,
-  type Secret,
 } from "@rhiva-ag/shared";
 import {
   mints,
@@ -39,16 +37,14 @@ import {
 } from "@rhiva-ag/datasource";
 
 export const syncRaydiumPositionsForWallet = async (
-  connection: Connection,
-  secret: Secret,
-  coingecko: Coingecko,
   db: Database,
+  connection: Connection,
+  coingecko: Coingecko,
   wallet: Pick<z.infer<typeof walletSelectSchema>, "id" | "key">,
 ) => {
-  const owner = loadWallet(wallet, secret);
   const raydium = await Raydium.load({
-    owner,
     connection,
+    owner: new PublicKey(wallet.id),
   });
   const walletPositions = await db.query.positions.findMany({
     columns: {

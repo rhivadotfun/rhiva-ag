@@ -4,7 +4,7 @@ import { Connection } from "@solana/web3.js";
 import { McpClient } from "@rhiva-ag/mcp/client";
 import { Client } from "@solana-tracker/data-api";
 import Coingecko from "@coingecko/coingecko-typescript";
-import { Secret, SendTransaction } from "@rhiva-ag/shared";
+import { KMSSecret, Secret, SendTransaction } from "@rhiva-ag/shared";
 import {
   createDB,
   createRedis as defaultCreateRedis,
@@ -24,6 +24,15 @@ export const secret = new Secret(getEnv("SECRET_KEY"), {
   ivLength: 12,
   algorithm: "aes-256-gcm",
 });
+export const kmsSecret = new KMSSecret(
+  getEnv("AWS_KMS_KEY_ID"),
+  getEnv("AWS_REGION"),
+  {
+    ivLength: 12,
+    algorithm: "aes-256-gcm",
+  },
+);
+
 export const drizzle = createDB(getEnv("DATABASE_URL"));
 export const solanaConnection = new Connection(getEnv("SOLANA_RPC_URL"));
 export const sendTransaction = new SendTransaction(

@@ -1,4 +1,4 @@
-import { mapFilter, type Secret } from "@rhiva-ag/shared";
+import chunk from "lodash.chunk";
 import type {
   Address,
   Base64EncodedWireTransaction,
@@ -19,7 +19,9 @@ import {
   TOKEN_2022_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import chunk from "lodash.chunk";
+
+import { mapFilter } from "../collection";
+import { KMSSecret, Secret } from "../secret";
 
 export const isNative = (value: string | PublicKey | Address) => {
   const pubkey = new PublicKey(value);
@@ -78,10 +80,34 @@ export const batchSimulateTransactions = (
     ),
   );
 
-export const loadWallet = (wallet: { key: string }, secret: Secret) => {
-  const privateKey = secret.decrypt<string>(wallet.key);
-  return Keypair.fromSecretKey(Buffer.from(privateKey, "base64"));
-};
+export async function loadWallet(
+  wallet: { key: string; wrappedDek: string | null },
+  secret: KMSSecret,
+): Promise<Keypair>;
+export async function loadWallet(
+  wallet: { key: string; wrappedDex?: string },
+  secret: Secret,
+): Promise<Keypair>;
+export async function loadWallet(
+  wallet: { key: string } | { key: string; wrappedDek?: string | null },
+  secret: KMSSecret | Secret,
+) {
+  let privateKey: string | undefined;
+  if (
+    secret instanceof KMSSecret &&
+    "wrappedDek" in wallet &&
+    wallet.wrappedDek
+  )
+    privateKey = await secret.decrypt<string>(wallet.key, {
+      wrappedDek: wallet.wrappedDek,
+    });
+  else if (secret instanceof Secret) privateKey = secret.decrypt(wallet.key);
+
+  if (privateKey)
+    return Keypair.fromSecretKey(Buffer.from(privateKey, "base64"));
+
+  throw new Error("[Not supported] unsupported key version");
+}
 
 export const chunkFetchMultipleAccounts = async <
   T extends PublicKey | Address,
