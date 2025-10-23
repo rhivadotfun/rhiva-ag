@@ -13,7 +13,6 @@ services:
       - alloy
     networks:
       - webnet
-      - redis
     env_file: 
       - .env
       - "$HOME/vps-infra/.env"
