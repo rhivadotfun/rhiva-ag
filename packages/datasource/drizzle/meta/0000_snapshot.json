@@ -1,5 +1,5 @@
 {
-  "id": "f18fb9de-fc4b-45d7-aede-83175546a1c4",
+  "id": "d986310e-1ad6-433a-8b06-dfd9b60b9425",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -98,6 +98,13 @@
           "primaryKey": false,
           "notNull": false
         },
+        "currentStreak": {
+          "name": "currentStreak",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
         "uid": {
           "name": "uid",
           "type": "text",
@@ -116,6 +123,13 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "lastLogin": {
+          "name": "lastLogin",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
