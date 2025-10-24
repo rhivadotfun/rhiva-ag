@@ -14,9 +14,11 @@ import {
   wallets,
   settings,
   type walletSelectSchema,
+  rewards,
 } from "@rhiva-ag/datasource";
 
 import { getEnv } from "../env";
+import moment from "moment";
 
 type User = Omit<
   z.infer<typeof userSelectSchema>,
@@ -43,6 +45,7 @@ export class CivicAuthMiddleware {
   private getCacheUserKey(sessionId: string) {
     return format("%s:user", sessionId);
   }
+
   private async upsertUser(values: z.infer<typeof userInsertSchema>) {
     const user = await this.drizzle.query.users.findFirst({
       with: {
@@ -50,14 +53,8 @@ export class CivicAuthMiddleware {
       },
       where: eq(users.uid, values.uid),
     });
-    if (user) return user;
 
-    const [createdUser] = await this.drizzle
-      .insert(users)
-      .values(values)
-      .onConflictDoNothing()
-      .returning();
-    if (createdUser) {
+    const setupUserAccount = async (user: typeof users.$inferSelect) => {
       const keypair = Keypair.generate();
       let wrappedDek: string, encryptedText: string;
 
@@ -72,7 +69,7 @@ export class CivicAuthMiddleware {
           db
             .insert(settings)
             .values({
-              user: createdUser.id,
+              user: user.id,
             })
             .onConflictDoNothing({ target: [settings.user] }),
           db
@@ -80,12 +77,45 @@ export class CivicAuthMiddleware {
             .values({
               wrappedDek,
               key: encryptedText,
-              user: createdUser.id,
+              user: user.id,
               id: keypair.publicKey.toBase58(),
             })
             .onConflictDoNothing({ target: [wallets.user] }),
         ]);
       });
+    };
+    const yesterday = moment().startOf("day").subtract(1, "day");
+    const resetStreak = user
+      ? !moment(user.lastLogin, "day").isSame(yesterday, "day")
+      : false;
+    const currentStreak = user ? (resetStreak ? 1 : user.currentStreak + 1) : 1;
+
+    const [createdUser] = await this.drizzle
+      .insert(users)
+      .values(values)
+      .onConflictDoUpdate({
+        target: users.uid,
+        set: {
+          lastLogin: new Date(),
+          currentStreak: currentStreak === 30 ? 1 : currentStreak,
+        },
+      })
+      .returning();
+
+    if (createdUser) {
+      if (!user) await setupUserAccount(createdUser);
+      if (currentStreak === 7)
+        await this.drizzle.insert(rewards).values({
+          xp: 50,
+          user: createdUser.id,
+          key: "7_days_streak",
+        });
+      if (currentStreak === 30)
+        await this.drizzle.insert(rewards).values({
+          xp: 100,
+          user: createdUser.id,
+          key: "1_month_streak",
+        });
     }
 
     return this.drizzle.query.users.findFirst({

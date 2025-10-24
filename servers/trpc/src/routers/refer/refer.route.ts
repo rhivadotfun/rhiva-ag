@@ -1,6 +1,11 @@
 import z from "zod";
 import { eq } from "drizzle-orm";
-import { refererInsertSchema, referrers, users } from "@rhiva-ag/datasource";
+import {
+  refererInsertSchema,
+  referrers,
+  rewards,
+  users,
+} from "@rhiva-ag/datasource";
 
 import { getEnv } from "../../env";
 import { privateProcedure, publicProcedure, router } from "../../trpc";
@@ -42,7 +47,14 @@ export const referRoute = router({
         .onConflictDoNothing({ target: [referrers.user, referrers.referer] })
         .returning();
 
-      if (referral) return referral;
+      if (referral) {
+        await ctx.drizzle.insert(rewards).values({
+          xp: 20,
+          user: ctx.user.id,
+          key: "referral",
+        });
+        return referral;
+      }
       return null;
     }),
 });

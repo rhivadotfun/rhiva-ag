@@ -1,6 +1,8 @@
 import z from "zod";
 import Dex from "@rhiva-ag/dex";
+import Decimal from "decimal.js";
 import { loadWallet } from "@rhiva-ag/shared";
+import { rewards } from "@rhiva-ag/datasource";
 import type { TradeGetResponse } from "@coingecko/coingecko-typescript/resources/onchain/networks/pools/trades.js";
 import type { OhlcvGetTimeframeResponse } from "@coingecko/coingecko-typescript/resources/onchain/networks/pools/ohlcv.js";
 
@@ -64,9 +66,47 @@ export const tokenRoute = router({
       const dex = new Dex(ctx.connection);
       const wallet = await loadWallet(ctx.user.wallet, ctx.kmsSecret);
 
-      return dex.swap.jupiter.buildSwap({
+      const { quote, transaction } = await dex.swap.jupiter.buildSwap({
         ...input,
         owner: wallet.publicKey,
+        amount:
+          BigInt(input.amount) * BigInt(Math.pow(10, input.inputDecimals)),
       });
+
+      const prices = (await ctx.coingecko.simple.tokenPrice.getID("solana", {
+        vs_currencies: "usd",
+        contract_addresses: [input.inputMint, input.outputMint].join(","),
+      })) as Record<string, { usd: number }>;
+
+      let amountUsd = 0;
+      const rawInputAmount = quote[input.inputMint];
+      const rawOutputAmount = quote[input.outputMint];
+
+      if (rawInputAmount) {
+        const inputAmount = new Decimal(rawInputAmount)
+          .div(Math.pow(10, input.inputDecimals))
+          .toNumber();
+        const price = prices[input.inputMint];
+        if (price) amountUsd += price.usd * inputAmount;
+      }
+
+      if (rawOutputAmount) {
+        const outputAmount = new Decimal(rawOutputAmount)
+          .div(Math.pow(10, input.outputDecimals))
+          .toNumber();
+        const price = prices[input.outputMint];
+        if (price) amountUsd += price.usd * outputAmount;
+      }
+
+      const { result } = await ctx.sendTransaction.sendBundle([transaction]);
+
+      if (amountUsd > 0)
+        await ctx.drizzle.insert(rewards).values({
+          key: "swap",
+          user: ctx.user.id,
+          xp: Math.floor(amountUsd),
+        });
+
+      return result;
     }),
 });
