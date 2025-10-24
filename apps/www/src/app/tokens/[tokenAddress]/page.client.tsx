@@ -5,7 +5,6 @@ import { AuthStatus } from "@civic/auth";
 import { useMemo, useState } from "react";
 import { useUser } from "@civic/auth/react";
 import { useQuery } from "@tanstack/react-query";
-import type { Token } from "@rhiva-ag/dex-api/jup/types";
 
 import { dexApi } from "@/instances";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,13 +25,11 @@ export const TimeFrame = {
 } as const;
 
 type TokenPageProps = {
-  initialData?: Token[];
   params: { tokenAddress: string };
   searchParams: { timeframe: keyof typeof TimeFrame };
 };
 
 export default function TokenPage({
-  initialData,
   params: { tokenAddress },
   searchParams: { timeframe },
 }: TokenPageProps) {
@@ -47,7 +44,6 @@ export default function TokenPage({
   );
 
   const { data } = useQuery({
-    initialData,
     queryKey: ["tokens", tokenAddress],
     queryFn: () =>
       dexApi.jup.token.list({

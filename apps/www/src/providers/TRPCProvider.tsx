@@ -2,16 +2,15 @@ import { format } from "util";
 import { useMemo } from "react";
 import superjson from "superjson";
 import type { AppRouter } from "@rhiva-ag/trpc";
+import { useQueryClient } from "@tanstack/react-query";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { useAuth } from "@/hooks/useAuth";
 import { TRPCProvider as Provider } from "@/trpc.client";
 
-const queryClient = new QueryClient();
-
 export default function TRPCProvider({ children }: React.PropsWithChildren) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const trpcClient = useMemo(
     () =>
       createTRPCClient<AppRouter>({
@@ -35,13 +34,11 @@ export default function TRPCProvider({ children }: React.PropsWithChildren) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Provider
-        queryClient={queryClient}
-        trpcClient={trpcClient}
-      >
-        {children}
-      </Provider>
-    </QueryClientProvider>
+    <Provider
+      queryClient={queryClient}
+      trpcClient={trpcClient}
+    >
+      {children}
+    </Provider>
   );
 }

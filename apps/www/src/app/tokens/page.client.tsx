@@ -1,7 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { Token } from "@rhiva-ag/dex-api/jup/types";
 
 import { dexApi } from "@/instances";
 import Header from "@/components/layout/Header";
@@ -10,18 +9,22 @@ import TokenList from "@/components/token/TokenList";
 import TokenTimeSort from "@/components/token/TokenTimeSort";
 
 type TokensClientPageProps = {
-  initialData?: Token[];
   searchParams: { timestamp?: "5m" | "1h" | "6h" | "24h" };
 };
 
 export default function TokensClientPage({
-  initialData,
   searchParams,
 }: TokensClientPageProps) {
   const [search, setSearch] = useState<string | null | undefined>();
+  const queryKey = useMemo(
+    () =>
+      search
+        ? ["tokens", search, searchParams.timestamp]
+        : ["tokens", searchParams.timestamp],
+    [search, searchParams],
+  );
   const { data } = useQuery({
-    initialData,
-    queryKey: ["tokens", search, searchParams.timestamp],
+    queryKey,
     queryFn: () =>
       dexApi.jup.token.list({
         limit: 50,

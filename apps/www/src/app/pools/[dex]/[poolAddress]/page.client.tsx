@@ -2,7 +2,6 @@
 import { AuthStatus } from "@civic/auth";
 import { useMemo, useState } from "react";
 import { useUser } from "@civic/auth/react";
-import type { Pair } from "@rhiva-ag/dex-api";
 import { useQuery } from "@tanstack/react-query";
 
 import { dexApi } from "@/instances";
@@ -16,7 +15,6 @@ import OpenPosition from "@/components/positions/OpenPosition";
 import PoolTokenMetadata from "@/components/pools/PoolTokenMetadata";
 
 type PoolClientPageProps = {
-  initialData?: Pair | null;
   params: {
     poolAddress: string;
     dex: "orca" | "raydium-clmm" | "meteora" | (string & {});
@@ -24,7 +22,6 @@ type PoolClientPageProps = {
 };
 
 export default function PoolClientPage({
-  initialData,
   params: { dex, poolAddress },
 }: PoolClientPageProps) {
   const { user } = useAuth();
@@ -38,7 +35,6 @@ export default function PoolClientPage({
   );
 
   const { data } = useQuery({
-    initialData,
     queryKey: ["pools", dex, poolAddress],
     queryFn: async () => {
       const response = await dexApi.getPair(dex, poolAddress);

@@ -9,15 +9,7 @@ import PorfolioTokenTab from "@/components/portfolio/PorfolioTokenTab";
 import { PortfolioHistory } from "@/components/portfolio/PorfolioHistory";
 import PortfolioPositionTab from "@/components/portfolio/PortfolioPositionTab";
 
-type PortfolioClientPageProps = {
-  initialData?: {
-    pnlOverview?: unknown;
-    pnlCalender?: unknown;
-    tokenOverview?: unknown;
-  };
-};
-
-export default function PortfolioClientPage(_props: PortfolioClientPageProps) {
+export default function PortfolioClientPage() {
   const Tabs = useMemo(
     () => ({
       Tokens: PorfolioTokenTab,

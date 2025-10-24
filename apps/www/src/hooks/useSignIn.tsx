@@ -4,7 +4,7 @@ import { getTokens } from "@civic/auth/nextjs";
 import { useToken, useUser } from "@civic/auth/react";
 
 import { useAuth } from "./useAuth";
-import { getTRPCClient } from "@/trpc.server";
+import { makeTRPCClient } from "@/trpc";
 
 export const useSignIn = () => {
   const token = useToken();
@@ -20,7 +20,7 @@ export const useSignIn = () => {
       const accessToken = token.accessToken
         ? token.accessToken
         : await getTokens().then((token) => token?.accessToken);
-      const trpcClient = getTRPCClient(accessToken);
+      const trpcClient = makeTRPCClient(accessToken);
 
       await Promise.all([
         cookies.user
