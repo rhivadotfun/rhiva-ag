@@ -6,8 +6,8 @@ import { ToastContainer } from "react-toastify";
 import { PT_Sans_Caption } from "next/font/google";
 
 import "./globals.css";
-import Auth from "@/components/auth";
 import Provider from "@/providers";
+import Auth from "@/components/auth";
 import Line from "@/assets/bg/line.png";
 import NavBar from "@/components/layout/NavBar";
 

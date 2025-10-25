@@ -1,11 +1,12 @@
 import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 import { makeTRPCClient } from "@/trpc";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const cookie = await cookies();
   const session = cookie.get("session");
+  console.log(request.cookies.getAll());
 
   if (session) {
     const trpcClient = makeTRPCClient(session.value);

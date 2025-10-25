@@ -7,6 +7,7 @@ type PointAnalyticProps = {
   xp: number;
   todayXp: number;
 } & React.ComponentProps<"div">;
+
 export default function PointAnalytic({
   totalUsers,
   stars,

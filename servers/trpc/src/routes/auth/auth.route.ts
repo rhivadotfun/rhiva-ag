@@ -31,10 +31,12 @@ const walletSignInRoute = async (
     });
 
     if (user) {
+      const extendedUser = await getUserById(db, user.id);
       const token = jwt.sign({ user: user.id }, getEnv<string>("SECRET_KEY"), {
         expiresIn: 25200,
       });
-      return safeAuthUserSchema.parse({ token, ...user });
+
+      return safeAuthUserSchema.parse({ token, ...extendedUser });
     }
   }
 

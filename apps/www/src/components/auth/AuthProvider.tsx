@@ -158,6 +158,7 @@ export default withCookieProvider(function AuthProvider({
   }, [wallet]);
 
   useEffect(() => {
+    console.log(user);
     if (user) return;
     if (wallet.publicKey) signInWithWallet();
   }, [wallet, user, signInWithWallet]);
