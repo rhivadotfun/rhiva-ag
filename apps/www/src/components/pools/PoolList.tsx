@@ -1,11 +1,11 @@
 import { format } from "util";
 import Link from "next/link";
-import { MdContentCopy } from "react-icons/md";
 import type { AppRouter } from "@rhiva-ag/trpc";
 import type { NonNullable } from "@rhiva-ag/shared";
 
 import Image from "../Image";
 import Decimal from "../Decimal";
+import CopyButton from "../CopyButton";
 import { PoolTabSmall } from "./PoolTab";
 import IcDex from "@/assets/icons/ic_dex";
 import { compactCurrencyIntlArgs, currencyIntlArgs } from "@/constants/format";
@@ -44,7 +44,7 @@ export default function PoolList({ pools }: PoolListProps) {
               <p className="font-semibold mr-2">
                 {pool.name.replace(/\s/g, "").replace(/\//g, "-")}
               </p>
-              <MdContentCopy className="text-gray mr-1 lt-sm:text-xs" />
+              <CopyButton content={pool.address} />
               <IcDex
                 dex={pool.dex.id}
                 className="size-4 rounded-full"
@@ -134,7 +134,11 @@ export function PoolListSmall({ pools }: PoolListSmallProps) {
                 <p className="font-semibold mr-2">
                   {pool.name.replace(/\s/g, "").replace(/\//g, "-")}
                 </p>
-                <MdContentCopy className="text-gray mr-1 lt-sm:text-xs" />
+
+                <CopyButton
+                  content={pool.address}
+                  className="text-gray mr-1 lt-sm:text-xs"
+                />
                 <IcDex
                   dex={
                     pool.dex.id as

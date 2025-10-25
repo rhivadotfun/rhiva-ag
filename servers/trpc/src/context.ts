@@ -3,10 +3,9 @@ import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify"
 import type { User } from "./controllers/types";
 import { JWTAuthMiddleware } from "./controllers/jwt-auth.controller";
 import {
-  secret,
   drizzle,
   mcpClient,
-  kmsSecret,
+  secret,
   coingecko,
   solanatracker,
   sendTransaction,
@@ -16,7 +15,7 @@ import {
 
 const redis = createRedis();
 const authMiddlewares = [
-  new JWTAuthMiddleware(redis, kmsSecret, drizzle, {
+  new JWTAuthMiddleware(redis, secret, drizzle, {
     ttl: 86400,
   }),
 ];
@@ -33,7 +32,6 @@ export const createContext = async ({ req }: CreateFastifyContextOptions) => {
     user,
     redis,
     secret,
-    kmsSecret,
     drizzle,
     coingecko,
     mcpClient,

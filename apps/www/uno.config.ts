@@ -23,6 +23,9 @@ export default defineConfig({
         secondary: {
           DEFAULT: "#010E1F",
         },
+        tetiary: {
+          DEFAULT: "#000B1A",
+        },
       },
       gray: {
         DEFAULT: "#737373",

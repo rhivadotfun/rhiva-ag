@@ -37,6 +37,7 @@ export default function PoolTab(props: React.ComponentProps<"div">) {
               <tab.icon
                 width={16}
                 height={16}
+                className="rounded-full"
               />
             )}
             <span>{tab.title}</span>

@@ -64,7 +64,7 @@ export const tokenRoute = router({
     .input(tokenSwapSchema)
     .mutation(async ({ ctx, input }) => {
       const dex = new Dex(ctx.connection);
-      const wallet = await loadWallet(ctx.user.wallet, ctx.kmsSecret);
+      const wallet = await loadWallet(ctx.user.wallet, ctx.secret);
 
       const { quote, transaction } = await dex.swap.jupiter.buildSwap({
         ...input,

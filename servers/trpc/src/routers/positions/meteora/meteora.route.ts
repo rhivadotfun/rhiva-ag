@@ -18,7 +18,7 @@ export const meteoraRoute = router({
     .input(meteoraCreatePositionSchema)
     .mutation(async ({ ctx, input }) => {
       const dex = new Dex(ctx.connection);
-      const owner = await loadWallet(ctx.user.wallet, ctx.kmsSecret);
+      const owner = await loadWallet(ctx.user.wallet, ctx.secret);
       const { execute } = await createPosition(
         dex,
         ctx.sendTransaction,
@@ -47,7 +47,7 @@ export const meteoraRoute = router({
     .input(meteoraClaimRewardSchema)
     .mutation(async ({ ctx, input }) => {
       const dex = new Dex(ctx.connection);
-      const owner = await loadWallet(ctx.user.wallet, ctx.kmsSecret);
+      const owner = await loadWallet(ctx.user.wallet, ctx.secret);
       const { execute } = await closePosition(
         dex,
         ctx.sendTransaction,
@@ -65,7 +65,7 @@ export const meteoraRoute = router({
     .input(meteoraClosePositionSchema)
     .mutation(async ({ ctx, input }) => {
       const dex = new Dex(ctx.connection);
-      const owner = await loadWallet(ctx.user.wallet, ctx.kmsSecret);
+      const owner = await loadWallet(ctx.user.wallet, ctx.secret);
       const { execute } = await closePosition(
         dex,
         ctx.sendTransaction,

@@ -1,9 +1,9 @@
 import clsx from "clsx";
 import { format } from "util";
 import { useRouter } from "next/navigation";
-import { MdContentCopy } from "react-icons/md";
 
 import Image from "../Image";
+import CopyButton from "../CopyButton";
 import IcDex from "@/assets/icons/ic_dex";
 import IcAiIcon from "@/assets/icons/ic_ai";
 
@@ -57,12 +57,10 @@ export default function PoolTokenMetadata({
         <h1 className="text-base font-medium sm:text-xl sm:font-bold">
           {name}
         </h1>
-        <button
-          type="button"
+        <CopyButton
+          content={id}
           className="text-gray"
-        >
-          <MdContentCopy />
-        </button>
+        />
         <IcDex
           dex={dex}
           width={16}
