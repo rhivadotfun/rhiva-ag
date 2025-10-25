@@ -1,5 +1,5 @@
-import jwt, { type Jwt } from "jsonwebtoken";
 import { eq } from "drizzle-orm";
+import jwt, { type Jwt } from "jsonwebtoken";
 import { users } from "@rhiva-ag/datasource";
 import type { FastifyRequest } from "fastify";
 

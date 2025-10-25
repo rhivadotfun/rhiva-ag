@@ -1,11 +1,11 @@
 import clsx from "clsx";
 import Link from "next/link";
 import { format } from "util";
-import { MdContentCopy } from "react-icons/md";
 import type { DexApi } from "@rhiva-ag/dex-api";
 
 import Image from "../Image";
 import Decimal from "../Decimal";
+import CopyButton from "../CopyButton";
 import { compactCurrencyIntlArgs } from "@/constants/format";
 
 type TokenCardProps = {
@@ -39,15 +39,11 @@ export default function TokenCard({
             <p className="truncate text-base md:text-lg font-medium">
               {token.name}
             </p>
-            <button
+            <CopyButton
               type="button"
-              className="shrink-0"
-            >
-              <MdContentCopy
-                size={18}
-                className="text-gray"
-              />
-            </button>
+              content={token.id}
+              className="shrink-0 text-gray"
+            />
           </div>
 
           <div className="flex items-center gap-2 shrink-0">

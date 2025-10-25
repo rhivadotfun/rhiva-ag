@@ -6,7 +6,7 @@ import { SigninMessage } from "@rhiva-ag/shared";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
 import { getEnv } from "../../env";
-import { kmsSecret } from "../../instances";
+import { secret } from "../../instances";
 import { AuthMiddleware } from "../../controllers/auth.controller";
 import { firebaseTokenAuthSchema, walletAuthSchema } from "./auth.schema";
 import { extendedUserSelectSchema } from "../../routers/users/user.schema";
@@ -26,7 +26,7 @@ const walletSignInRoute = async (
   const signInMessage = new SigninMessage(data.message);
   const isValid = await signInMessage.validate(data.signature);
   if (isValid) {
-    const user = await AuthMiddleware.upsertUser(db, kmsSecret, {
+    const user = await AuthMiddleware.upsertUser(db, secret, {
       uid: data.message.publicKey,
     });
 
@@ -35,6 +35,8 @@ const walletSignInRoute = async (
       const token = jwt.sign({ user: user.id }, getEnv<string>("SECRET_KEY"), {
         expiresIn: 25200,
       });
+
+      console.log(extendedUser, { depth: null });
 
       return safeAuthUserSchema.parse({ token, ...extendedUser });
     }
@@ -50,7 +52,7 @@ const firebaseTokenSignInRoute = async (
   const data = firebaseTokenAuthSchema.parse(request.body);
   const auth = getAuth();
   const decodedUser = await auth.verifyIdToken(data.token, true);
-  const user = await AuthMiddleware.upsertUser(db, kmsSecret, {
+  const user = await AuthMiddleware.upsertUser(db, secret, {
     uid: decodedUser.uid,
     email: decodedUser.email,
   });

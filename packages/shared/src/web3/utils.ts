@@ -89,6 +89,10 @@ export async function loadWallet(
   secret: Secret,
 ): Promise<Keypair>;
 export async function loadWallet(
+  wallet: { key: string; wrappedDex?: string },
+  secret: Secret | KMSSecret,
+): Promise<Keypair>;
+export async function loadWallet(
   wallet: { key: string } | { key: string; wrappedDek?: string | null },
   secret: KMSSecret | Secret,
 ) {

@@ -20,18 +20,16 @@ import { getEnv } from "./env";
 setDefaultOpenAIKey(getEnv("OPEN_API_KEY"));
 setTracingExportApiKey(getEnv("OPEN_API_KEY"));
 
-export const secret = new Secret(getEnv("SECRET_KEY"), {
-  ivLength: 12,
-  algorithm: "aes-256-gcm",
-});
-export const kmsSecret = new KMSSecret(
-  getEnv("AWS_KMS_KEY_ID"),
-  getEnv("AWS_REGION"),
-  {
-    ivLength: 12,
-    algorithm: "aes-256-gcm",
-  },
-);
+export const secret =
+  process.env.NODE_ENV === "production"
+    ? new Secret(getEnv("SECRET_KEY"), {
+        ivLength: 12,
+        algorithm: "aes-256-gcm",
+      })
+    : new KMSSecret(getEnv("AWS_KMS_KEY_ID"), getEnv("AWS_REGION"), {
+        ivLength: 12,
+        algorithm: "aes-256-gcm",
+      });
 
 export const drizzle = createDB(getEnv("DATABASE_URL"));
 export const solanaConnection = new Connection(getEnv("SOLANA_RPC_URL"));

@@ -1,11 +1,10 @@
 import clsx from "clsx";
 import { useMemo } from "react";
 import { FaLeaf } from "react-icons/fa6";
-import { MdOpenInNew } from "react-icons/md";
 
 import Image from "../Image";
 import Decimal from "../Decimal";
-import { truncateString } from "@/lib";
+import { PoolAddressToolTip } from "../AddressTooltip";
 import { currencyIntlArgs, percentageIntlArgs } from "@/constants/format";
 
 type TokenInfo = {
@@ -80,10 +79,7 @@ export default function PoolInfo({ tvl, apr, tokens }: PoolInfoProps) {
                 <div className="flex-1 flex flex-col space-y-2">
                   <div className="flex items-center space-x-4">
                     <p className="text-base font-medium">{token.name}</p>
-                    <div className="flex text-xs items-center  space-x-2 bg-white/10 text-gray px-2 py-1 rounded">
-                      <span>{truncateString(token.id)}</span>
-                      <MdOpenInNew />
-                    </div>
+                    <PoolAddressToolTip address={token.id} />
                   </div>
                   <div
                     className={clsx(

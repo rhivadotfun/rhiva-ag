@@ -1,13 +1,13 @@
 import clsx from "clsx";
-import { MdContentCopy } from "react-icons/md";
+import Link from "next/link";
+import { format } from "util";
 import type { DexApi } from "@rhiva-ag/dex-api";
 
 import Image from "../Image";
 import Decimal from "../Decimal";
 import TokenCard from "./TokenCard";
+import CopyButton from "../CopyButton";
 import { compactCurrencyIntlArgs } from "@/constants/format";
-import Link from "next/link";
-import { format } from "util";
 
 type TokenListProps = {
   timestamp?: string;
@@ -61,9 +61,7 @@ function TokenListSmall({ timestamp = "24H", tokens }: TokenListProps) {
                     className="size-8 rounded-full"
                   />
                   <span>{token.symbol}</span>
-                  <button type="button">
-                    <MdContentCopy className="text-gray" />
-                  </button>
+                  <CopyButton content={token.id} />
                   <div
                     className={clsx(
                       "size-2  rounded-full",
