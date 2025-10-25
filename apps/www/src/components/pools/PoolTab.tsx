@@ -7,6 +7,7 @@ import { IoChevronDownOutline } from "react-icons/io5";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 
 import { useDexes } from "@/hooks/useDexes";
+import IcDex from "@/assets/icons/ic_dex";
 
 export default function PoolTab(props: React.ComponentProps<"div">) {
   const dexes = useDexes();
@@ -33,10 +34,11 @@ export default function PoolTab(props: React.ComponentProps<"div">) {
               selected ? "border-primary" : "border-b-transparent",
             )}
           >
-            {tab.icon && (
-              <tab.icon
-                width={16}
-                height={16}
+            {tab.value && (
+              <IcDex
+                dex={tab.value}
+                width={24}
+                height={24}
                 className="rounded-full"
               />
             )}
@@ -80,13 +82,14 @@ export function PoolTabSmall(props: React.ComponentProps<typeof Menu>) {
                 href={format("?%s", urlSearchParams.toString())}
                 className="flex space-x-2 items-center py-2"
               >
-                {tab.icon && (
-                  <tab.icon
+                {tab.value && (
+                  <IcDex
+                    dex={tab.value}
                     width={24}
                     height={24}
+                    className="rounded-full"
                   />
                 )}
-
                 <span>{tab.title}</span>
                 {selected && <MdCheck />}
               </Link>

@@ -6,6 +6,7 @@ import Image from "../Image";
 import CopyButton from "../CopyButton";
 import IcDex from "@/assets/icons/ic_dex";
 import IcAiIcon from "@/assets/icons/ic_ai";
+import { useAuth } from "@/hooks/useAuth";
 
 type PoolTokenMetadata = {
   id: string;
@@ -31,6 +32,7 @@ export default function PoolTokenMetadata({
   ...props
 }: PoolTokenMetadata) {
   const router = useRouter();
+  const { isAuthenticated, signIn } = useAuth();
 
   return (
     <div
@@ -70,9 +72,11 @@ export default function PoolTokenMetadata({
       <button
         type="button"
         className="flex items-center space-x-2 bg-primary/10 px-2 py-1 border border-primary/50 text-primary fill-primary rounded"
-        onClick={() =>
-          router.push(format("/ai?prompt=Analyse this pool %s", id))
-        }
+        onClick={() => {
+          if (isAuthenticated)
+            router.push(format("/ai?prompt=Analyse this pool %s", id));
+          else signIn();
+        }}
       >
         <IcAiIcon
           width={18}

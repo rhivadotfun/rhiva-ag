@@ -1,6 +1,5 @@
 import bs58 from "bs58";
 import nacl from "tweetnacl";
-import { format } from "util";
 
 type SignMessage = {
   domain: string;
@@ -23,7 +22,7 @@ export class SigninMessage {
   }
 
   prepare() {
-    return format("%s%s", this.statement, this.nonce);
+    return [this.statement, this.nonce].filter(Boolean).join("");
   }
 
   async validate(signature: string) {

@@ -66,7 +66,7 @@ export default withCookieProvider(function AuthProvider({
   const wallet = useWallet();
   const [user, setUser] = useState(serverUser);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(Boolean(user));
   const [cookies] = useCookies<"email", { email?: string }>(["email"]);
 
   const auth = useMemo(() => getAuth(), []);
@@ -87,11 +87,12 @@ export default withCookieProvider(function AuthProvider({
       xior.delete<z.infer<typeof extendedUserSelectSchema>>(
         "/api/auth/session",
       ),
+      wallet.disconnect(),
     ]);
 
     setUser(undefined);
     setIsAuthenticated(false);
-  }, [auth]);
+  }, [auth, wallet]);
 
   const fetchServerUser = useCallback(async (user: FirebaseUser) => {
     const token = await user.getIdToken();
@@ -157,7 +158,6 @@ export default withCookieProvider(function AuthProvider({
   }, [wallet]);
 
   useEffect(() => {
-    console.log(user);
     if (user) return;
     if (wallet.publicKey) signInWithWallet();
   }, [wallet, user, signInWithWallet]);

@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
 import {
   ConnectionProvider,
   WalletProvider,
@@ -8,7 +7,7 @@ import {
 export default function SolanaWalletProvider({
   children,
 }: React.PropsWithChildren) {
-  const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
+  const wallets = useMemo(() => [], []);
   return (
     <ConnectionProvider endpoint={process.env.NEXT_PUBLIC_SOLANA_RPC_URL!}>
       <WalletProvider

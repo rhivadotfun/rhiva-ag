@@ -16,10 +16,14 @@ import ChatSidebar from "@/components/ai/ChatSidebar";
 import { useTRPC, useTRPCClient } from "@/trpc.client";
 
 type AiPageClientProps = {
+  searchParams: { prompt?: string };
   threads: z.infer<typeof threadSelectSchema>[];
 };
 
-export default function AiPageClient({ threads }: AiPageClientProps) {
+export default function AiPageClient({
+  searchParams,
+  threads,
+}: AiPageClientProps) {
   const trpc = useTRPC();
   const trpcClient = useTRPCClient();
   const queryClient = useQueryClient();
@@ -30,8 +34,8 @@ export default function AiPageClient({ threads }: AiPageClientProps) {
       prompt: string().trim().required(),
     }),
     initialValues: {
-      prompt: "",
       thread: threads[0],
+      prompt: searchParams.prompt,
     },
     async onSubmit(values, { setFieldValue, resetForm }) {
       const data = {
@@ -54,7 +58,7 @@ export default function AiPageClient({ threads }: AiPageClientProps) {
 
       await mutateAsync({
         ...data,
-        prompt: values.prompt,
+        prompt: values.prompt!,
       });
     },
   });
