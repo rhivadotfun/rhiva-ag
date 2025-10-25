@@ -1,12 +1,18 @@
-import { getTRPCClient } from "@/trpc.server";
-import { getTokens } from "@civic/auth/nextjs";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 import AiPageClient from "./page.client";
+import { getTRPCClient } from "@/trpc.server";
 
 export default async function AiPage() {
-  const token = await getTokens();
-  const trpcClient = getTRPCClient(token?.accessToken);
-  const threads = await trpcClient.ai.thread.list.query();
+  const cookie = await cookies();
+  const session = cookie.get("session");
+  if (session) {
+    const trpcClient = getTRPCClient(session.value, "Session");
+    const threads = await trpcClient.ai.thread.list.query();
 
-  return <AiPageClient threads={threads} />;
+    return <AiPageClient threads={threads} />;
+  }
+
+  return redirect("/");
 }

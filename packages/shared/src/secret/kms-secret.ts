@@ -91,7 +91,7 @@ export class KMSSecret {
       return decipher;
     }
 
-    throw new DecryptionError("Faield to unwrap DEK");
+    throw new DecryptionError("Failed to unwrap DEK");
   }
 
   async rewrap() {

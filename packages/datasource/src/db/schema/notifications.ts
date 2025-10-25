@@ -8,10 +8,18 @@ export const notifications = pgTable("notifications", {
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
   title: jsonb()
-    .$type<{ external: boolean; text: string; params: Record<string, never> }>()
+    .$type<{
+      text: string;
+      external?: boolean;
+      params?: Record<string, any>;
+    }>()
     .notNull(),
   detail: jsonb()
-    .$type<{ external: boolean; text: string; params: Record<string, never> }>()
+    .$type<{
+      text: string;
+      external?: boolean;
+      params?: Record<string, any>;
+    }>()
     .notNull(),
   createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
 });

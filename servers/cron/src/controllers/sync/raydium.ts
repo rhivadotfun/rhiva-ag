@@ -1,4 +1,5 @@
 import BN from "bn.js";
+import moment from "moment";
 import { format } from "util";
 import type { z } from "zod/mini";
 import Decimal from "decimal.js";
@@ -27,6 +28,7 @@ import {
   mapFilter,
 } from "@rhiva-ag/shared";
 import {
+  rewards,
   mints,
   pnls,
   poolRewardTokens,
@@ -35,6 +37,8 @@ import {
   type Database,
   type walletSelectSchema,
 } from "@rhiva-ag/datasource";
+
+import { sendNotification } from "../send-notification";
 
 export const syncRaydiumPositionsForWallet = async (
   db: Database,
@@ -321,12 +325,14 @@ const getPoolById = async (
       baseToken: {
         columns: {
           id: true,
+          symbol: true,
           decimals: true,
         },
       },
       quoteToken: {
         columns: {
           id: true,
+          symbol: true,
           decimals: true,
         },
       },
@@ -353,12 +359,14 @@ const getPositionById = async (
             baseToken: {
               columns: {
                 id: true,
+                symbol: true,
                 decimals: true,
               },
             },
             quoteToken: {
               columns: {
                 id: true,
+                symbol: true,
                 decimals: true,
               },
             },
@@ -441,14 +449,15 @@ export const syncRaydiumPositionStateFromEvent = async ({
   events,
   wallet,
   positionNftMint,
+  extra: { signature },
 }: {
   db: Database;
   connection: Connection;
   coingecko: Coingecko;
-  extra?: { signature: string };
+  extra: { signature: string };
   events: ProgramEventType<AmmV3>[];
   positionNftMint: PublicKey | undefined;
-  wallet: Pick<z.infer<typeof walletSelectSchema>, "id">;
+  wallet: Pick<z.infer<typeof walletSelectSchema>, "id" | "user">;
   type?: "closed-position" | "create-position" | "claim-reward";
 }) => {
   const results = [];
@@ -500,13 +509,36 @@ export const syncRaydiumPositionStateFromEvent = async ({
           id: positionNftMint.toBase58(),
         };
 
-        const [position] = await db
-          .insert(positions)
-          .values(values)
-          .onConflictDoNothing({
-            target: [positions.id],
-          })
-          .returning();
+        const [position] = await Promise.all([
+          db
+            .insert(positions)
+            .values(values)
+            .onConflictDoNothing({
+              target: [positions.id],
+            })
+            .returning(),
+          db.insert(rewards).values({
+            user: wallet.user,
+            key: "swap",
+            xp: Math.floor(amountUsd),
+          }),
+          sendNotification(db, {
+            user: wallet.user,
+            type: "transactions",
+            title: { external: true, text: "position.created" },
+            detail: {
+              external: true,
+              text: "position.created",
+              params: {
+                baseAmount,
+                quoteAmount,
+                signature,
+                baseToken: { symbol: pool.baseToken.symbol },
+                quoteToken: { symbol: pool.quoteToken.symbol },
+              },
+            },
+          }),
+        ]);
 
         results.push(position);
       }
@@ -615,15 +647,34 @@ export const syncRaydiumPositionStateFromEvent = async ({
           if (priceUsd) amountUsd -= priceUsd.usd * amount;
         }
 
-        const [updatedPosition] = await db
-          .update(positions)
-          .set({
-            baseAmount,
-            quoteAmount,
-            amountUsd,
-          })
-          .where(eq(positions.id, positionId))
-          .returning();
+        const [updatedPosition] = await Promise.all([
+          db
+            .update(positions)
+            .set({
+              baseAmount,
+              quoteAmount,
+              amountUsd,
+            })
+            .where(eq(positions.id, positionId))
+            .returning(),
+          sendNotification(db, {
+            user: wallet.user,
+            type: "transactions",
+            title: { external: true, text: "position.closed" },
+            detail: {
+              external: true,
+              text: "position.closed",
+              params: {
+                signature,
+                baseAmount: position.baseAmount,
+                quoteAmount: position.quoteAmount,
+                duration: moment().diff(moment(position.createdAt)),
+                baseToken: { symbol: position.pool.baseToken.symbol },
+                quoteToken: { symbol: position.pool.quoteToken.symbol },
+              },
+            },
+          }),
+        ]);
 
         results.push(updatedPosition);
       }

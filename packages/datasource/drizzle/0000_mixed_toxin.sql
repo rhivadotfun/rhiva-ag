@@ -13,9 +13,11 @@ CREATE TABLE "pnls" (
 CREATE TABLE "users" (
 	"email" text,
 	"displayName" text,
+	"currentStreak" integer DEFAULT 1 NOT NULL,
 	"uid" text NOT NULL,
 	"referralCode" text NOT NULL,
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"lastLogin" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "users_uid_unique" UNIQUE("uid")
 );
 --> statement-breakpoint

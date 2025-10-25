@@ -1,16 +1,23 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+
 import { dexApi } from "@/instances";
 import PoolClientPage from "./page.client";
+import { getQueryClient } from "@/trpc.server";
 
 export default async function PoolPage(
   props: PageProps<"/pools/[dex]/[poolAddress]">,
 ) {
   const params = await props.params;
-  const pool = await dexApi.getPair(params.dex, params.poolAddress);
+  const queryClient = getQueryClient();
+
+  await queryClient.prefetchQuery({
+    queryKey: ["pools", params.dex, params.poolAddress],
+    queryFn: async () => dexApi.getPair(params.dex, params.poolAddress),
+  });
 
   return (
-    <PoolClientPage
-      initialData={pool}
-      params={params}
-    />
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <PoolClientPage params={params} />
+    </HydrationBoundary>
   );
 }

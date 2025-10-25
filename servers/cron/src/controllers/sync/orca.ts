@@ -1,3 +1,5 @@
+import moment from "moment";
+import assert from "assert";
 import Decimal from "decimal.js";
 import type { z } from "zod/mini";
 import { PublicKey } from "@solana/web3.js";
@@ -30,6 +32,7 @@ import {
   fetchWhirlpool,
 } from "@orca-so/whirlpools-client";
 import {
+  rewards,
   mints,
   pnls,
   poolRewardTokens,
@@ -49,7 +52,8 @@ import {
   address,
   type SolanaRpcApi,
 } from "@solana/kit";
-import assert from "assert";
+
+import { sendNotification } from "../send-notification";
 
 export const syncOrcaPositionsForWallet = async (
   rpc: Rpc<
@@ -390,12 +394,14 @@ const getPoolById = async (
       baseToken: {
         columns: {
           id: true,
+          symbol: true,
           decimals: true,
         },
       },
       quoteToken: {
         columns: {
           id: true,
+          symbol: true,
           decimals: true,
         },
       },
@@ -422,12 +428,14 @@ const getPositionById = async (
             baseToken: {
               columns: {
                 id: true,
+                symbol: true,
                 decimals: true,
               },
             },
             quoteToken: {
               columns: {
                 id: true,
+                symbol: true,
                 decimals: true,
               },
             },
@@ -511,13 +519,14 @@ export const syncOrcaPositionStateFromEvent = async ({
   wallet,
   events,
   type,
+  extra: { signature },
 }: {
   db: Database;
   rpc: Rpc<SolanaRpcApi>;
   coingecko: Coingecko;
-  extra?: { signature: string };
+  extra: { signature: string };
   events: ProgramEventType<Whirlpool>[];
-  wallet: Pick<z.infer<typeof walletSelectSchema>, "id">;
+  wallet: Pick<z.infer<typeof walletSelectSchema>, "id" | "user">;
   type?: "closed-position" | "create-position" | "claim-reward";
 }) => {
   const results = [];
@@ -592,11 +601,34 @@ export const syncOrcaPositionStateFromEvent = async ({
           status: "successful",
         };
 
-        const [updatedPosition] = await db
-          .update(positions)
-          .set(values)
-          .where(eq(positions.id, position.id))
-          .returning();
+        const [updatedPosition] = await Promise.all([
+          db
+            .update(positions)
+            .set(values)
+            .where(eq(positions.id, position.id))
+            .returning(),
+          db.insert(rewards).values({
+            user: wallet.user,
+            key: "swap",
+            xp: Math.floor(amountUsd),
+          }),
+          sendNotification(db, {
+            user: wallet.user,
+            type: "transactions",
+            title: { external: true, text: "position.created" },
+            detail: {
+              external: true,
+              text: "position.created",
+              params: {
+                signature,
+                baseAmount,
+                quoteAmount,
+                baseToken: { symbol: pool.baseToken.symbol },
+                quoteToken: { symbol: pool.quoteToken.symbol },
+              },
+            },
+          }),
+        ]);
 
         results.push(updatedPosition);
       }
@@ -651,15 +683,34 @@ export const syncOrcaPositionStateFromEvent = async ({
           if (priceUsd) amountUsd -= priceUsd.usd * amount;
         }
 
-        const [updatedPosition] = await db
-          .update(positions)
-          .set({
-            baseAmount,
-            quoteAmount,
-            amountUsd,
-          })
-          .where(eq(positions.id, positionId))
-          .returning();
+        const [updatedPosition] = await Promise.all([
+          db
+            .update(positions)
+            .set({
+              baseAmount,
+              quoteAmount,
+              amountUsd,
+            })
+            .where(eq(positions.id, positionId))
+            .returning(),
+          sendNotification(db, {
+            user: wallet.user,
+            type: "transactions",
+            title: { external: true, text: "position.closed" },
+            detail: {
+              external: true,
+              text: "position.closed",
+              params: {
+                signature,
+                baseAmount: position.baseAmount,
+                quoteAmount: position.quoteAmount,
+                duration: moment().diff(moment(position.createdAt)),
+                baseToken: { symbol: position.pool.baseToken.symbol },
+                quoteToken: { symbol: position.pool.quoteToken.symbol },
+              },
+            },
+          }),
+        ]);
 
         results.push(updatedPosition);
       }

@@ -1,15 +1,24 @@
 import fastify from "fastify";
+import { RedisStore } from "connect-redis";
 import fastifyCors from "@fastify/cors";
 import fastifyCookie from "@fastify/cookie";
 import fastifySession from "@fastify/session";
+import { getAuth } from "firebase-admin/auth";
 import fastifyWebsocket from "@fastify/websocket";
 import fastifyRateLimit from "@fastify/rate-limit";
+import {
+  cert,
+  getApps,
+  initializeApp,
+  type ServiceAccount,
+} from "firebase-admin/app";
 import {
   fastifyTRPCPlugin,
   type FastifyTRPCPluginOptions,
 } from "@trpc/server/adapters/fastify";
 
 import { getEnv } from "./env";
+import registerRoutes from "./routes";
 import { createRedis } from "./instances";
 import { createContext } from "./context";
 import { appRouter, type AppRouter } from "./routers";
@@ -17,10 +26,28 @@ import { appRouter, type AppRouter } from "./routers";
 const server = fastify({
   logger: true,
   maxParamLength: 5000,
+  ignoreDuplicateSlashes: true,
 });
 
-server.register(fastifyCookie);
-server.register(fastifySession, { secret: getEnv<string>("SECRET_KEY") });
+const store = new RedisStore({
+  client: createRedis(),
+});
+
+const apps = getApps();
+
+if (apps.length === 0) {
+  initializeApp({
+    credential: cert(getEnv<ServiceAccount>("FIREBASE_SERVICE_KEY")),
+  });
+}
+
+export const auth = getAuth();
+
+server.register(fastifyCookie, { secret: getEnv<string>("SECRET_KEY") });
+server.register(fastifySession, {
+  store,
+  secret: getEnv<string>("SECRET_KEY"),
+});
 server.register(fastifyWebsocket);
 server.register(fastifyCors, {
   credentials: true,
@@ -43,6 +70,8 @@ server.register(fastifyTRPCPlugin, {
     },
   } satisfies FastifyTRPCPluginOptions<AppRouter>["trpcOptions"],
 });
+
+registerRoutes(server);
 
 server.listen({
   host: getEnv("HOST"),

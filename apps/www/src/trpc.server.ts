@@ -1,19 +1,17 @@
-import { format } from "util";
-import superjson from "superjson";
-import type { AppRouter } from "@rhiva-ag/trpc";
-import { createTRPCClient, httpBatchLink } from "@trpc/client";
+import "server-only";
 
-export const getTRPCClient = (token?: string) =>
-  createTRPCClient<AppRouter>({
-    links: [
-      httpBatchLink({
-        url: process.env.NEXT_PUBLIC_API_URL!,
-        transformer: superjson,
-        async headers() {
-          const headers = new Headers();
-          if (token) headers.set("authorization", format("Bearer %s", token));
-          return headers;
-        },
-      }),
-    ],
+import { cache } from "react";
+import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
+
+import { makeTRPCClient } from "./trpc";
+import { makeQueryClient } from "./query";
+
+export const getQueryClient = cache(makeQueryClient);
+export const getTRPCClient = cache(makeTRPCClient);
+export const getTRPC = cache((token?: string) => {
+  const client = getTRPCClient(token);
+  return createTRPCOptionsProxy({
+    client,
+    queryClient: getQueryClient,
   });
+});

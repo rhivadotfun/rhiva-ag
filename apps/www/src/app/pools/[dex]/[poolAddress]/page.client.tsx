@@ -1,14 +1,10 @@
 "use client";
-import { AuthStatus } from "@civic/auth";
-import { useMemo, useState } from "react";
-import { useUser } from "@civic/auth/react";
-import type { Pair } from "@rhiva-ag/dex-api";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { dexApi } from "@/instances";
 import { isSupportedDex } from "@/lib";
 import { useAuth } from "@/hooks/useAuth";
-import { useSignIn } from "@/hooks/useSignIn";
 import Header from "@/components/layout/Header";
 import PoolInfo from "@/components/pools/PoolInfo";
 import PoolAnalytic from "@/components/pools/PoolAnalytic";
@@ -16,7 +12,6 @@ import OpenPosition from "@/components/positions/OpenPosition";
 import PoolTokenMetadata from "@/components/pools/PoolTokenMetadata";
 
 type PoolClientPageProps = {
-  initialData?: Pair | null;
   params: {
     poolAddress: string;
     dex: "orca" | "raydium-clmm" | "meteora" | (string & {});
@@ -24,21 +19,12 @@ type PoolClientPageProps = {
 };
 
 export default function PoolClientPage({
-  initialData,
   params: { dex, poolAddress },
 }: PoolClientPageProps) {
-  const { user } = useAuth();
-  const signIn = useSignIn();
-  const { authStatus } = useUser();
+  const { isAuthenticated, signIn } = useAuth();
   const [showCreatePositionModal, setShowCreatePositionModal] = useState(false);
 
-  const isAuthenticated = useMemo(
-    () => user && authStatus === AuthStatus.AUTHENTICATED,
-    [authStatus, user],
-  );
-
   const { data } = useQuery({
-    initialData,
     queryKey: ["pools", dex, poolAddress],
     queryFn: async () => {
       const response = await dexApi.getPair(dex, poolAddress);

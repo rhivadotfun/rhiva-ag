@@ -2,9 +2,7 @@ import clsx from "clsx";
 import { format } from "util";
 import { useMemo } from "react";
 import { object, string } from "yup";
-import { AuthStatus } from "@civic/auth";
 import { MdClose } from "react-icons/md";
-import { useUser } from "@civic/auth/react";
 import { IoChevronDownOutline } from "react-icons/io5";
 import { Form, Formik, Field, ErrorMessage } from "formik";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -20,25 +18,18 @@ import {
   MenuItem,
 } from "@headlessui/react";
 
-import { useSignIn } from "@/hooks/useSignIn";
-import { useTRPC, useTRPCClient } from "@/trpc.client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTRPC, useTRPCClient } from "@/trpc.client";
 
 export default function PoolFilterDialog(
   props: React.ComponentPropsWithoutRef<typeof Dialog>,
 ) {
   const trpc = useTRPC();
-  const { user } = useAuth();
   const router = useRouter();
-  const signIn = useSignIn();
-  const { authStatus } = useUser();
   const trpcClient = useTRPCClient();
   const searchParams = useSearchParams();
+  const { isAuthenticated, signIn } = useAuth();
 
-  const isAuthenticated = useMemo(
-    () => authStatus === AuthStatus.AUTHENTICATED && user,
-    [user, authStatus],
-  );
   const filterFields = useMemo(
     () => [
       { label: "Min Market Cap", name: "market_cap_min", placeholder: "Min" },
@@ -73,8 +64,8 @@ export default function PoolFilterDialog(
     <Formik
       validationSchema={object({ name: string().trim().required() })}
       initialValues={Object.fromEntries(searchParams.entries())}
-      onSubmit={({ name, ...values }) => {
-        if (!isAuthenticated) signIn();
+      onSubmit={async ({ name, ...values }) => {
+        if (!isAuthenticated) await signIn();
 
         return mutateAsync({
           name,

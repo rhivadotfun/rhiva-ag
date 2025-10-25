@@ -1,3 +1,5 @@
+"use client";
+
 type DecimalProps<T extends React.ElementType> = {
   as?: T;
   disableTruncate?: boolean;

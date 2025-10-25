@@ -16,8 +16,10 @@ export const tokenTradeFilter = z.object({
 });
 
 export const tokenSwapSchema = z.object({
+  amount: z.number(),
   slippage: z.number(),
   inputMint: address(),
   outputMint: address(),
-  amount: z.union([z.string(), z.bigint()]),
+  inputDecimals: z.number().int(),
+  outputDecimals: z.number().int(),
 });

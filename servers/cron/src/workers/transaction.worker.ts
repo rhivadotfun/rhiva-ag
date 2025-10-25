@@ -56,7 +56,7 @@ export const transactionWorkSchema = z
   ])
   .and(
     z.object({
-      wallet: walletSelectSchema.pick({ id: true }),
+      wallet: walletSelectSchema.pick({ id: true, user: true }),
     }),
   );
 
@@ -74,7 +74,7 @@ export const createTransactionPipeline = ({
   rpc: Rpc<SolanaRpcApi>;
   connection: Connection;
   positionNftMint?: PublicKey;
-  wallet: Pick<z.infer<typeof walletSelectSchema>, "id">;
+  wallet: Pick<z.infer<typeof walletSelectSchema>, "id" | "user">;
   type?: "closed-position" | "create-position" | "claim-reward";
 }) =>
   new Pipeline([

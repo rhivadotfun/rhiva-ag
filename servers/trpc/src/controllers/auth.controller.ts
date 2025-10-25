@@ -1,78 +1,65 @@
 import type z from "zod";
+import moment from "moment";
 import { format } from "util";
 import type Redis from "ioredis";
 import { eq } from "drizzle-orm";
 import { Keypair } from "@solana/web3.js";
-import { verify } from "@civic/auth-verify";
 import type { FastifyRequest } from "fastify";
 import { KMSSecret, type Secret } from "@rhiva-ag/shared";
 import {
-  type userInsertSchema,
   users,
-  type Database,
-  type userSelectSchema,
   wallets,
   settings,
-  type walletSelectSchema,
+  rewards,
+  type Database,
+  type userInsertSchema,
 } from "@rhiva-ag/datasource";
 
-import { getEnv } from "../env";
+import type { User } from "./types";
 
-type User = Omit<
-  z.infer<typeof userSelectSchema>,
-  | "referXp"
-  | "totalRefer"
-  | "settings"
-  | "xp"
-  | "wallet"
-  | "todayXp"
-  | "totalUsers"
-  | "rank"
-> & { wallet: z.infer<typeof walletSelectSchema> };
-
-export class CivicAuthMiddleware {
+export abstract class AuthMiddleware {
   constructor(
-    private readonly redis: Redis,
-    private readonly secret: KMSSecret | Secret,
-    private readonly drizzle: Database,
-    private readonly options?: {
+    protected readonly redis: Redis,
+    protected readonly secret: KMSSecret | Secret,
+    protected readonly drizzle: Database,
+    protected readonly options?: {
       ttl?: number;
     },
   ) {}
 
-  private getCacheUserKey(sessionId: string) {
+  protected getCacheUserKey(sessionId: string) {
     return format("%s:user", sessionId);
   }
-  private async upsertUser(values: z.infer<typeof userInsertSchema>) {
-    const user = await this.drizzle.query.users.findFirst({
+
+  static async upsertUser(
+    drizzle: Database,
+    secret: KMSSecret | Secret,
+    values: z.infer<typeof userInsertSchema>,
+  ) {
+    const user = await drizzle.query.users.findFirst({
       with: {
         wallet: true,
       },
       where: eq(users.uid, values.uid),
     });
-    if (user) return user;
 
-    const [createdUser] = await this.drizzle
-      .insert(users)
-      .values(values)
-      .onConflictDoNothing()
-      .returning();
-    if (createdUser) {
+    const setupUserAccount = async (user: typeof users.$inferSelect) => {
       const keypair = Keypair.generate();
       let wrappedDek: string, encryptedText: string;
 
-      if (this.secret instanceof KMSSecret) {
-        const { wrappedDek: dek, encryptedText: key } =
-          await this.secret.encrypt(keypair.secretKey.toBase64());
+      if (secret instanceof KMSSecret) {
+        const { wrappedDek: dek, encryptedText: key } = await secret.encrypt(
+          keypair.secretKey.toBase64(),
+        );
         wrappedDek = dek;
         encryptedText = key;
-      } else encryptedText = this.secret.encrypt(keypair.secretKey.toBase64());
-      await this.drizzle.transaction(async (db) => {
+      } else encryptedText = secret.encrypt(keypair.secretKey.toBase64());
+      await drizzle.transaction(async (db) => {
         return Promise.all([
           db
             .insert(settings)
             .values({
-              user: createdUser.id,
+              user: user.id,
             })
             .onConflictDoNothing({ target: [settings.user] }),
           db
@@ -80,15 +67,48 @@ export class CivicAuthMiddleware {
             .values({
               wrappedDek,
               key: encryptedText,
-              user: createdUser.id,
+              user: user.id,
               id: keypair.publicKey.toBase58(),
             })
             .onConflictDoNothing({ target: [wallets.user] }),
         ]);
       });
+    };
+    const yesterday = moment().startOf("day").subtract(1, "day");
+    const resetStreak = user
+      ? !moment(user.lastLogin, "day").isSame(yesterday, "day")
+      : false;
+    const currentStreak = user ? (resetStreak ? 1 : user.currentStreak + 1) : 1;
+
+    const [createdUser] = await drizzle
+      .insert(users)
+      .values(values)
+      .onConflictDoUpdate({
+        target: users.uid,
+        set: {
+          lastLogin: new Date(),
+          currentStreak: currentStreak === 30 ? 1 : currentStreak,
+        },
+      })
+      .returning();
+
+    if (createdUser) {
+      if (!user) await setupUserAccount(createdUser);
+      if (currentStreak === 7)
+        await drizzle.insert(rewards).values({
+          xp: 50,
+          user: createdUser.id,
+          key: "7_days_streak",
+        });
+      if (currentStreak === 30)
+        await drizzle.insert(rewards).values({
+          xp: 100,
+          user: createdUser.id,
+          key: "1_month_streak",
+        });
     }
 
-    return this.drizzle.query.users.findFirst({
+    return drizzle.query.users.findFirst({
       with: {
         wallet: true,
       },
@@ -102,46 +122,7 @@ export class CivicAuthMiddleware {
     return this.getUserFromHeader(request);
   }
 
-  private async getUserFromSession(
-    request: FastifyRequest,
-  ): Promise<User | null> {
-    const sessionId = request.session.sessionId;
-    const key = this.getCacheUserKey(sessionId);
-    const user = await this.redis.get(key);
-    if (user) return JSON.parse(user);
-    return null;
-  }
+  abstract getUserFromSession(request: FastifyRequest): Promise<User | null>;
 
-  private async getUserFromHeader(request: FastifyRequest) {
-    const authorization = request.headers.authorization;
-    if (authorization) {
-      const [, token] = authorization.split(/\s/g);
-      const payload = await verify(token!, {
-        clientId: getEnv("CIVIC_CLIENT_ID"),
-      });
-
-      if (payload.sub) {
-        const user = await this.upsertUser({
-          uid: payload.sub,
-          email: payload.email as string,
-          displayName: payload.name as string,
-        });
-
-        const sessionId = request.session.sessionId;
-        const key = this.getCacheUserKey(sessionId);
-        if (this.options?.ttl)
-          await this.redis.set(
-            key,
-            JSON.stringify(user),
-            "EX",
-            this.options?.ttl,
-          );
-        else await this.redis.set(key, JSON.stringify(user));
-
-        return user;
-      }
-    }
-
-    return null;
-  }
+  abstract getUserFromHeader(request: FastifyRequest): Promise<User | null>;
 }

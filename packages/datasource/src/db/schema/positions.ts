@@ -10,12 +10,20 @@ import {
 import { pools } from "./pools";
 import { wallets } from "./wallets";
 
+type Extra = {
+  claimBaseFee: number;
+  claimQuoteFee: number;
+  reward0Fee?: number;
+  reward1Fee?: number;
+  claimedFeeUsd: number;
+};
+
 export const positions = pgTable("positions", {
   id: text().primaryKey().notNull(),
   amountUsd: doublePrecision().notNull(),
   baseAmount: doublePrecision().notNull(),
   quoteAmount: doublePrecision().notNull(),
-  config: jsonb().$type<object>().notNull(),
+  config: jsonb().$type<{ extra?: Extra }>().notNull(),
   wallet: text()
     .references(() => wallets.id, { onDelete: "cascade" })
     .notNull(),

@@ -1,8 +1,6 @@
 "use client";
 import { useState } from "react";
-import type { AppRouter } from "@rhiva-ag/trpc";
 import { useQuery } from "@tanstack/react-query";
-import { useSearchParams } from "next/navigation";
 
 import Header from "@/components/layout/Header";
 import PoolTab from "@/components/pools/PoolTab";
@@ -14,25 +12,23 @@ import PoolFilter from "@/components/pools/PoolFilter";
 import PoolInfoList from "@/components/pools/PoolInfoList";
 
 type PoolClientPageProps = {
-  initialData?: Awaited<ReturnType<AppRouter["pool"]["list"]>>;
+  searchParams: Record<string, any>;
 };
 
-export default function PoolClientPage({ initialData }: PoolClientPageProps) {
+export default function PoolClientPage({ searchParams }: PoolClientPageProps) {
   const trpc = useTRPC();
   const trpcClient = useTRPCClient();
-  const searchParams = useSearchParams();
 
   const [query, setQuery] = useState<string | undefined>();
 
   const { data } = useQuery({
-    initialData,
-    queryKey: trpc.pool.list.queryKey({ query }),
+    queryKey: trpc.pool.list.queryKey({ query, ...searchParams }),
     queryFn: () =>
       trpcClient.pool.list.query({
         query,
         sort: "h6_trending",
         include: "base_token,quote_token",
-        ...Object.fromEntries(searchParams.entries()),
+        ...searchParams,
       }),
   });
 

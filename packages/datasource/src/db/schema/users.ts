@@ -1,10 +1,11 @@
 import crypto from "crypto";
 import { format } from "util";
-import { pgTable, text, uuid } from "drizzle-orm/pg-core";
+import { integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   email: text(),
   displayName: text(),
+  currentStreak: integer().default(1).notNull(),
   uid: text().unique().notNull(),
   // todo:
   referralCode: text()
@@ -15,4 +16,5 @@ export const users = pgTable("users", {
     })
     .notNull(),
   id: uuid().primaryKey().defaultRandom(),
+  lastLogin: timestamp({ withTimezone: true }).defaultNow().notNull(),
 });

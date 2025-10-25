@@ -60,10 +60,10 @@ export function useTiers() {
   const stars = useMemo(
     () =>
       tiers
-        .filter(({ xpRange: [, end] }) => user.xp >= end)
+        .filter(({ xpRange: [, end] }) => user?.xp >= end)
         .reduce((acc, cur) => acc + cur.stars, 0),
     [user, tiers],
   );
 
-  return { tiers, ...tier, user: user!, stars };
+  return { tiers, ...tier, user, stars };
 }

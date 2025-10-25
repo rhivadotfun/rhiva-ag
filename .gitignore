@@ -10,3 +10,4 @@ tsconfig.tsbuildinfo
 .wrangler
 docker-compose.yml
 .open-next
+out
