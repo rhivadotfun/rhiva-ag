@@ -2,7 +2,7 @@
 
 FROM oven/bun:latest as base
 
-ENV NODE_ENV="production"
+ENV NODE_ENV="development"
 
 RUN apt-get update \
     && apt-get install -y curl unzip bash ca-certificates 

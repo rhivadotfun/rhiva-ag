@@ -26,6 +26,7 @@ import { appRouter, type AppRouter } from "./routers";
 const server = fastify({
   logger: true,
   maxParamLength: 5000,
+  ignoreDuplicateSlashes: true,
 });
 
 const store = new RedisStore({
