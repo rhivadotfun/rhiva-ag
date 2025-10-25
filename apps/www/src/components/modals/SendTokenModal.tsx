@@ -1,8 +1,5 @@
 import clsx from "clsx";
-import { useMemo } from "react";
-import { AuthStatus } from "@civic/auth";
 import { MdClose } from "react-icons/md";
-import { useUser } from "@civic/auth/react";
 import { Field, Form, Formik } from "formik";
 import {
   Dialog,
@@ -15,6 +12,7 @@ import { useAppSelector } from "@/store";
 import TokenInput from "../send-token/TokenInput";
 import TokenSelect from "../send-token/TokenSelect";
 import { walletTokenSelectors } from "@/store/wallet";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function SendTokenModal(
   props: React.ComponentProps<typeof Dialog>,
@@ -33,14 +31,9 @@ export default function SendTokenModal(
 }
 
 function SendTokenForm(props: React.ComponentProps<typeof Form>) {
-  const { authStatus } = useUser();
+  const { isAuthenticated } = useAuth();
   const { walletToken } = useAppSelector((state) => state.wallet);
   const tokens = walletTokenSelectors.selectAll(walletToken);
-
-  const isAuthenticated = useMemo(
-    () => authStatus === AuthStatus.AUTHENTICATED,
-    [authStatus],
-  );
 
   return (
     <Formik

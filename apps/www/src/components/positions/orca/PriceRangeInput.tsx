@@ -1,5 +1,6 @@
 import { Chart, Tooltip } from "chart.js";
 import { useCallback, useMemo } from "react";
+import type { Pair } from "@rhiva-ag/dex-api";
 import type { Account, Address } from "@solana/kit";
 import type { Whirlpool } from "@orca-so/whirlpools-client";
 import { BarElement, CategoryScale, LinearScale } from "chart.js";
@@ -8,12 +9,12 @@ import {
   priceToTickIndex,
 } from "@orca-so/whirlpools-core/dist/browser/orca_whirlpools_core_js_bindings";
 
-import type { getPair } from "@/lib/web3/dex-api";
 import PriceRangeInput from "../PriceRangeInput";
 
 Chart.register(CategoryScale, LinearScale, BarElement, Tooltip);
 
 type PriceRangeInputProps = {
+  pool: Pair;
   sides: boolean[];
   amount?: number;
   label?: string;
@@ -21,7 +22,6 @@ type PriceRangeInputProps = {
   value: [number, number];
   liquidityRatio?: [number, number];
   whirlpool: Account<Whirlpool, Address>;
-  pool: Awaited<ReturnType<typeof getPair>>;
   onChange: (value: [number, number]) => void;
 };
 

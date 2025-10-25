@@ -1,12 +1,8 @@
-"use client";
-import { useTiers } from "@/hooks/useTiers";
+import PointClientPage from "./page.client";
 import Header from "@/components/layout/Header";
-import PointTier from "@/components/points/PointTier";
-import PointAnalytic from "@/components/points/PointAnalytic";
-import PointOverview from "@/components/points/PointOverview";
 
+export const dynamic = "force-dynamic";
 export default function PointPage() {
-  const { tiers, nextTier, currentTier, user, stars } = useTiers();
   return (
     <div className="flex-1 flex flex-col backdrop-blur-2xl overflow-y-scroll lt-sm:fixed lt-sm:inset-0 lt-md:z-50 lt-sm:bg-dark">
       <Header
@@ -20,24 +16,7 @@ export default function PointPage() {
             Track your XP, level up, and climb the global ranks
           </p>
         </div>
-        <div className="flex flex-col space-y-8">
-          <PointOverview
-            xp={user.xp}
-            currentTier={currentTier}
-            nextTier={nextTier}
-          />
-          <PointAnalytic
-            totalUsers={user.totalUsers}
-            stars={stars}
-            rank={user.rank}
-            xp={user.xp}
-            todayXp={user.todayXp}
-          />
-          <PointTier
-            tiers={tiers}
-            currentTier={currentTier}
-          />
-        </div>
+        <PointClientPage />
       </div>
     </div>
   );
