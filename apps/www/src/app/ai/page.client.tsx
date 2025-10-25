@@ -13,6 +13,7 @@ import type {
 import Header from "@/components/ai/Header";
 import EmptyChat from "@/components/ai/EmptyChat";
 import ChatSidebar from "@/components/ai/ChatSidebar";
+import MessageRenderer from "@/components/ai/MessageRenderer";
 import { useTRPC, useTRPCClient } from "@/trpc.client";
 
 type AiPageClientProps = {
@@ -167,11 +168,14 @@ export default function AiPageClient({ threads }: AiPageClientProps) {
           <div className="flex-1 flex flex-col overflow-y-scroll">
             {isFetching && <div className="m-auto" />}
             {messages?.length ? (
-              messages.map((message) => (
-                <div key={message.id}>
-                  <pre>{JSON.stringify(message.content)}</pre>
-                </div>
-              ))
+              <div className="py-6">
+                {messages.map((message) => (
+                  <MessageRenderer
+                    key={message.id}
+                    message={message}
+                  />
+                ))}
+              </div>
             ) : (
               <EmptyChat onPrompt={(value) => setFieldValue("prompt", value)} />
             )}
