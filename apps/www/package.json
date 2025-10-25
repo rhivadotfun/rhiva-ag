@@ -15,8 +15,6 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
-    "@jup-ag/api": "^6.0.44",
-    "@jup-ag/plugin": "^1.0.6",
     "@meteora-ag/dlmm": "^1.7.5",
     "@opennextjs/cloudflare": "^1.10.1",
     "@orca-so/whirlpools-core": "^2.0.0",
