@@ -3,6 +3,7 @@ import bs58 from "bs58";
 import xior from "xior";
 import type z from "zod";
 import { toast } from "react-toastify";
+import { SigninMessage } from "@rhiva-ag/shared";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { CookiesProvider, useCookies } from "react-cookie";
 import type {
@@ -28,7 +29,6 @@ import {
 
 import "../../firebase.config";
 import AuthModal from "./AuthModal";
-import { SigninMessage } from "@/lib/web3/sign-message";
 import SolanaWalletProvider from "@/providers/SolanaWalletProvider";
 
 type User = z.infer<typeof safeAuthUserSchema>;
