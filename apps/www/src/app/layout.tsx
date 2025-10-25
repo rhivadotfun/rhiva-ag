@@ -2,8 +2,9 @@ import clsx from "clsx";
 import Image from "next/image";
 import "@unocss/reset/tailwind.css";
 import "rc-slider/assets/index.css";
+import type { Metadata } from "next";
+import { Roboto } from "next/font/google";
 import { ToastContainer } from "react-toastify";
-import { PT_Sans_Caption } from "next/font/google";
 
 import "./globals.css";
 import Provider from "@/providers";
@@ -11,11 +12,20 @@ import Auth from "@/components/auth";
 import Line from "@/assets/bg/line.png";
 import NavBar from "@/components/layout/NavBar";
 
-const defaultFont = PT_Sans_Caption({
+const defaultFont = Roboto({
   subsets: ["latin"],
   variable: "--font-noto-sans",
-  weight: ["400", "700"],
+  weight: ["400", "500", "600", "700"],
 });
+
+export const metadata: Metadata = {
+  title: "Rhiva | Liquidity Aggregator for seamless LP",
+  description:
+    "Experience Rhiva Beta, the all-in-one liquidity aggregator. Provide liquidity across multiple dexes.",
+  openGraph: {
+    images: ["https://beta.rhiva.fun/banner.jpg"],
+  },
+};
 
 export default function RootLayout({ children }: React.PropsWithChildren) {
   return (
