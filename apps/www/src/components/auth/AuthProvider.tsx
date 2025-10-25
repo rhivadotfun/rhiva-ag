@@ -133,9 +133,8 @@ export default withCookieProvider(function AuthProvider({
 
   const signInWithWallet = useCallback(async () => {
     const message = {
-      domain: window.location.host,
+      domain: window.location.href,
       publicKey: wallet.publicKey!.toBase58(),
-      nonce: "",
       statement: "Login to Rhiva by signing this message",
     };
     const signMessage = new SigninMessage(message);

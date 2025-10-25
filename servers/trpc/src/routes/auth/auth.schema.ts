@@ -3,9 +3,9 @@ import z from "zod";
 export const walletAuthSchema = z.object({
   message: z.object({
     domain: z.url(),
-    nonce: z.string(),
     publicKey: z.string(),
     statement: z.string(),
+    nonce: z.string().optional(), // todo csrf validation
   }),
   signature: z.string(),
 });

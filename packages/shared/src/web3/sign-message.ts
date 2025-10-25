@@ -5,12 +5,12 @@ import { format } from "util";
 type SignMessage = {
   domain: string;
   publicKey: string;
-  nonce: string;
+  nonce?: string;
   statement: string;
 };
 
 export class SigninMessage {
-  nonce: string;
+  nonce?: string;
   domain: string;
   publicKey: string;
   statement: string;
