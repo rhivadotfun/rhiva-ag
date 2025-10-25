@@ -1,6 +1,7 @@
 import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
 
-import { CivicAuthMiddleware } from "./controllers/auth.controller";
+import type { User } from "./controllers/types";
+import { JWTAuthMiddleware } from "./controllers/jwt-auth.controller";
 import {
   secret,
   drizzle,
@@ -14,12 +15,19 @@ import {
 } from "./instances";
 
 const redis = createRedis();
-const authMiddleware = new CivicAuthMiddleware(redis, kmsSecret, drizzle, {
-  ttl: 86400,
-});
+const authMiddlewares = [
+  new JWTAuthMiddleware(redis, kmsSecret, drizzle, {
+    ttl: 86400,
+  }),
+];
 
 export const createContext = async ({ req }: CreateFastifyContextOptions) => {
-  const user = await authMiddleware.getUser(req);
+  let user: User | null | undefined;
+
+  for (const authMiddleware of authMiddlewares) {
+    user = await authMiddleware.getUser(req);
+    if (user) break;
+  }
 
   return {
     user,

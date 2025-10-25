@@ -1,22 +1,22 @@
 import Decimal from "decimal.js";
 import { Chart, Tooltip } from "chart.js";
 import { useCallback, useMemo } from "react";
+import type { Pair } from "@rhiva-ag/dex-api";
 import { BarElement, CategoryScale, LinearScale } from "chart.js";
 import { TickMath, SqrtPriceMath } from "@raydium-io/raydium-sdk-v2";
 
-import type { getPair } from "@/lib/web3/dex-api";
 import PriceRangeInput from "../PriceRangeInput";
-import type { getPoolState } from "@/lib/raydium-patch";
+import type { getPoolState } from "@/lib/web3/raydium-patch";
 
 Chart.register(CategoryScale, LinearScale, BarElement, Tooltip);
 
 type PriceRangeInputProps = {
+  pool: Pair;
   sides: boolean[];
   amount?: number;
   label?: string;
   value: [number, number];
   liquidityRatio?: [number, number];
-  pool: Awaited<ReturnType<typeof getPair>>;
   onChange: (value: [number, number]) => void;
   poolState: NonNullable<Awaited<ReturnType<typeof getPoolState>>>;
 };

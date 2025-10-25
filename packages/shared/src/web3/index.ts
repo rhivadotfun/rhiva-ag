@@ -30,6 +30,7 @@ import {
 } from "./types";
 
 export * from "./utils";
+export * from "./sign-message";
 export type { SimulateBundleResponse };
 
 export class SendTransaction {

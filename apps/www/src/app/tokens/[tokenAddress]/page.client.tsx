@@ -1,14 +1,11 @@
 "use client";
 import moment from "moment";
 import { format } from "util";
-import { AuthStatus } from "@civic/auth";
-import { useMemo, useState } from "react";
-import { useUser } from "@civic/auth/react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { dexApi } from "@/instances";
 import { useAuth } from "@/hooks/useAuth";
-import { useSignIn } from "@/hooks/useSignIn";
 import Header from "@/components/layout/Header";
 import { DefaultToken } from "@/constants/tokens";
 import TokenSort from "@/components/token/TokenTab";
@@ -33,15 +30,8 @@ export default function TokenPage({
   params: { tokenAddress },
   searchParams: { timeframe },
 }: TokenPageProps) {
-  const { user } = useAuth();
-  const signIn = useSignIn();
-  const { authStatus } = useUser();
+  const { signIn, isAuthenticated } = useAuth();
   const [showSwapModal, setShowSwapModal] = useState(false);
-
-  const isAuthenticated = useMemo(
-    () => user && authStatus === AuthStatus.AUTHENTICATED,
-    [authStatus, user],
-  );
 
   const { data } = useQuery({
     queryKey: ["tokens", tokenAddress],

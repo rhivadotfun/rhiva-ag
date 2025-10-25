@@ -3,12 +3,12 @@ import { format } from "util";
 import RangeSlider from "rc-slider";
 import { Bar } from "react-chartjs-2";
 import { Chart, Tooltip } from "chart.js";
+import type { Pair } from "@rhiva-ag/dex-api";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BarElement, CategoryScale, LinearScale } from "chart.js";
 
 import Decimal from "../Decimal";
 import NumberInput from "../NumberInput";
-import type { getPair } from "@/lib/web3/dex-api";
 import { generateLiquidityDistribution } from "@/lib";
 
 Chart.register(CategoryScale, LinearScale, BarElement, Tooltip);
@@ -19,18 +19,19 @@ type RangeAutoFillOption = {
 };
 
 type PriceRangeInputProps = {
+  pool: Pair;
+
   sides: boolean[];
   amount?: number;
   label?: string;
   showInput?: boolean;
   value: [number, number];
   currentPrice: number;
-  priceToIndex: (price: number, decimal0: number, decimal1: number) => number;
-  indexToPrice: (price: number, decimal0: number, decimal1: number) => number;
   liquidityRatio?: [number, number];
   curveType?: "Spot" | "Curve" | "BidAsk";
-  pool: Awaited<ReturnType<typeof getPair>>;
   onChange: (value: [number, number]) => void;
+  priceToIndex: (price: number, decimal0: number, decimal1: number) => number;
+  indexToPrice: (price: number, decimal0: number, decimal1: number) => number;
 };
 
 export default function PriceRangeInput({

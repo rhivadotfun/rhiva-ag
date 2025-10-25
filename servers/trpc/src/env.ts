@@ -22,7 +22,6 @@ type Env =
   | "MCP_SERVER_URL"
   | "DATABASE_URL"
   | "COINGECKO_API_KEY"
-  | "CIVIC_CLIENT_ID"
   | "JITO_API_URL"
   | "JITO_UUID"
   | "HELIUS_API_URL"
@@ -33,7 +32,8 @@ type Env =
   | "AWS_REGION"
   | "AWS_KMS_KEY_ID"
   | "DEV_WALLET"
-  | "OPEN_API_KEY";
+  | "OPEN_API_KEY"
+  | "FIREBASE_SERVICE_KEY";
 
 export const getEnv = <T>(name: Env, refine?: <K>(value: K) => T): T => {
   const value = process.env[name] || process.env[format("APP_%s", name)];

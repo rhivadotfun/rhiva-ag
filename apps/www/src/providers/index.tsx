@@ -7,7 +7,6 @@ import { store } from "@/store";
 import AppData from "./AppData";
 import TRPCProvider from "./TRPCProvider";
 import ReactQueryProvider from "./ReactQueryProvider";
-import SolanaWalletProvider from "./SolanaWalletProvider";
 
 export default function Provider({ children }: React.PropsWithChildren) {
   return (
@@ -15,9 +14,7 @@ export default function Provider({ children }: React.PropsWithChildren) {
       <NextIntlClientProvider locale="en">
         <ReactQueryProvider>
           <TRPCProvider>
-            <CookiesProvider>
-              <SolanaWalletProvider>{children}</SolanaWalletProvider>
-            </CookiesProvider>
+            <CookiesProvider>{children}</CookiesProvider>
             <AppData />
           </TRPCProvider>
         </ReactQueryProvider>

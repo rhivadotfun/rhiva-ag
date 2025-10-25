@@ -1,6 +1,4 @@
 import { useMemo } from "react";
-import { SessionProvider } from "next-auth/react";
-import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
 import {
   ConnectionProvider,
@@ -9,10 +7,7 @@ import {
 
 export default function SolanaWalletProvider({
   children,
-  ...props
-}: React.PropsWithChildren<
-  React.ComponentPropsWithoutRef<typeof SessionProvider>
->) {
+}: React.PropsWithChildren) {
   const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
   return (
     <ConnectionProvider endpoint={process.env.NEXT_PUBLIC_SOLANA_RPC_URL!}>
@@ -20,9 +15,7 @@ export default function SolanaWalletProvider({
         wallets={wallets}
         autoConnect
       >
-        <WalletModalProvider>
-          <SessionProvider {...props}>{children}</SessionProvider>
-        </WalletModalProvider>
+        {children}
       </WalletProvider>
     </ConnectionProvider>
   );
