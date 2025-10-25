@@ -1,0 +1,28 @@
+global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+  - job_name: "bullmq"
+    metrics_path: /metrics/bullmq
+    scheme: http
+    static_configs:
+      - targets: ["localhost:8006"]
+        labels:
+          app: "node-app"
+          exporter: "bullnq"
+  - job_name: "pm2"
+    metrics_path: /metrics/pm2
+    scheme: http
+    static_configs:
+      - targets: ["localhost:8006"]
+        labels:
+          app: "node-app"
+          exporter: "pm2"
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+rule_files:
+  - "alert-rules.yml"

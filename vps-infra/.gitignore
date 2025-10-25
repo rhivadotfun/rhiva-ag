@@ -1,0 +1,7 @@
+redis
+redis-docker-compose.yml
+node_modules
+postgres
+.env
+.env.*
+docker-compose.yml

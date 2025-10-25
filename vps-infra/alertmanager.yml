@@ -1,0 +1,15 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: "telegram-alerts"
+
+receivers:
+  - name: "telegram-alerts"
+    telegram_configs:
+      - bot_token: "8211091278:AAEIEOafokKw5TWmRC5u49CHXwrHGK-Nw1E"
+        chat_id: 6061617258
+        message: | 
+          🔴 *Alert* {{ .CommonAnnotations.summary }}
+          📄 *Description:* {{ .CommonAnnotations.description }}
+          🔖 *Labels:* {{ .CommonLabels }}

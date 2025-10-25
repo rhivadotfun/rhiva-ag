@@ -1,0 +1,3 @@
+grafana.rhiva.fun {
+  reverse_proxy localhost:3000
+}
