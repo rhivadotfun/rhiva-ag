@@ -5,13 +5,12 @@ import Link from "next/link";
 import Image from "next/image";
 import debounce from "lodash.debounce";
 import { useMemo, useState } from "react";
-import { AuthStatus } from "@civic/auth";
-import { useUser } from "@civic/auth/react";
 import { usePathname } from "next/navigation";
 
 import SideNav from "./SideNav";
 import Logo from "@/assets/logo.png";
 import IcAi from "@/assets/icons/ic_ai";
+import { useAuth } from "@/hooks/useAuth";
 import IcHome from "@/assets/icons/ic_home";
 import IcPool from "@/assets/icons/ic_pool";
 import LogoSmall from "@/assets/logo-sm.png";
@@ -26,15 +25,10 @@ type NavItem = {
 
 export default function NavBar(props: React.ComponentProps<"div">) {
   const pathname = usePathname();
-  const { signIn, authStatus } = useUser();
+  const { signIn, isAuthenticated } = useAuth();
   const [expanded, setExpanded] = useState(false);
 
   const toggleExpanded = useMemo(() => debounce(setExpanded, 150), []);
-
-  const authenticated = useMemo(
-    () => authStatus === AuthStatus.AUTHENTICATED,
-    [authStatus],
-  );
 
   const navItems: NavItem[] = useMemo(
     () => [
@@ -103,7 +97,7 @@ export default function NavBar(props: React.ComponentProps<"div">) {
                   onMouseEnter={() => toggleExpanded(true)}
                   onNavigate={(event) => {
                     if (navItem.protected) {
-                      if (authenticated) return;
+                      if (isAuthenticated) return;
                       event.preventDefault();
                       return signIn();
                     }

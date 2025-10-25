@@ -1,7 +1,5 @@
 import clsx from "clsx";
 import { useMemo, useState } from "react";
-import { AuthStatus } from "@civic/auth";
-import { useUser } from "@civic/auth/react";
 import { useMutation } from "@tanstack/react-query";
 import { MdClose, MdSwapVert } from "react-icons/md";
 import { Form, FormikContext, useFormik } from "formik";
@@ -14,11 +12,10 @@ import {
 
 import TokenInput from "../TokenInput";
 import { useTRPC } from "@/trpc.client";
+import { useAuth } from "@/hooks/useAuth";
 import type { Token } from "./SelectTokenModal";
 import SelectTokenModal from "./SelectTokenModal";
 import { DefaultToken } from "@/constants/tokens";
-import { useAuth } from "@/hooks/useAuth";
-import { useSignIn } from "@/hooks/useSignIn";
 
 type SwapModalProps = {
   tokens?: [Token, Token];
@@ -45,19 +42,12 @@ function SwapForm({
   ...props
 }: React.ComponentProps<typeof Form> & Pick<SwapModalProps, "tokens">) {
   const trpc = useTRPC();
-  const { user } = useAuth();
-  const signIn = useSignIn();
-  const { authStatus } = useUser();
+  const { isAuthenticated, signIn, user } = useAuth();
 
   const [showSelectInputTokenModal, setShowSelectInputTokenModal] =
     useState(false);
   const [showSelectOutputTokenModal, setShowSelectOutputTokenModal] =
     useState(false);
-
-  const isAuthenticated = useMemo(
-    () => user && authStatus === AuthStatus.AUTHENTICATED,
-    [authStatus, user],
-  );
 
   const { mutateAsync } = useMutation(trpc.token.swap.mutationOptions());
 
@@ -71,12 +61,12 @@ function SwapForm({
     async onSubmit(values) {
       if (!isAuthenticated) await signIn();
       return mutateAsync({
-        slippage: 50,
+        amount: values.inputAmount,
         inputMint: values.inputToken.mint,
         outputMint: values.outputToken.mint,
-        amount:
-          BigInt(values.inputAmount) *
-          BigInt(Math.pow(10, values.inputToken.decimals)),
+        slippage: user.settings.slippage * 100,
+        inputDecimals: values.inputToken.decimals,
+        outputDecimals: values.outputToken.decimals,
       });
     },
   });

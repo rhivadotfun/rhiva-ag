@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/layout/Header";
 import RebalanceTime from "@/components/settings/RebalanceTime";
 import RebalanceType from "@/components/settings/RebalanceType";
-import type { AuthContextArgs } from "@/providers/AuthProvider.client";
+import type { TAuthContext } from "@/components/auth/AuthProvider";
 
 export default function SettingsPage() {
   const trpc = useTRPC();
@@ -20,7 +20,7 @@ export default function SettingsPage() {
       onSuccess(settings) {
         setUser(
           (previous) =>
-            ({ ...previous, settings }) as NonNullable<AuthContextArgs["user"]>,
+            ({ ...previous, settings }) as NonNullable<TAuthContext["user"]>,
         );
       },
     }),
