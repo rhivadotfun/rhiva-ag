@@ -1,11 +1,12 @@
 import clsx from "clsx";
+import Link from "next/link";
+import { format } from "util";
 import { useMemo } from "react";
+import type { DexApi } from "@rhiva-ag/dex-api";
 import { useSearchParams } from "next/navigation";
 
 import Decimal from "../Decimal";
-import Link from "next/link";
-import { format } from "util";
-import type { DexApi } from "@rhiva-ag/dex-api";
+
 import { percentageIntlArgs } from "@/constants/format";
 
 type TokenSortProps = {
@@ -50,7 +51,7 @@ export default function TokenTab({ data, ...props }: TokenSortProps) {
       {...props}
       className={clsx(
         props.className,
-        "flex  divide-x divide-white/10 border border-white/10 rounded-md overflow-hidden",
+        "flex divide-x divide-white/10 border border-white/10 rounded-md overflow-hidden",
       )}
     >
       {tabs.map((tab) => {

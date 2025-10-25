@@ -5,6 +5,7 @@ import Decimal from "../Decimal";
 import IcAiIcon from "@/assets/icons/ic_ai";
 import { currencyIntlArgs } from "@/constants/format";
 import { format } from "util";
+import { useAuth } from "@/hooks/useAuth";
 
 type TokenInfoProps = {
   mint: string;
@@ -25,6 +26,7 @@ export default function TokenInfo({
   ...props
 }: TokenInfoProps) {
   const router = useRouter();
+  const { isAuthenticated, signIn } = useAuth();
 
   return (
     <div
@@ -38,9 +40,11 @@ export default function TokenInfo({
         <button
           type="button"
           className="flex items-center space-x-2 border border-green fill-green px-2 py-1 rounded-md"
-          onClick={() =>
-            router.push(format("/ai?prompt=Analyse this token %s", mint))
-          }
+          onClick={() => {
+            if (isAuthenticated)
+              router.push(format("/ai?prompt=Analyse this token %s", mint));
+            else signIn();
+          }}
         >
           <IcAiIcon
             width={18}

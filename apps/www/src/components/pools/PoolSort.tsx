@@ -72,7 +72,7 @@ export default function PoolSort(props: React.ComponentProps<"div">) {
             className="text-gray"
           />
         </MenuButton>
-        <MenuItems className="mt-2 absolute flex flex-col bg-dark-secondary p-2 border border-white/10 w-full rounded-md focus:outline-none">
+        <MenuItems className="mt-2 absolute flex flex-col bg-dark-secondary border border-white/10 w-full rounded-xl focus:outline-none">
           {trendingSorts.map((sort) => {
             const selected = sortBy === sort.value;
             const urlSearchParams = new URLSearchParams(searchParams);
@@ -84,12 +84,13 @@ export default function PoolSort(props: React.ComponentProps<"div">) {
                 <Link
                   href={format("?%s", urlSearchParams.toString())}
                   className={clsx(
-                    "flex items-center space-x-2",
-                    selected ? "" : "text-gray",
+                    "flex items-center space-x-2 p-2",
+                    selected ? "text-primary" : "text-light",
                   )}
                 >
                   <MdCheck
                     className={clsx(
+                      "hidden",
                       selected ? "visible text-primary" : "invisible",
                     )}
                   />

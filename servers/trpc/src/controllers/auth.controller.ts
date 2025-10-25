@@ -36,33 +36,30 @@ export abstract class AuthMiddleware {
     secret: KMSSecret | Secret,
     values: z.infer<typeof userInsertSchema>,
   ) {
-    const user = await drizzle.query.users.findFirst({
-      with: {
-        wallet: true,
-      },
+    let user = await drizzle.query.users.findFirst({
       where: eq(users.uid, values.uid),
     });
 
     const setupUserAccount = async (user: typeof users.$inferSelect) => {
-      const keypair = Keypair.generate();
-      let wrappedDek: string, encryptedText: string;
+      const promises = [];
+      const wallet = await drizzle.query.wallets.findFirst({
+        where: eq(wallets.user, user.id),
+      });
 
-      if (secret instanceof KMSSecret) {
-        const { wrappedDek: dek, encryptedText: key } = await secret.encrypt(
-          keypair.secretKey.toBase64(),
-        );
-        wrappedDek = dek;
-        encryptedText = key;
-      } else encryptedText = secret.encrypt(keypair.secretKey.toBase64());
-      await drizzle.transaction(async (db) => {
-        return Promise.all([
-          db
-            .insert(settings)
-            .values({
-              user: user.id,
-            })
-            .onConflictDoNothing({ target: [settings.user] }),
-          db
+      if (!wallet) {
+        const keypair = Keypair.generate();
+        let wrappedDek: string | undefined, encryptedText: string;
+
+        if (secret instanceof KMSSecret) {
+          const { wrappedDek: dek, encryptedText: key } = await secret.encrypt(
+            keypair.secretKey.toBase64(),
+          );
+          wrappedDek = dek;
+          encryptedText = key;
+        } else encryptedText = secret.encrypt(keypair.secretKey.toBase64());
+
+        promises.push(
+          drizzle
             .insert(wallets)
             .values({
               wrappedDek,
@@ -71,8 +68,18 @@ export abstract class AuthMiddleware {
               id: keypair.publicKey.toBase58(),
             })
             .onConflictDoNothing({ target: [wallets.user] }),
-        ]);
-      });
+        );
+      }
+
+      return Promise.all([
+        ...promises,
+        drizzle
+          .insert(settings)
+          .values({
+            user: user.id,
+          })
+          .onConflictDoNothing({ target: [settings.user] }),
+      ]);
     };
     const yesterday = moment().startOf("day").subtract(1, "day");
     const resetStreak = user
@@ -80,7 +87,7 @@ export abstract class AuthMiddleware {
       : false;
     const currentStreak = user ? (resetStreak ? 1 : user.currentStreak + 1) : 1;
 
-    const [createdUser] = await drizzle
+    [user] = await drizzle
       .insert(users)
       .values(values)
       .onConflictDoUpdate({
@@ -92,28 +99,30 @@ export abstract class AuthMiddleware {
       })
       .returning();
 
-    if (createdUser) {
-      if (!user) await setupUserAccount(createdUser);
+    if (user) {
+      await setupUserAccount(user);
       if (currentStreak === 7)
         await drizzle.insert(rewards).values({
           xp: 50,
-          user: createdUser.id,
+          user: user.id,
           key: "7_days_streak",
         });
       if (currentStreak === 30)
         await drizzle.insert(rewards).values({
           xp: 100,
-          user: createdUser.id,
+          user: user.id,
           key: "1_month_streak",
         });
+
+      return drizzle.query.users.findFirst({
+        with: {
+          wallet: true,
+        },
+        where: eq(users.uid, values.uid),
+      });
     }
 
-    return drizzle.query.users.findFirst({
-      with: {
-        wallet: true,
-      },
-      where: eq(users.uid, values.uid),
-    });
+    return null;
   }
 
   async getUser(request: FastifyRequest): Promise<User | undefined | null> {

@@ -18,8 +18,8 @@ type PoolClientPageProps = {
 export default function PoolClientPage({ searchParams }: PoolClientPageProps) {
   const trpc = useTRPC();
   const trpcClient = useTRPCClient();
-
-  const [query, setQuery] = useState<string | undefined>();
+  console.log(searchParams);
+  const [query, setQuery] = useState<string | undefined>(searchParams.query);
 
   const { data } = useQuery({
     queryKey: trpc.pool.list.queryKey({ query, ...searchParams }),
@@ -44,8 +44,9 @@ export default function PoolClientPage({ searchParams }: PoolClientPageProps) {
             <div className="flex lt-lg:flex-col lt-lg:space-y-2 lg:items-center lg:justify-between lg:space-x-4">
               <div className="lt-lg:flex lt-lg:space-x-4">
                 <SearchInput
-                  placeholder="Search"
-                  className="lt-lg:flex-1 lg:self-start backdrop-blur-2xl p-2"
+                  defaultValue={query}
+                  placeholder="Search pools"
+                  className="lt-lg:flex-1 lg:self-start"
                   onChange={(value) => {
                     if (value) setQuery(value);
                     else setQuery(undefined);

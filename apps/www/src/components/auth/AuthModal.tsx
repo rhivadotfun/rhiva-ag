@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useMemo } from "react";
 import { object, string } from "yup";
 import { toast } from "react-toastify";
-import { FcGoogle } from "react-icons/fc";
 import { useCookies } from "react-cookie";
 import { Field, Form, Formik } from "formik";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -14,12 +13,12 @@ import type { safeAuthUserSchema } from "@rhiva-ag/trpc";
 import type { ActionCodeSettings } from "firebase-admin/auth";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import {
-  type FacebookAuthProvider,
   getAuth,
-  GoogleAuthProvider,
   sendSignInLinkToEmail,
   signInWithPopup,
   type User,
+  type GoogleAuthProvider,
+  type FacebookAuthProvider,
 } from "firebase/auth";
 
 import Logo from "@/assets/logo-sm.png";
@@ -40,10 +39,7 @@ export default function AuthModal({ onSignIn, ...props }: AuthModalProps) {
   const [cookies, setCookie] = useCookies<"email", { email: string }>([
     "email",
   ]);
-  const authConnectors: AuthConnector[] = useMemo(
-    () => [{ name: "google", icon: FcGoogle, provider: GoogleAuthProvider }],
-    [],
-  );
+  const authConnectors: AuthConnector[] = useMemo(() => [], []);
 
   return (
     <Dialog
