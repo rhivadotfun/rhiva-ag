@@ -27,17 +27,18 @@ export default function PointOverview({
     <div
       {...props}
       className={clsx(
-        "flex space-x-4 bg-white/3 backdrop-blur-3xl border border-white/10 px-2 py-4 rounded-xl",
+        "flex space-x-4 bg-white/3 backdrop-blur-3xl border border-white/10 px-2 py-4 lg:px-4 lg:py-6 rounded-xl",
         props.className,
       )}
     >
       <Image
         src={currentTier.icon}
-        width={128}
-        height={128}
+        width={300}
+        height={300}
         alt={currentTier.name}
+        className="ml-5"
       />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col px-12">
         {nextTier && (
           <div className="self-end flex space-x-2">
             <span className="text-gray">Next Tier:</span>
@@ -52,7 +53,7 @@ export default function PointOverview({
           </div>
           <div className=" flex bg-white/3 max-w-xl overflow-hidden rounded-full">
             <div
-              className="p-1 bg-primary rounded-full"
+              className="p-2 bg-primary rounded-full"
               style={{ width: format("%s%%", percentage) }}
             />
           </div>
