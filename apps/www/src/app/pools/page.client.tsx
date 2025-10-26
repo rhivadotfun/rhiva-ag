@@ -33,7 +33,7 @@ export default function PoolClientPage({ searchParams }: PoolClientPageProps) {
   });
 
   return (
-    <div className="flex-1 flex flex-col overflow-y-scroll">
+    <div className="flex-1 flex flex-col lg:p-4 overflow-y-scroll">
       <Header
         title="Pools"
         className="sticky top-0 z-10"
@@ -54,14 +54,14 @@ export default function PoolClientPage({ searchParams }: PoolClientPageProps) {
                 />
                 <PoolFilter className="lg:hidden" />
               </div>
-              <PoolInfoList className="lg:self-end" />
+              <PoolInfoList className="lg:self-end backdrop-blur-2xl" />
             </div>
             <div className="flex lt-lg:flex-col lg:items-center lg:justify-between lg:space-x-4">
               <PoolTab className="lt-lg:hidden" />
 
               <div className="lg:flex lg:items-center lg:space-x-2 lt-lg:flex-1 ">
                 <PoolSort />
-                <PoolFilter className="lt-lg:hidden" />
+                <PoolFilter className="lt-lg:hidden backdrop-blur-2xl" />
               </div>
             </div>
           </div>
