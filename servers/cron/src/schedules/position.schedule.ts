@@ -21,6 +21,7 @@ export default async function createSchedule({
   });
 
   const syncPositionSchedule = async () => {
+    logger.info("position.sync.schedule");
     const wallets = await db.query.wallets.findMany({
       columns: {
         id: true,
@@ -51,6 +52,9 @@ export default async function createSchedule({
       connection: createRedis({ maxRetriesPerRequest: null }),
     },
   );
+
+  // run now
+  await syncPositionSchedule();
 
   worker.on("failed", (job, error) => {
     console.error(error);

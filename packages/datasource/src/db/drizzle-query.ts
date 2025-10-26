@@ -109,9 +109,10 @@ export const buildDrizzleWhereClauseFromObject = <
   };
 
   for (const [name, operator] of Object.entries(value))
-    query.push(
-      ...getFilters<SQL<unknown>>(sql.raw(format('"%s"', name)), operator),
-    );
+    if (operator)
+      query.push(
+        ...getFilters<SQL<unknown>>(sql.raw(format('"%s"', name)), operator),
+      );
 
   return query;
 };

@@ -21,8 +21,7 @@ export const coalesce = <T extends Column | SQL.Aliased | SQL<unknown>>(
   value: number | string,
 ) => sql`COALESCE(${column}, ${value})`;
 
-export const day = <T extends Column>(column: T) =>
-  sql`date_trunc('day', ${column})`.as(column._.name);
+export const day = <T extends Column>(column: T) => sql`DATE(${column})`;
 
 export const date = <T extends Column>(column: T) => sql`DATE(${column})`;
 

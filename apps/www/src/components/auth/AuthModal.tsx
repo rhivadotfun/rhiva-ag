@@ -182,7 +182,7 @@ export default function AuthModal({ onSignIn, ...props }: AuthModalProps) {
               href="legal.rhiva.fun"
               className="text-primary"
             >
-              Terms{" "}
+              Terms&nbsp;
             </a>
             <span>and </span>
             <a

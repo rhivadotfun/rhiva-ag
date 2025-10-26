@@ -17,7 +17,6 @@ export default async function proxy(req: NextRequest) {
   );
 
   const session = (await cookies()).get("session")?.value;
-
   if (isProtectedRoute && !session)
     return NextResponse.redirect(new URL("/", req.nextUrl));
 

@@ -2,7 +2,7 @@ import type z from "zod";
 import moment from "moment";
 import { format } from "util";
 import type Redis from "ioredis";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { Keypair } from "@solana/web3.js";
 import type { FastifyRequest } from "fastify";
 import { KMSSecret, type Secret } from "@rhiva-ag/shared";

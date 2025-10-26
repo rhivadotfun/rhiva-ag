@@ -19,7 +19,8 @@ export default function ClosedPositionTable() {
   const trpc = useTRPC();
   const itemsPerPage = useRef(5);
   const searchParams = useSearchParams();
-  const [currentPage, setCurrentPage] = useState(1);
+  const dex = searchParams.get("dex");
+  const [currentPage, setCurrentPage] = useState(0);
 
   const percentageIntl = useMemo(
     () => new Intl.NumberFormat("en-US", percentageIntlArgs),
@@ -32,7 +33,7 @@ export default function ClosedPositionTable() {
       limit: itemsPerPage.current,
       filter: {
         state: { eq: "closed" },
-        dex: { eq: searchParams.get("dex") },
+        dex: dex ? { eq: dex } : undefined,
       },
     }),
   );

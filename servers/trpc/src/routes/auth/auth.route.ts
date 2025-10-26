@@ -32,11 +32,9 @@ const walletSignInRoute = async (
 
     if (user) {
       const extendedUser = await getUserById(db, user.id);
-      const token = jwt.sign({ user: user.id }, getEnv<string>("SECRET_KEY"), {
+      const token = jwt.sign({ user: user.uid }, getEnv<string>("SECRET_KEY"), {
         expiresIn: 25200,
       });
-
-      console.log(extendedUser, { depth: null });
 
       return safeAuthUserSchema.parse({ token, ...extendedUser });
     }
@@ -59,7 +57,7 @@ const firebaseTokenSignInRoute = async (
 
   if (user) {
     const extendedUser = await getUserById(db, user.id);
-    const token = jwt.sign({ user: user.id }, getEnv<string>("SECRET_KEY"), {
+    const token = jwt.sign({ user: user.uid }, getEnv<string>("SECRET_KEY"), {
       expiresIn: 25200,
     });
     return safeAuthUserSchema.parse({ token, ...extendedUser });
