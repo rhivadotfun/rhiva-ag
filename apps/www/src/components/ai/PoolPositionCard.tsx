@@ -113,12 +113,12 @@ export default function PoolPositionCard({
 
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="space-y-1">
-          <p className="text-zinc-500 text-xs uppercase tracking-wide">APR</p>
-          <p className="text-green-400 text-xl font-bold">{metrics.apr}%</p>
+          <p className="text-gray-400 text-xs uppercase tracking-wide">APR</p>
+          <p className="text-primary text-xl font-bold">{metrics.apr}%</p>
         </div>
 
         <div className="space-y-1">
-          <p className="text-zinc-500 text-xs uppercase tracking-wide">
+          <p className="text-gray-400 text-xs uppercase tracking-wide">
             Suggested Range
           </p>
           <p className="text-white text-xl font-semibold">
@@ -127,7 +127,7 @@ export default function PoolPositionCard({
         </div>
 
         <div className="space-y-1">
-          <p className="text-zinc-500 text-xs uppercase tracking-wide">
+          <p className="text-gray-400 text-xs uppercase tracking-wide">
             Confidence
           </p>
           <p className="text-white text-xl font-semibold">
@@ -136,14 +136,14 @@ export default function PoolPositionCard({
         </div>
 
         <div className="space-y-1">
-          <p className="text-zinc-500 text-xs uppercase tracking-wide">
+          <p className="text-gray-400 text-xs uppercase tracking-wide">
             Strategy
           </p>
           <p className="text-white text-xl font-semibold">{metrics.strategy}</p>
         </div>
 
         <div className="space-y-1">
-          <p className="text-zinc-500 text-xs uppercase tracking-wide">
+          <p className="text-gray-400 text-xs uppercase tracking-wide">
             Suggested Deposit
           </p>
           <p className="text-white text-xl font-semibold">
@@ -152,13 +152,13 @@ export default function PoolPositionCard({
         </div>
 
         <div className="space-y-1">
-          <p className="text-zinc-500 text-xs uppercase tracking-wide">
+          <p className="text-gray-400 text-xs uppercase tracking-wide">
             Est. Earn / Day
           </p>
-          <p className="text-white text-xl font-semibold">
+          <p className="text-primary text-xl font-semibold">
             {metrics.estimatedEarnPerDay}
           </p>
-          <p className="text-zinc-400 text-xs">
+          <p className="text-white text-xs">
             {metrics.estimatedEarnPercentage}%
           </p>
         </div>
