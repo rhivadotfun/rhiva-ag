@@ -1,37 +1,36 @@
 import clsx from "clsx";
+import { format } from "util";
 import { type ReactNode, useState } from "react";
 import { HiDotsVertical } from "react-icons/hi";
-import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 
-import Image from "../Image";
-import Decimal from "../Decimal";
+import Image from "../../Image";
+import Decimal from "../../Decimal";
+import type { PositionData } from "./types";
+import CopyButton from "@/components/CopyButton";
 import ActionModal, {
   type PositionType,
   type ActionItem,
-} from "../modals/ActionModal";
+} from "@/components/modals/ActionModal";
+import Pagination from "../Pagination";
 
-// Column alignment types
 export type ColumnAlign = "left" | "center" | "right";
 
-// Column definition
-export interface TableColumn<T = any> {
+export type TableColumn<T> = {
   key: string;
   label: string;
   align?: ColumnAlign;
   sticky?: boolean;
   render: (row: T, openModal?: (row: T) => void) => ReactNode;
-}
+};
 
-// Pagination data
-export interface PaginationData {
+export type PaginationData = {
   currentPage: number;
   totalPages: number;
   itemsPerPage: number;
   totalItems: number;
-  onPageChange: (page: number) => void;
-}
+  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
+};
 
-// Token pair data for consistent rendering
 export interface TokenPair {
   tokenA: {
     symbol: string;
@@ -43,7 +42,6 @@ export interface TokenPair {
   };
 }
 
-// Table props
 export interface PositionsTableProps<T = any> {
   title: string;
   columns: TableColumn<T>[];
@@ -60,10 +58,9 @@ export default function PositionsTable<T extends { id: string }>({
   columns,
   data,
   totalRow,
-  showPagination = false,
-  paginationData,
-  positionType = "open",
   customActions,
+  positionType = "open",
+  paginationData,
 }: PositionsTableProps<T>) {
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
@@ -99,30 +96,23 @@ export default function PositionsTable<T extends { id: string }>({
   };
 
   return (
-    <div className="flex flex-col space-y-4">
-      {/* Container with Header and Table */}
-      <div className="border border-white/20 rounded-lg overflow-hidden">
-        {/* Header */}
+    <div className="flex-1 flex flex-col space-y-4 ">
+      <div className="flex-1 border border-white/20 rounded-lg overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-white/5">
           <h2 className="text-lg font-semibold text-white">{title}</h2>
         </div>
-
-        {/* Table Container with vertical scroll for small screens */}
         <div className="max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-          {/* Horizontal scroll wrapper - enabled on mobile */}
           <div className="overflow-x-auto">
-            {/* Scroll gradient indicator on mobile */}
             <div className="relative">
-              {/* Right edge gradient to indicate more content */}
               <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-dark to-transparent pointer-events-none lg:hidden z-10" />
-
-              {/* Table with fixed minimum width to enable horizontal scroll */}
               <div className="min-w-[900px]">
-                {/* Table Headers */}
                 <div
                   className="grid gap-4 px-6 py-3 border-b border-white/10 bg-white/5"
                   style={{
-                    gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))`,
+                    gridTemplateColumns: format(
+                      "repeat(%s, minmax(0, 1fr))",
+                      columns.length,
+                    ),
                   }}
                 >
                   {columns.map((column) => (
@@ -138,15 +128,16 @@ export default function PositionsTable<T extends { id: string }>({
                     </div>
                   ))}
                 </div>
-
-                {/* Data Rows */}
                 <div className="divide-y divide-white/5">
                   {data.map((row) => (
                     <div
                       key={row.id}
                       className="grid gap-4 px-6 py-4 items-center hover:bg-white/5 transition-colors duration-150"
                       style={{
-                        gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))`,
+                        gridTemplateColumns: format(
+                          "repeat(%s, minmax(0, 1fr))",
+                          columns.length,
+                        ),
                       }}
                     >
                       {columns.map((column) => (
@@ -163,13 +154,15 @@ export default function PositionsTable<T extends { id: string }>({
                     </div>
                   ))}
 
-                  {/* Total Row */}
                   {totalRow && (
                     <div className="bg-white/5 border-t border-white/10">
                       <div
                         className="grid gap-4 px-6 py-4 items-center"
                         style={{
-                          gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))`,
+                          gridTemplateColumns: format(
+                            "repeat(%s, minmax(0, 1fr))",
+                            columns.length,
+                          ),
                         }}
                       >
                         {columns.map((column) => (
@@ -191,92 +184,8 @@ export default function PositionsTable<T extends { id: string }>({
             </div>
           </div>
         </div>
+        {paginationData && <Pagination {...paginationData} />}
       </div>
-
-      {/* Pagination */}
-      {showPagination && paginationData && (
-        <div className="flex items-center justify-between text-sm">
-          <div className="text-gray">
-            Showing{" "}
-            {(paginationData.currentPage - 1) * paginationData.itemsPerPage + 1}{" "}
-            to{" "}
-            {Math.min(
-              paginationData.currentPage * paginationData.itemsPerPage,
-              paginationData.totalItems,
-            )}{" "}
-            of {paginationData.totalItems} positions
-          </div>
-          <div className="flex items-center space-x-2">
-            <button
-              type="button"
-              onClick={() =>
-                paginationData.onPageChange(
-                  Math.max(1, paginationData.currentPage - 1),
-                )
-              }
-              disabled={paginationData.currentPage === 1}
-              className={clsx(
-                "p-2 rounded",
-                paginationData.currentPage === 1
-                  ? "text-gray cursor-not-allowed"
-                  : "text-white hover:bg-white/10",
-              )}
-            >
-              <IoChevronBack className="w-4 h-4" />
-            </button>
-
-            {/* Page Numbers */}
-            <div className="flex items-center space-x-1">
-              {[1, 2, 3, "...", paginationData.totalPages].map((page) => (
-                <button
-                  key={typeof page === "number" ? `page-${page}` : "ellipsis"}
-                  type="button"
-                  onClick={() =>
-                    typeof page === "number" &&
-                    paginationData.onPageChange(page)
-                  }
-                  disabled={typeof page !== "number"}
-                  className={clsx(
-                    "w-8 h-8 rounded text-sm",
-                    page === paginationData.currentPage
-                      ? "bg-primary text-black font-medium"
-                      : typeof page === "number"
-                        ? "text-white hover:bg-white/10"
-                        : "text-gray cursor-default",
-                  )}
-                >
-                  {page}
-                </button>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={() =>
-                paginationData.onPageChange(
-                  Math.min(
-                    paginationData.totalPages,
-                    paginationData.currentPage + 1,
-                  ),
-                )
-              }
-              disabled={
-                paginationData.currentPage === paginationData.totalPages
-              }
-              className={clsx(
-                "p-2 rounded",
-                paginationData.currentPage === paginationData.totalPages
-                  ? "text-gray cursor-not-allowed"
-                  : "text-white hover:bg-white/10",
-              )}
-            >
-              <IoChevronForward className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Action Modal */}
       <ActionModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
@@ -292,42 +201,29 @@ export default function PositionsTable<T extends { id: string }>({
   );
 }
 
-// Reusable cell renderers
-export const TokenPairCell = ({
-  pool,
-  showCheckbox = false,
-}: {
-  pool: TokenPair;
-  showCheckbox?: boolean;
-}) => (
+export const TokenPairCell = ({ pool }: { pool: PositionData["pool"] }) => (
   <div className="flex items-center space-x-3">
-    {/* Overlapping token icons */}
     <div className="relative flex items-center">
       <Image
-        src={pool.tokenA.icon}
+        src={pool.baseToken.image}
         width={32}
         height={32}
-        alt={pool.tokenA.symbol}
+        alt={pool.baseToken.symbol}
         className="rounded-full border-2 border-dark relative z-20"
       />
       <Image
-        src={pool.tokenB.icon}
+        src={pool.quoteToken.image}
         width={32}
         height={32}
-        alt={pool.tokenB.symbol}
+        alt={pool.quoteToken.symbol}
         className="rounded-full border-2 border-dark -ml-3 relative z-10"
       />
     </div>
     <div className="flex items-center space-x-2">
       <span className="text-white font-medium">
-        {pool.tokenA.symbol}-{pool.tokenB.symbol}
+        {pool.baseToken.symbol}-{pool.quoteToken.symbol}
       </span>
-      {showCheckbox && (
-        <input
-          type="checkbox"
-          className="accent-primary w-4 h-4"
-        />
-      )}
+      <CopyButton content={pool.id} />
     </div>
   </div>
 );
@@ -335,7 +231,6 @@ export const TokenPairCell = ({
 export const ValueWithPercentageCell = ({
   amount,
   percentage,
-  suffix,
   intlArgs,
   percentageIntl,
   colorize = false,
@@ -361,7 +256,6 @@ export const ValueWithPercentageCell = ({
           value={amount}
           intlArgs={intlArgs}
         />
-        {suffix && ` ${suffix}`}
       </div>
       {percentage !== undefined && percentageIntl && (
         <div

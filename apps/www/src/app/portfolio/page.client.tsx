@@ -5,9 +5,9 @@ import { Tab, TabGroup, TabList, TabPanels } from "@headlessui/react";
 
 import Header from "@/components/layout/Header";
 import PortfolioInfo from "@/components/portfolio/PorfolioInfo";
+import PortfolioPositionTab from "@/components/portfolio/position";
 import PorfolioTokenTab from "@/components/portfolio/PorfolioTokenTab";
 import { PortfolioHistory } from "@/components/portfolio/PorfolioHistory";
-import PortfolioPositionTab from "@/components/portfolio/PortfolioPositionTab";
 
 export default function PortfolioClientPage() {
   const Tabs = useMemo(
@@ -19,7 +19,7 @@ export default function PortfolioClientPage() {
   );
 
   return (
-    <div className="flex-1 flex flex-col backdrop-blur-2xl md:p-10 space-y-4 overflow-y-scroll">
+    <div className="flex-1 flex flex-col backdrop-blur-2xl md:px-8 space-y-4 overflow-y-scroll">
       <Header
         title="portfolio"
         className="sticky top-0 z-10"
@@ -52,7 +52,7 @@ export default function PortfolioClientPage() {
               </Tab>
             ))}
           </TabList>
-          <TabPanels>
+          <TabPanels className="flex-1 flex flex-col">
             <PorfolioTokenTab />
             <PortfolioPositionTab />
           </TabPanels>

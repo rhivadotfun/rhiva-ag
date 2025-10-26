@@ -64,7 +64,6 @@ function PortfolioCalender({ dailyPnLData, ...props }: PortfolioCalenderProps) {
           <IoChevronForwardOutline />
         </div>
         <div className="grid grid-cols-7 gap-x-2 gap-y-2">
-          {/* Weekday headers */}
           {calender.weekdays.map((weekday) => (
             <div
               key={weekday}
@@ -73,12 +72,10 @@ function PortfolioCalender({ dailyPnLData, ...props }: PortfolioCalenderProps) {
               {weekday}
             </div>
           ))}
-
-          {/* Calendar grid */}
           {calender.calendarGrid.map((week) =>
             week.map((cell) => (
               <div
-                key={`${week}`}
+                key={cell?.key}
                 className={clsx(
                   "flex flex-col items-center justify-center md:aspect-square/4 text-center p-2",
                   cell && "border border-primary/20 rounded bg-primary/5",
@@ -121,20 +118,18 @@ function PortfolioCalender({ dailyPnLData, ...props }: PortfolioCalenderProps) {
           )}
         </div>
 
-        {/* Monthly Total */}
         <div className="flex mt-4 p-3">
           <p className="text-gray text-sm font-medium">
-            TOTAL MONTHLY PROFIT:{" "}
+            TOTAL MONTHLY PROFIT: &nbsp;
             <span
               className={clsx(
                 "font-bold",
                 calender.monthlyTotal >= 0 ? "text-green-500" : "text-red-500",
               )}
             >
-              {calender.monthlyTotal >= 0 ? "+" : ""}
               <Decimal
                 value={calender.monthlyTotal}
-                intlArgs={currencyIntlArgs}
+                intlArgs={{ ...currencyIntlArgs, signDisplay: "exceptZero" }}
               />
             </span>
           </p>

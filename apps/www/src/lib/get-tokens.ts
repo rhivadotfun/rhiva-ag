@@ -101,7 +101,8 @@ export const getWalletPNL = async (
     summary: {
       balance,
       balance24h,
-      balanceChange: ((balance - balance24h) / balance24h) * 100,
+      balanceChange:
+        balance24h > 0 ? ((balance - balance24h) / balance24h) * 100 : 0,
     },
     tokens,
   };
