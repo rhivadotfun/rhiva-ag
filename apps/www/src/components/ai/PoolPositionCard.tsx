@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import type { z } from "zod";
 import type { agentOutputSchema } from "@rhiva-ag/mcp";
 import { IoStatsChart } from "react-icons/io5";
-import { GiTwoCoins } from "react-icons/gi";
+import IcDex from "@/assets/icons/ic_dex";
 
 // Infer types from agentOutputSchema
 type AgentOutput = z.infer<typeof agentOutputSchema>;
@@ -75,12 +75,9 @@ export default function PoolPositionCard({
   const tokens = poolName.split("-");
 
   return (
-    <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 border border-zinc-700 rounded-xl p-6 shadow-lg max-w-md">
-      {/* Header Section - Single Row */}
+    <div className="bg-white/5 border border-white/5 rounded-xl p-6 max-w-md">
       <div className="flex items-center justify-between mb-6">
-        {/* LEFT: Pool Identity */}
         <div className="flex items-center gap-2">
-          {/* Overlapping token icons */}
           <div className="relative flex items-center">
             <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold z-10">
               {tokens[0]?.[0] ?? "?"}
@@ -89,7 +86,15 @@ export default function PoolPositionCard({
               {tokens[1]?.[0] ?? "?"}
             </div>
           </div>
-          <h3 className="text-white font-semibold text-lg">{poolName}</h3>
+          <h3 className="text-white font-semibold text-sm">{poolName}</h3>
+
+          {pool.dex?.id && (
+            <IcDex
+              dex={pool.dex.id}
+              width={20}
+              height={20}
+            />
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -106,15 +111,12 @@ export default function PoolPositionCard({
         </div>
       </div>
 
-      {/* Metrics Grid */}
       <div className="grid grid-cols-2 gap-4 mb-6">
-        {/* APR */}
         <div className="space-y-1">
           <p className="text-zinc-500 text-xs uppercase tracking-wide">APR</p>
           <p className="text-green-400 text-xl font-bold">{metrics.apr}%</p>
         </div>
 
-        {/* Suggested Range */}
         <div className="space-y-1">
           <p className="text-zinc-500 text-xs uppercase tracking-wide">
             Suggested Range
@@ -124,7 +126,6 @@ export default function PoolPositionCard({
           </p>
         </div>
 
-        {/* Confidence */}
         <div className="space-y-1">
           <p className="text-zinc-500 text-xs uppercase tracking-wide">
             Confidence
@@ -134,7 +135,6 @@ export default function PoolPositionCard({
           </p>
         </div>
 
-        {/* Strategy */}
         <div className="space-y-1">
           <p className="text-zinc-500 text-xs uppercase tracking-wide">
             Strategy
@@ -142,7 +142,6 @@ export default function PoolPositionCard({
           <p className="text-white text-xl font-semibold">{metrics.strategy}</p>
         </div>
 
-        {/* Suggested Deposit */}
         <div className="space-y-1">
           <p className="text-zinc-500 text-xs uppercase tracking-wide">
             Suggested Deposit
@@ -152,7 +151,6 @@ export default function PoolPositionCard({
           </p>
         </div>
 
-        {/* Estimated Earn Per Day */}
         <div className="space-y-1">
           <p className="text-zinc-500 text-xs uppercase tracking-wide">
             Est. Earn / Day
@@ -166,11 +164,10 @@ export default function PoolPositionCard({
         </div>
       </div>
 
-      {/* Action Button */}
       <button
         type="button"
         onClick={() => onOpenPosition?.(pool)}
-        className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+        className="w-full bg-primary-secondary/50 hover:bg-primary-secondary/60 text-black font-semibold py-3 px-6 rounded-lg"
       >
         Open Position
       </button>

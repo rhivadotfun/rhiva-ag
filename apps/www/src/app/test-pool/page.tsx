@@ -22,7 +22,7 @@ export default function TestPoolPage() {
     base_token_price_native_currency: "145.50",
     quote_token_price_native_currency: "1.00",
     dex: {
-      id: "raydium",
+      id: "raydium-clmm",
       name: "Raydium",
     },
     volume_usd: {
@@ -242,7 +242,7 @@ export default function TestPoolPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black p-8">
+    <div className="min-h-screen bg-white/10 backdrop-blur-2xl p-8">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-white text-3xl font-bold mb-2">
           Pool Position Card Test
