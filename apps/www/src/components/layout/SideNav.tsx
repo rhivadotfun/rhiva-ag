@@ -105,7 +105,8 @@ export default function SideNav({
                       <navItem.icon className="size-6" />
                       <span
                         className={clsx(
-                          expanded ? "sm:hidden xl:inline" : "md:hidden",
+                          "lt-sm:inline lt-xl:hidden",
+                          !expanded && "xl:hidden",
                         )}
                       >
                         {navItem.name}

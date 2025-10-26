@@ -31,6 +31,19 @@ export const meteoraCreatePositionSchema = z
         "liquidity ratio to split liquidity into. required only for non single sided positions.",
       )
       .optional(),
+    tokens: z
+      .array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          image: z.string(),
+          symbol: z.string(),
+          decimals: z.number(),
+          tokenProgram: z.string(),
+        }),
+      )
+      .optional()
+      .describe("internal use only"),
   })
   .extend({
     jitoConfig: jitoTipConfigSchema.default({

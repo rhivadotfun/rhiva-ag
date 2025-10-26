@@ -441,31 +441,46 @@ export const syncMeteoraPositionStateFromEvent = async ({
           contract_addresses: [pool.baseToken.id, pool.quoteToken.id].join(","),
         })) as Record<string, { usd: number }>;
 
+        const baseTokenPrice = price[pool.baseToken.id]?.usd;
+        const quoteTokenPrice = price[pool.quoteToken.id]?.usd;
+
         if (rawAmountX) {
-          const priceUsd = price[pool.baseToken.id];
           const amount = new Decimal(rawAmountX.toString())
             .div(Math.pow(10, pool.baseToken.decimals))
             .toNumber();
           baseAmount += amount;
-          if (priceUsd) amountUsd += priceUsd.usd * amount;
+          if (baseTokenPrice) amountUsd += baseTokenPrice * amount;
         }
 
         if (rawAmountY) {
-          const priceUsd = price[pool.quoteToken.id];
           const amount = new Decimal(rawAmountY.toString())
             .div(Math.pow(10, pool.quoteToken.decimals))
             .toNumber();
           quoteAmount += amount;
-          if (priceUsd) amountUsd += priceUsd.usd * amount;
+          if (quoteTokenPrice) amountUsd += quoteTokenPrice * amount;
         }
 
-        const values: Partial<typeof positions.$inferInsert> = {
+        let values: Partial<typeof positions.$inferInsert> = {
           baseAmount,
           quoteAmount,
           amountUsd,
           active: true,
           status: "successful",
         };
+
+        if (position.amountUsd === 0)
+          values = {
+            ...values,
+            config: {
+              ...values.config,
+              history: {
+                openPrice: {
+                  baseToken: baseTokenPrice,
+                  quoteToken: quoteTokenPrice,
+                },
+              },
+            },
+          };
 
         const [updatedPosition] = await Promise.all([
           db
@@ -517,25 +532,25 @@ export const syncMeteoraPositionStateFromEvent = async ({
           vs_currencies: "usd",
           contract_addresses: [pool.baseToken.id, pool.quoteToken.id].join(","),
         })) as Record<string, { usd: number }>;
+        const baseTokenPrice = price[pool.baseToken.id]?.usd;
+        const quoteTokenPrice = price[pool.quoteToken.id]?.usd;
 
         if (rawAmountX) {
-          const priceUsd = price[pool.baseToken.id];
           const amount = new Decimal(rawAmountX.toString())
             .div(Math.pow(10, pool.baseToken.decimals))
             .toNumber();
 
           baseAmount -= amount;
-          if (priceUsd) amountUsd -= priceUsd.usd * amount;
+          if (baseTokenPrice) amountUsd -= baseTokenPrice * amount;
         }
 
         if (rawAmountY) {
-          const priceUsd = price[pool.quoteToken.id];
           const amount = new Decimal(rawAmountY.toString())
             .div(Math.pow(10, pool.quoteToken.decimals))
             .toNumber();
 
           quoteAmount -= amount;
-          if (priceUsd) amountUsd -= priceUsd.usd * amount;
+          if (quoteTokenPrice) amountUsd -= quoteTokenPrice * amount;
         }
 
         const [updatedPosition] = await db
@@ -544,6 +559,16 @@ export const syncMeteoraPositionStateFromEvent = async ({
             baseAmount,
             quoteAmount,
             amountUsd,
+            config: {
+              ...positions.config,
+              history: {
+                ...position.config.history,
+                closingPrice: {
+                  baseToken: baseTokenPrice,
+                  quoteToken: quoteTokenPrice,
+                },
+              },
+            },
           })
           .where(eq(positions.id, positionId))
           .returning();

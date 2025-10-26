@@ -573,33 +573,48 @@ export const syncOrcaPositionStateFromEvent = async ({
           contract_addresses: [pool.baseToken.id, pool.quoteToken.id].join(","),
         })) as Record<string, { usd: number }>;
 
+        const baseTokenPrice = price[pool.baseToken.id]?.usd;
+        const quoteTokenPrice = price[pool.quoteToken.id]?.usd;
+
         if (rawAmountX) {
-          const priceUsd = price[pool.baseToken.id];
           const amount = new Decimal(rawAmountX.toString())
             .div(Math.pow(10, pool.baseToken.decimals))
             .toNumber();
 
-          baseAmount += amount;
-          if (priceUsd) amountUsd += priceUsd.usd * amount;
+          baseAmount -= amount;
+          if (baseTokenPrice) amountUsd -= baseTokenPrice * amount;
         }
 
         if (rawAmountY) {
-          const priceUsd = price[pool.quoteToken.id];
           const amount = new Decimal(rawAmountY.toString())
             .div(Math.pow(10, pool.quoteToken.decimals))
             .toNumber();
 
-          quoteAmount += amount;
-          if (priceUsd) amountUsd += priceUsd.usd * amount;
+          quoteAmount -= amount;
+          if (quoteTokenPrice) amountUsd -= quoteTokenPrice * amount;
         }
 
-        const values: Partial<typeof positions.$inferInsert> = {
+        let values: Partial<typeof positions.$inferInsert> = {
           baseAmount,
           quoteAmount,
           amountUsd,
           active: true,
           status: "successful",
         };
+
+        if (position.amountUsd === 0)
+          values = {
+            ...values,
+            config: {
+              ...values.config,
+              history: {
+                openPrice: {
+                  baseToken: baseTokenPrice,
+                  quoteToken: quoteTokenPrice,
+                },
+              },
+            },
+          };
 
         const [updatedPosition] = await Promise.all([
           db
@@ -635,85 +650,106 @@ export const syncOrcaPositionStateFromEvent = async ({
     } else if (event.name === "liquidityDecreased") {
       const data = event.data;
       const positionId = data.position.toBase58();
+      const position = await getPositionById(db, positionId);
+      if (!position) return;
+
+      const { pool } = position;
+      const price = (await coingecko.simple.tokenPrice.getID("solana", {
+        vs_currencies: "usd",
+        contract_addresses: [pool.baseToken.id, pool.quoteToken.id].join(","),
+      })) as Record<string, { usd: number }>;
+
+      const baseTokenPrice = price[pool.baseToken.id]?.usd;
+      const quoteTokenPrice = price[pool.quoteToken.id]?.usd;
 
       if (type === "closed-position") {
-        const [position] = await db
+        const [updatedPosition] = await db
           .update(positions)
-          .set({ state: "closed" })
+          .set({
+            state: "closed",
+            config: {
+              ...positions.config,
+              history: {
+                ...position.config.history,
+                closingPrice: {
+                  baseToken: baseTokenPrice,
+                  quoteToken: quoteTokenPrice,
+                },
+              },
+            },
+          })
           .where(eq(positions.id, positionId))
           .returning();
 
-        results.push(position);
+        results.push(updatedPosition);
 
         continue;
       }
 
-      const position = await getPositionById(db, positionId);
+      const rawAmountX = data.tokenAAmount,
+        rawAmountY = data.tokenBAmount;
+      let baseAmount = position.baseAmount,
+        quoteAmount = position.quoteAmount,
+        amountUsd = position.amountUsd;
 
-      if (position) {
-        const { pool } = position;
-        const rawAmountX = data.tokenAAmount,
-          rawAmountY = data.tokenBAmount;
-        let baseAmount = position.baseAmount,
-          quoteAmount = position.quoteAmount,
-          amountUsd = position.amountUsd;
+      if (rawAmountX) {
+        const amount = new Decimal(rawAmountX.toString())
+          .div(Math.pow(10, pool.baseToken.decimals))
+          .toNumber();
 
-        const price = (await coingecko.simple.tokenPrice.getID("solana", {
-          vs_currencies: "usd",
-          contract_addresses: [pool.baseToken.id, pool.quoteToken.id].join(","),
-        })) as Record<string, { usd: number }>;
+        baseAmount -= amount;
+        if (baseTokenPrice) amountUsd -= baseTokenPrice * amount;
+      }
 
-        if (rawAmountX) {
-          const priceUsd = price[pool.baseToken.id];
-          const amount = new Decimal(rawAmountX.toString())
-            .div(Math.pow(10, pool.baseToken.decimals))
-            .toNumber();
+      if (rawAmountY) {
+        const amount = new Decimal(rawAmountY.toString())
+          .div(Math.pow(10, pool.quoteToken.decimals))
+          .toNumber();
 
-          baseAmount -= amount;
-          if (priceUsd) amountUsd -= priceUsd.usd * amount;
-        }
+        quoteAmount -= amount;
+        if (quoteTokenPrice) amountUsd -= quoteTokenPrice * amount;
+      }
 
-        if (rawAmountY) {
-          const priceUsd = price[pool.quoteToken.id];
-          const amount = new Decimal(rawAmountY.toString())
-            .div(Math.pow(10, pool.quoteToken.decimals))
-            .toNumber();
-
-          quoteAmount -= amount;
-          if (priceUsd) amountUsd -= priceUsd.usd * amount;
-        }
-
-        const [updatedPosition] = await Promise.all([
-          db
-            .update(positions)
-            .set({
-              baseAmount,
-              quoteAmount,
-              amountUsd,
-            })
-            .where(eq(positions.id, positionId))
-            .returning(),
-          sendNotification(db, {
-            user: wallet.user,
-            type: "transactions",
-            title: { external: true, text: "position.closed" },
-            detail: {
-              external: true,
-              text: "position.closed",
-              params: {
-                signature,
-                baseAmount: position.baseAmount,
-                quoteAmount: position.quoteAmount,
-                duration: moment().diff(moment(position.createdAt)),
-                baseToken: { symbol: position.pool.baseToken.symbol },
-                quoteToken: { symbol: position.pool.quoteToken.symbol },
+      const [updatedPosition] = await Promise.all([
+        db
+          .update(positions)
+          .set({
+            baseAmount,
+            quoteAmount,
+            amountUsd,
+            config: {
+              ...positions.config,
+              history: {
+                ...position.config.history,
+                closingPrice: {
+                  baseToken: baseTokenPrice,
+                  quoteToken: quoteTokenPrice,
+                },
               },
             },
-          }),
-        ]);
+          })
+          .where(eq(positions.id, positionId))
+          .returning(),
+        sendNotification(db, {
+          user: wallet.user,
+          type: "transactions",
+          title: { external: true, text: "position.closed" },
+          detail: {
+            external: true,
+            text: "position.closed",
+            params: {
+              signature,
+              baseAmount: position.baseAmount,
+              quoteAmount: position.quoteAmount,
+              duration: moment().diff(moment(position.createdAt)),
+              baseToken: { symbol: position.pool.baseToken.symbol },
+              quoteToken: { symbol: position.pool.quoteToken.symbol },
+            },
+          },
+        }),
+      ]);
 
-        results.push(updatedPosition);
-      }
+      results.push(updatedPosition);
     }
   }
 

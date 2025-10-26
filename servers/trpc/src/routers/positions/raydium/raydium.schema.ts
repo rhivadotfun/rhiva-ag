@@ -12,6 +12,19 @@ export const raydiumCreatePositionSchema = z
       z.number().min(-1).max(0),
       z.number().min(0).max(1),
     ]),
+    tokens: z
+      .array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          image: z.string(),
+          symbol: z.string(),
+          decimals: z.number(),
+          tokenProgram: z.string(),
+        }),
+      )
+      .optional()
+      .describe("internal use only"),
   })
   .extend({
     jitoConfig: jitoTipConfigSchema.default({

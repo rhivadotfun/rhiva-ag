@@ -91,9 +91,26 @@ function MeteoraOpenPositionForm({
       priceChanges: optimalPriceChange,
       liquidityRatio: [0.5, 0.5] as [number, number],
       sides: [pool.baseToken.id, pool.quoteToken.id],
+      tokens: [
+        {
+          id: pool.baseToken.id,
+          name: pool.baseToken.name,
+          image: pool.baseToken.icon,
+          symbol: pool.baseToken.symbol,
+          decimals: pool.baseToken.decimals,
+          tokenProgram: pool.baseToken.tokenProgram,
+        },
+        {
+          id: pool.quoteToken.id,
+          name: pool.quoteToken.name,
+          image: pool.quoteToken.icon,
+          symbol: pool.quoteToken.symbol,
+          decimals: pool.quoteToken.decimals,
+          tokenProgram: pool.quoteToken.tokenProgram,
+        },
+      ],
     },
     onSubmit: (values) => {
-      alert("Fuck you");
       return mutateAsync({
         ...values,
         slippage: 50,

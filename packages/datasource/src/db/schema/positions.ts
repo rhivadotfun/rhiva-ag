@@ -18,12 +18,25 @@ type Extra = {
   claimedFeeUsd: number;
 };
 
+export type HistoricalData = {
+  openPrice?: {
+    baseToken?: number;
+    quoteToken?: number;
+  };
+  closingPrice?: {
+    baseToken?: number;
+    quoteToken?: number;
+  };
+};
+
 export const positions = pgTable("positions", {
   id: text().primaryKey().notNull(),
   amountUsd: doublePrecision().notNull(),
   baseAmount: doublePrecision().notNull(),
   quoteAmount: doublePrecision().notNull(),
-  config: jsonb().$type<{ extra?: Extra }>().notNull(),
+  config: jsonb()
+    .$type<{ extra?: Extra; history?: HistoricalData }>()
+    .notNull(),
   wallet: text()
     .references(() => wallets.id, { onDelete: "cascade" })
     .notNull(),

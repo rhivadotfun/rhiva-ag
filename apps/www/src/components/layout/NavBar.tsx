@@ -56,20 +56,25 @@ export default function NavBar(props: React.ComponentProps<"div">) {
       )}
       onMouseLeave={() => toggleExpanded(false)}
     >
-      <div className={clsx("py-4 lt-sm:hidden xl:h-14", expanded && "xl:px-4")}>
+      <div
+        className={clsx(
+          "lt-xl:py-4 lt-sm:hidden xl:h-14",
+          expanded ? "xl:pb-4" : "xl:py-4",
+        )}
+      >
         <Image
           src={Logo}
           width={189}
           height={61}
           alt="Rhiva"
-          className={clsx("w-40 h-12 lt-xl:hidden", !expanded && "xl:hidden")}
+          className={clsx("w-48 h-16 lt-xl:hidden", !expanded && "xl:hidden")}
         />
         <Image
           src={LogoSmall}
           width={20}
           height={20}
           alt="Rhiva"
-          className={clsx("lt-xl:hidden m-auto", expanded && "xl:hidden")}
+          className={clsx("lt-sm:hidden m-auto", expanded && "xl:hidden")}
         />
       </div>
 
@@ -106,7 +111,9 @@ export default function NavBar(props: React.ComponentProps<"div">) {
                   <navItem.icon className="size-6 lt-sm:size-8" />
                   <span
                     className={clsx(
-                      expanded ? "lt-xl:hidden" : "lt-xl:hidden xl:hidden",
+                      expanded
+                        ? "lt-sm:inline lt-xl:hidden"
+                        : "lt-sm:inline lt-xl:hidden xl:hidden",
                     )}
                   >
                     {navItem.name}
