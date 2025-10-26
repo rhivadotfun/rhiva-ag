@@ -37,9 +37,9 @@ export const positionRoute = router({
     .input(
       z
         .object({
-          limit: z.number(),
-          offset: z.number(),
-          sortBy: positionSortSchema,
+          limit: z.number().optional(),
+          offset: z.number().optional(),
+          sortBy: positionSortSchema.optional(),
           filter: positionFilterSchema.partial(),
         })
         .optional(),

@@ -1,8 +1,7 @@
 import { Fragment, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import clsx from "clsx";
-
-export type PositionType = "open" | "closed";
+import type { PositionData } from "@meteora-ag/dlmm";
 
 export interface ActionItem {
   id: string;
@@ -14,9 +13,9 @@ export interface ActionItem {
 export interface ActionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  positionType: PositionType;
-  positionData?: any;
   actions?: ActionItem[];
+  positionData?: PositionData;
+  positionType: "open" | "closed";
 }
 
 export default function ActionModal({
@@ -26,7 +25,6 @@ export default function ActionModal({
   positionData,
   actions: customActions,
 }: ActionModalProps) {
-  // Default actions based on position type
   const getDefaultActions = (): ActionItem[] => {
     if (positionType === "open") {
       return [

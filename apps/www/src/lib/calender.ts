@@ -36,13 +36,16 @@ export function getCalender(cursor?: Moment, dailyPnLData?: DailyPnL[]) {
   const totalWeeks = Math.ceil(totalCells / 7);
 
   // Create a grid structure: array of weeks, each week has 7 days
-  const calendarGrid: ({ moment: Moment; pnl?: number } | null)[][] = [];
+  const calendarGrid: ({
+    key: number;
+    moment: Moment;
+    pnl?: number;
+  } | null)[][] = [];
   let monthlyTotal = 0;
 
   for (let week = 0; week < totalWeeks; week++) {
-    const weekRow: ({ moment: Moment; pnl?: number } | null)[] = new Array(
-      7,
-    ).fill(null);
+    const weekRow: ({ key: number; moment: Moment; pnl?: number } | null)[] =
+      new Array(7).fill(null);
 
     for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
       const cellIndex = week * 7 + dayOfWeek;
@@ -57,7 +60,7 @@ export function getCalender(cursor?: Moment, dailyPnLData?: DailyPnL[]) {
           monthlyTotal += pnl;
         }
 
-        weekRow[dayOfWeek] = { moment: date, pnl };
+        weekRow[dayOfWeek] = { key: cellIndex, moment: date, pnl };
         dates[dayOfMonth - 1] = date;
       }
     }

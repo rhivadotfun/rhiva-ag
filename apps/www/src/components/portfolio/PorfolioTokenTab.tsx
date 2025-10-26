@@ -26,7 +26,7 @@ export default function PorfolioTokenTab() {
 
   return (
     <>
-      <TabPanel className="flex flex-col space-y-4">
+      <TabPanel className="flex-1 flex flex-col space-y-4">
         <div className="sm:flex sm:justify-between md:border md:p-4 md:px-10 border-white/20 rounded">
           {pnl && (
             <div>
