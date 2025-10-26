@@ -1,5 +1,6 @@
 import Dex from "@rhiva-ag/dex";
 import { Work } from "@rhiva-ag/cron";
+import { mints } from "@rhiva-ag/datasource";
 import { loadWallet } from "@rhiva-ag/shared";
 
 import { createQueue } from "../shared";
@@ -21,6 +22,18 @@ export const raydiumRoute = router({
   create: privateProcedure
     .input(raydiumCreatePositionSchema)
     .mutation(async ({ ctx, input }) => {
+      if (input.tokens)
+        await ctx.drizzle
+          .insert(mints)
+          .values(input.tokens)
+          .onConflictDoUpdate({
+            target: [mints.id],
+            set: {
+              name: mints.name,
+              symbol: mints.symbol,
+              image: mints.image,
+            },
+          });
       const dex = new Dex(ctx.connection);
       const owner = await loadWallet(ctx.user.wallet, ctx.secret);
 

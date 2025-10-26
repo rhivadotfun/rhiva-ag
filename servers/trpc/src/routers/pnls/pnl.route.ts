@@ -6,7 +6,10 @@ import {
 } from "@rhiva-ag/datasource";
 
 import { pnlFilterSchema } from "./pnl.schema";
+import { orcaRoute } from "./orca/orca.router";
 import { privateProcedure, router } from "../../trpc";
+import { meteoraRoute } from "./meteora/meteora.router";
+import { raydiumRoute } from "./raydium/raydium.router";
 
 export const pnlRoute = router({
   history: privateProcedure.input(pnlFilterSchema).query(({ ctx, input }) => {
@@ -26,4 +29,7 @@ export const pnlRoute = router({
       .where(where)
       .execute();
   }),
+  orca: orcaRoute,
+  meteora: meteoraRoute,
+  raydium: raydiumRoute,
 });

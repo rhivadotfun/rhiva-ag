@@ -478,35 +478,45 @@ export const syncRaydiumPositionStateFromEvent = async ({
           contract_addresses: [pool.baseToken.id, pool.quoteToken.id].join(","),
         })) as Record<string, { usd: number }>;
 
+        const baseTokenPrice = price[pool.baseToken.id]?.usd;
+        const quoteTokenPrice = price[pool.quoteToken.id]?.usd;
+
         if (rawAmountX) {
-          const priceUsd = price[pool.baseToken.id];
-          baseAmount = new Decimal(rawAmountX.toString())
+          const amount = new Decimal(rawAmountX.toString())
             .div(Math.pow(10, pool.baseToken.decimals))
             .toNumber();
 
-          if (priceUsd) amountUsd += priceUsd.usd * baseAmount;
+          baseAmount -= amount;
+          if (baseTokenPrice) amountUsd -= baseTokenPrice * amount;
         }
 
         if (rawAmountY) {
-          const priceUsd = price[pool.quoteToken.id];
-          quoteAmount = new Decimal(rawAmountY.toString())
+          const amount = new Decimal(rawAmountY.toString())
             .div(Math.pow(10, pool.quoteToken.decimals))
             .toNumber();
 
-          if (priceUsd) amountUsd += priceUsd.usd * quoteAmount;
+          quoteAmount -= amount;
+          if (quoteTokenPrice) amountUsd -= quoteTokenPrice * amount;
         }
 
         const values: typeof positions.$inferInsert = {
           baseAmount,
           quoteAmount,
           amountUsd,
-          config: {},
           active: true,
           pool: pool.id,
           state: "open",
           wallet: wallet.id,
           status: "successful",
           id: positionNftMint.toBase58(),
+          config: {
+            history: {
+              openPrice: {
+                baseToken: baseTokenPrice,
+                quoteToken: quoteTokenPrice,
+              },
+            },
+          },
         };
 
         const [position] = await Promise.all([
@@ -599,85 +609,96 @@ export const syncRaydiumPositionStateFromEvent = async ({
     } else if (event.name === "decreaseLiquidityEvent") {
       const data = event.data;
       const positionId = data.positionNftMint.toBase58();
+      const position = await getPositionById(db, positionId);
+      if (!position) return;
+
+      const { pool } = position;
+      const price = (await coingecko.simple.tokenPrice.getID("solana", {
+        vs_currencies: "usd",
+        contract_addresses: [pool.baseToken.id, pool.quoteToken.id].join(","),
+      })) as Record<string, { usd: number }>;
+
+      const baseTokenPrice = price[pool.baseToken.id]?.usd;
+      const quoteTokenPrice = price[pool.quoteToken.id]?.usd;
 
       if (type === "closed-position") {
-        const [position] = await db
+        const [updatedPosition] = await db
           .update(positions)
-          .set({ state: "closed" })
+          .set({
+            state: "closed",
+            config: {
+              ...positions.config,
+              history: {
+                ...position.config.history,
+                closingPrice: {
+                  baseToken: baseTokenPrice,
+                  quoteToken: quoteTokenPrice,
+                },
+              },
+            },
+          })
           .where(eq(positions.id, positionId))
           .returning();
 
-        results.push(position);
+        results.push(updatedPosition);
 
         continue;
       }
 
-      const position = await getPositionById(db, positionId);
+      const rawAmountX = data.decreaseAmount0,
+        rawAmountY = data.decreaseAmount1;
+      let baseAmount = position.baseAmount,
+        quoteAmount = position.quoteAmount,
+        amountUsd = position.amountUsd;
 
-      if (position) {
-        const { pool } = position;
-        const rawAmountX = data.decreaseAmount0,
-          rawAmountY = data.decreaseAmount1;
-        let baseAmount = position.baseAmount,
-          quoteAmount = position.quoteAmount,
-          amountUsd = position.amountUsd;
+      if (rawAmountX) {
+        const amount = new Decimal(rawAmountX.toString())
+          .div(Math.pow(10, pool.baseToken.decimals))
+          .toNumber();
 
-        const price = (await coingecko.simple.tokenPrice.getID("solana", {
-          vs_currencies: "usd",
-          contract_addresses: [pool.baseToken.id, pool.quoteToken.id].join(","),
-        })) as Record<string, { usd: number }>;
-
-        if (rawAmountX) {
-          const priceUsd = price[pool.baseToken.id];
-          const amount = new Decimal(rawAmountX.toString())
-            .div(Math.pow(10, pool.baseToken.decimals))
-            .toNumber();
-
-          baseAmount -= amount;
-          if (priceUsd) amountUsd -= priceUsd.usd * amount;
-        }
-
-        if (rawAmountY) {
-          const priceUsd = price[pool.quoteToken.id];
-          const amount = new Decimal(rawAmountY.toString())
-            .div(Math.pow(10, pool.quoteToken.decimals))
-            .toNumber();
-
-          quoteAmount -= amount;
-          if (priceUsd) amountUsd -= priceUsd.usd * amount;
-        }
-
-        const [updatedPosition] = await Promise.all([
-          db
-            .update(positions)
-            .set({
-              baseAmount,
-              quoteAmount,
-              amountUsd,
-            })
-            .where(eq(positions.id, positionId))
-            .returning(),
-          sendNotification(db, {
-            user: wallet.user,
-            type: "transactions",
-            title: { external: true, text: "position.closed" },
-            detail: {
-              external: true,
-              text: "position.closed",
-              params: {
-                signature,
-                baseAmount: position.baseAmount,
-                quoteAmount: position.quoteAmount,
-                duration: moment().diff(moment(position.createdAt)),
-                baseToken: { symbol: position.pool.baseToken.symbol },
-                quoteToken: { symbol: position.pool.quoteToken.symbol },
-              },
-            },
-          }),
-        ]);
-
-        results.push(updatedPosition);
+        baseAmount -= amount;
+        if (baseTokenPrice) amountUsd -= baseTokenPrice * amount;
       }
+
+      if (rawAmountY) {
+        const amount = new Decimal(rawAmountY.toString())
+          .div(Math.pow(10, pool.quoteToken.decimals))
+          .toNumber();
+
+        quoteAmount -= amount;
+        if (quoteTokenPrice) amountUsd -= quoteTokenPrice * amount;
+      }
+
+      const [updatedPosition] = await Promise.all([
+        db
+          .update(positions)
+          .set({
+            baseAmount,
+            quoteAmount,
+            amountUsd,
+          })
+          .where(eq(positions.id, positionId))
+          .returning(),
+        sendNotification(db, {
+          user: wallet.user,
+          type: "transactions",
+          title: { external: true, text: "position.closed" },
+          detail: {
+            external: true,
+            text: "position.closed",
+            params: {
+              signature,
+              baseAmount: position.baseAmount,
+              quoteAmount: position.quoteAmount,
+              duration: moment().diff(moment(position.createdAt)),
+              baseToken: { symbol: position.pool.baseToken.symbol },
+              quoteToken: { symbol: position.pool.quoteToken.symbol },
+            },
+          },
+        }),
+      ]);
+
+      results.push(updatedPosition);
     }
   }
 

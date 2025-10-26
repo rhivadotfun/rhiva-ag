@@ -95,8 +95,11 @@ export default function SelectTokenModal({
               <DialogTitle className="text-lg font-bold md:text-2xl">
                 Select Token
               </DialogTitle>
-              <button type="submit">
-                <MdClose />
+              <button
+                type="submit"
+                onClick={() => props.onClose?.(false)}
+              >
+                <MdClose size={18} />
               </button>
             </header>
             <SearchInput

@@ -73,20 +73,20 @@ export default function SideNav({
         <div
           className={clsx(
             props.className,
-            "flex-1 flex flex-col lt-sm:space-y-12  lt-sm:bg-dark-secondary lt-sm:max-w-6/10",
+            "flex-1 flex flex-col lt-sm:space-y-12  lt-sm:bg-dark-secondary lt-sm:max-w-5/10",
           )}
         >
-          <div className="p-4 sm:hidden">
+          <div className="py-4 sm:hidden">
             <Image
               src={Logo}
-              width={189}
+              width={156}
               height={61}
               alt="Rhiva"
             />
           </div>
 
           <nav className={clsx(props.className, "flex-1 flex flex-col")}>
-            <ul className="flex-1 flex flex-col space-y-4 p-4 lt-xl:items-center">
+            <ul className="flex-1 flex flex-col space-y-4 p-4 sm:items-center xl:items-start">
               {navItems.map((navItem) => {
                 const selected = navItem.path === pathname;
 
@@ -105,7 +105,8 @@ export default function SideNav({
                       <navItem.icon className="size-6" />
                       <span
                         className={clsx(
-                          expanded ? "lt-xl:hidden" : "lt-xl:hidden xl:hidden",
+                          "lt-sm:inline lt-xl:hidden",
+                          !expanded && "xl:hidden",
                         )}
                       >
                         {navItem.name}
@@ -117,7 +118,7 @@ export default function SideNav({
             </ul>
             <ul
               className={clsx(
-                "flex space-x-4 p-4 lt-xl:hidden",
+                "flex space-x-4 p-4 sm:hidden xl:flex",
                 !expanded && "xl:invisible",
               )}
             >
