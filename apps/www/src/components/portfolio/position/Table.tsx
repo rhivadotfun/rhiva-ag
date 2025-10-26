@@ -10,7 +10,7 @@ import CopyButton from "@/components/CopyButton";
 import ActionModal, {
   type PositionType,
   type ActionItem,
-} from "@/components/modals/ActionModal";
+} from "@/components/portfolio/ActionModal";
 import Pagination from "../Pagination";
 
 export type ColumnAlign = "left" | "center" | "right";
