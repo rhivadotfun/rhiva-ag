@@ -92,18 +92,17 @@ export default function PoolPositionCard({
           <h3 className="text-white font-semibold text-lg">{poolName}</h3>
         </div>
 
-        {/* CENTER: Fee Badge */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/20 border border-orange-500/40 rounded-full">
-          <GiTwoCoins className="text-orange-400 text-sm" />
-          <span className="text-orange-400 text-xs font-medium">
-            Fee: {metrics.fee}%
-          </span>
-        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex px-3 py-1.5 bg-orange-500/10 border border-transparent rounded items-center gap-1.5">
+            <span className="text-orange-400 text-sm font-medium">
+              Fee: {metrics.fee}%
+            </span>
+          </div>
 
-        {/* RIGHT: Risk Indicator */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 border border-zinc-700 rounded-full">
-          <span className="text-zinc-300 text-xs font-medium">Risk</span>
-          <IoStatsChart className="text-zinc-400 text-sm" />
+          <div className="flex px-3 py-1.5 items-center gap-1.5 border border-white/10 rounded">
+            <span className="text-zinc-300 text-sm font-medium">Risk</span>
+            <IoStatsChart className="text-zinc-300 text-base" />
+          </div>
         </div>
       </div>
 
