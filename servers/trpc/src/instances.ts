@@ -22,11 +22,11 @@ setTracingExportApiKey(getEnv("OPEN_API_KEY"));
 
 export const secret =
   process.env.NODE_ENV === "production"
-    ? new Secret(getEnv("SECRET_KEY"), {
+    ? new KMSSecret(getEnv("AWS_KMS_KEY_ID"), getEnv("AWS_REGION"), {
         ivLength: 12,
         algorithm: "aes-256-gcm",
       })
-    : new KMSSecret(getEnv("AWS_KMS_KEY_ID"), getEnv("AWS_REGION"), {
+    : new Secret(getEnv("SECRET_KEY"), {
         ivLength: 12,
         algorithm: "aes-256-gcm",
       });

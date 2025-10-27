@@ -40,7 +40,7 @@ export const positionRoute = router({
           limit: z.number().optional(),
           offset: z.number().optional(),
           sortBy: positionSortSchema.optional(),
-          filter: positionFilterSchema.partial(),
+          filter: positionFilterSchema.partial().optional(),
         })
         .optional(),
     )

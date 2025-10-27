@@ -58,7 +58,7 @@ export const getWalletPositions = async (
         pool: false,
       },
       ...extra,
-      where: and(eq(wallets.id, wallet), extra?.where),
+      where: and(eq(positions.wallet, wallet), extra?.where),
     })
     .execute();
 

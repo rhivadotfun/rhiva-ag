@@ -16,18 +16,17 @@ export const logger = Pino();
 export const dexApi = new DexApi();
 export const db = createDB(getEnv("DATABASE_URL"));
 
-export const secret = new Secret(getEnv("SECRET_KEY"), {
-  ivLength: 12,
-  algorithm: "aes-256-gcm",
-});
-export const kmsSecret = new KMSSecret(
-  getEnv("AWS_KMS_KEY_ID"),
-  getEnv("AWS_REGION"),
-  {
-    ivLength: 12,
-    algorithm: "aes-256-gcm",
-  },
-);
+export const secret =
+  process.env.NODE_ENV === "production"
+    ? new KMSSecret(getEnv("AWS_KMS_KEY_ID"), getEnv("AWS_REGION"), {
+        ivLength: 12,
+        algorithm: "aes-256-gcm",
+      })
+    : new Secret(getEnv("SECRET_KEY"), {
+        ivLength: 12,
+        algorithm: "aes-256-gcm",
+      });
+
 export const solanaConnection = new Connection(getEnv("SOLANA_RPC_URL"));
 export const sender = new SendTransaction(
   getEnv("HELIUS_API_URL"),

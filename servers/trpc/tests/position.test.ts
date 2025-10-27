@@ -1,8 +1,9 @@
 import { beforeAll, describe, test } from "bun:test";
-import { createDB, type Database } from "@rhiva-ag/datasource";
+import { createDB, date, pnls, type Database } from "@rhiva-ag/datasource";
 
 import { getEnv } from "../src/env";
 import { getWalletPositions } from "../src/external";
+import { sum } from "drizzle-orm";
 
 describe("position", async () => {
   let db: Database;
@@ -11,10 +12,18 @@ describe("position", async () => {
   });
 
   test("position", async () => {
-    const positions = await getWalletPositions(
-      db,
-      "BMQGmC2B3ZVMmTj3iT24Yjb4LvYjHimfwaHkThgufnJv",
-    );
-    console.log(positions, { depth: null });
+    const dayColumn = date(pnls.createdAt);
+    const pnl = await db
+      .select({
+        day: dayColumn,
+        feeUsd: sum(pnls.feeUsd),
+        rewardUsd: sum(pnls.feeUsd),
+        profitUsd: sum(pnls.pnlUsd),
+      })
+      .from(pnls)
+      .groupBy(dayColumn)
+      .orderBy(dayColumn)
+      .execute();
+    console.log(pnl, { depth: null });
   });
 });

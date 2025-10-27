@@ -1,7 +1,7 @@
 import { and, sum, type SQL } from "drizzle-orm";
 import {
   buildDrizzleWhereClauseFromObject,
-  day,
+  date,
   pnls,
 } from "@rhiva-ag/datasource";
 
@@ -15,7 +15,7 @@ export const pnlRoute = router({
   history: privateProcedure.input(pnlFilterSchema).query(({ ctx, input }) => {
     let where: SQL<unknown> | undefined;
     if (input) where = and(...buildDrizzleWhereClauseFromObject(input));
-    const dayColumn = day(pnls.createdAt);
+    const dayColumn = date(pnls.createdAt);
     return ctx.drizzle
       .select({
         day: dayColumn,

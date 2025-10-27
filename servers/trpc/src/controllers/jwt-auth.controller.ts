@@ -33,7 +33,6 @@ export class JWTAuthMiddleware extends AuthMiddleware {
       let payload: (Jwt & { user?: string }) | undefined | null;
 
       if (token) payload = jwt.decode(token, getEnv("SECRET_KEY"));
-
       if (payload?.user) {
         const user = await AuthMiddleware.upsertUser(
           this.drizzle,

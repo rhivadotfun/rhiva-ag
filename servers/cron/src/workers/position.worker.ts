@@ -34,6 +34,7 @@ export default async function createWorker({
   const worker = new Worker(
     Work.syncPosition,
     async ({ data }: Job<z.infer<typeof positionWorkSchema>>) => {
+      logger.info({ data }, "position.sync.worker");
       const result = positionWorkSchema.safeParse(data);
 
       if (result.success)
