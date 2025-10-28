@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1761271431377,
-      "tag": "0000_mixed_toxin",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1761644954686,
-      "tag": "0001_new_electro",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1761646424302,
-      "tag": "0002_marvelous_manta",
+      "when": 1761668364407,
+      "tag": "0000_groovy_nemesis",
       "breakpoints": true
     }
   ]

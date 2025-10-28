@@ -1,12 +1,21 @@
 CREATE TABLE "pnls" (
 	"position" text NOT NULL,
 	"state" text NOT NULL,
-	"amountUsd" double precision NOT NULL,
-	"claimedFeeUsd" double precision NOT NULL,
 	"feeUsd" double precision NOT NULL,
 	"pnlUsd" double precision NOT NULL,
 	"rewardUsd" double precision NOT NULL,
 	"createdAt" date DEFAULT now() NOT NULL,
+	"amountUsd" double precision NOT NULL,
+	"claimedFeeUsd" double precision NOT NULL,
+	"baseAmount" double precision DEFAULT 0 NOT NULL,
+	"baseAmountUsd" double precision DEFAULT 0 NOT NULL,
+	"quoteAmount" double precision DEFAULT 0 NOT NULL,
+	"quoteAmountUsd" double precision DEFAULT 0 NOT NULL,
+	"unclaimedBaseFee" double precision DEFAULT 0 NOT NULL,
+	"unclaimedBaseFeeUsd" double precision DEFAULT 0 NOT NULL,
+	"unclaimedQuoteFee" double precision DEFAULT 0 NOT NULL,
+	"unclaimedQuoteFeeUsd" double precision DEFAULT 0 NOT NULL,
+	"config" jsonb,
 	CONSTRAINT "pnls_position_createdAt_unique" UNIQUE("position","createdAt")
 );
 --> statement-breakpoint
@@ -111,8 +120,6 @@ CREATE TABLE "referrers" (
 CREATE TABLE "positions" (
 	"id" text PRIMARY KEY NOT NULL,
 	"amountUsd" double precision NOT NULL,
-	"baseAmount" double precision NOT NULL,
-	"quoteAmount" double precision NOT NULL,
 	"config" jsonb NOT NULL,
 	"wallet" text NOT NULL,
 	"pool" text NOT NULL,

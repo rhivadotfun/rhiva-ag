@@ -1,2 +1,0 @@
-ALTER TABLE "pnls" ADD COLUMN "unclaimedBaseFeeUsd" double precision DEFAULT 0 NOT NULL;--> statement-breakpoint
-ALTER TABLE "pnls" ADD COLUMN "unclaimedQuoteFeeUsd" double precision DEFAULT 0 NOT NULL;
