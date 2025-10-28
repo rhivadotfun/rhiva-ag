@@ -284,6 +284,7 @@
         "@raydium-io/raydium-sdk-v2": "^0.2.30-alpha",
         "@rhiva-ag/cron": "*",
         "@rhiva-ag/datasource": "*",
+        "@rhiva-ag/decoder": "*",
         "@rhiva-ag/dex": "*",
         "@rhiva-ag/env": "*",
         "@rhiva-ag/mcp": "*",
