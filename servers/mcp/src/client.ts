@@ -1,6 +1,6 @@
 import path from "path";
-import { sleep } from "bun";
 import { readFileSync } from "fs";
+import { sleep } from "@rhiva-ag/shared";
 import { Agent, type MCPServerStreamableHttp } from "@openai/agents";
 
 import { __srcdir } from "../src/instances";

@@ -35,13 +35,14 @@ export default function PoolInfo({ tvl, apr, tokens }: PoolInfoProps) {
     () =>
       new Intl.NumberFormat("en-US", {
         ...percentageIntlArgs,
+        maximumFractionDigits: 8,
         signDisplay: "never",
       }),
     [],
   );
 
   return (
-    <div className="flex flex-col space-y-8 lt-sm:bg-white/3 lt-sm:p-4 lt-sm:rounded-xl sm:space-y-16 ">
+    <div className="flex flex-col space-y-8 backdrop-blur lt-sm:bg-white/3 lt-sm:p-4 lt-sm:rounded-xl sm:space-y-16 ">
       <div className="flex justify-between">
         {tvl && (
           <div className="flex flex-col">

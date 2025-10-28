@@ -1,6 +1,8 @@
 import clsx from "clsx";
+import { format } from "util";
 import { useMemo } from "react";
 import { number, object } from "yup";
+import { PublicKey } from "@solana/web3.js";
 import type { Pair } from "@rhiva-ag/dex-api";
 import { IoArrowBack } from "react-icons/io5";
 import { NATIVE_MINT } from "@solana/spl-token";
@@ -12,6 +14,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 
 import { useTRPC } from "@/trpc.client";
+import { useAuth } from "@/hooks/useAuth";
 import DepositInput from "../DepositInput";
 import PriceRangeInput from "./PriceRangeInput";
 import PositionOverview from "../PositionOverview";
@@ -20,6 +23,7 @@ type OrcaOpenPositionProps = {
   pool: Pair;
 } & React.ComponentProps<typeof Dialog>;
 
+const POSITION_FEE = 0.010252249;
 export default function OrcaOpenPosition({
   pool,
   ...props
@@ -28,7 +32,7 @@ export default function OrcaOpenPosition({
 
   return (
     <>
-      <div className="lt-sm:hidden">{form}</div>
+      <div className={clsx("lt-sm:hidden", props.className)}>{form}</div>
       <OrcaOpenPositionSmall
         {...props}
         className={clsx("sm:hidden", props.className)}
@@ -44,7 +48,21 @@ function OrcaOpenPositionForm({
   ...props
 }: React.ComponentProps<typeof Form> & Pick<OrcaOpenPositionProps, "pool">) {
   const trpc = useTRPC();
+  const { user } = useAuth();
   const { connection } = useConnection();
+  const nativeMint = NATIVE_MINT.toBase58();
+
+  const { data: rawBalance } = useQuery({
+    refetchInterval: 60_000,
+    queryKey: ["balance", nativeMint, user.wallet.id],
+    queryFn: () => connection.getBalance(new PublicKey(user.wallet.id)),
+  });
+
+  const { data: whirlpool } = useQuery({
+    queryKey: ["whirlpool", pool.address],
+    queryFn: () => fetchWhirlpool(rpc, address(pool.address)),
+  });
+
   const curves = useMemo(
     () => [
       { label: "Full", value: "full" },
@@ -56,20 +74,35 @@ function OrcaOpenPositionForm({
     () => createSolanaRpc(connection.rpcEndpoint),
     [connection],
   );
-
-  const { data: whirlpool } = useQuery({
-    queryKey: ["whirlpool", pool.address],
-    queryFn: () => fetchWhirlpool(rpc, address(pool.address)),
-  });
+  const balance = useMemo(
+    () => (rawBalance ? rawBalance / Math.pow(10, 9) : 0),
+    [rawBalance],
+  );
 
   const { mutateAsync } = useMutation(
-    trpc.position.orca.create.mutationOptions(),
+    trpc.position.orca.create.mutationOptions({}),
   );
 
   const formikContext = useFormik({
     validateOnMount: true,
     validationSchema: object({
-      inputAmount: number().moreThan(0).required(),
+      inputAmount: number()
+        .label("amount")
+        .min(0, "Invalid amount")
+        .max(balance)
+        .test(
+          "fee",
+          format("You need %d SOL more to create position", POSITION_FEE),
+          (value) => {
+            if (value) {
+              const remainingBalance = balance - value;
+              if (remainingBalance > POSITION_FEE) return true;
+              if (value > POSITION_FEE) return true;
+              return false;
+            }
+          },
+        )
+        .required(),
     }),
     initialValues: {
       inputAmount: undefined as unknown as number,
@@ -108,7 +141,8 @@ function OrcaOpenPositionForm({
     },
   });
 
-  const { values, isValid, setFieldValue, isSubmitting } = formikContext;
+  const { values, errors, isValid, setFieldValue, isSubmitting } =
+    formikContext;
 
   return (
     whirlpool && (
@@ -148,8 +182,8 @@ function OrcaOpenPositionForm({
                   pool={pool}
                   whirlpool={whirlpool}
                   value={values.priceChanges}
-                  sides={[values.sides.length > 0, values.sides.length > 1]}
                   amount={values.inputAmount}
+                  sides={[values.sides.length > 0, values.sides.length > 1]}
                   liquidityRatio={
                     values.sides.length > 1 ? values.liquidityRatio : undefined
                   }
@@ -162,7 +196,12 @@ function OrcaOpenPositionForm({
               />
               <DepositInput
                 apr={pool.apr}
+                balance={balance}
                 value={values.inputAmount}
+                error={errors.inputAmount}
+                inputContainerAttrs={{
+                  className: clsx(errors.inputAmount && "!border-red"),
+                }}
                 onChange={(value) => setFieldValue("inputAmount", value)}
               />
             </div>

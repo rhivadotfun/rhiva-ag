@@ -4,7 +4,6 @@ import { NextIntlClientProvider } from "next-intl";
 import { Provider as ReduxProvider } from "react-redux";
 
 import { store } from "@/store";
-import AppData from "./AppData";
 import TRPCProvider from "./TRPCProvider";
 import ReactQueryProvider from "./ReactQueryProvider";
 
@@ -15,7 +14,6 @@ export default function Provider({ children }: React.PropsWithChildren) {
         <ReactQueryProvider>
           <TRPCProvider>
             <CookiesProvider>{children}</CookiesProvider>
-            <AppData />
           </TRPCProvider>
         </ReactQueryProvider>
       </NextIntlClientProvider>

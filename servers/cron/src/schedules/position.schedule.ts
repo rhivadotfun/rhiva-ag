@@ -4,7 +4,7 @@ import { Queue, Worker } from "bullmq";
 import type { Database } from "@rhiva-ag/datasource";
 
 import { createRedis } from "../instances";
-import { supportedDex, Work } from "../constants";
+import { supportedDexes, Work } from "../constants";
 
 export default async function createSchedule({
   db,
@@ -15,6 +15,12 @@ export default async function createSchedule({
 }) {
   const syncQueue = new Queue(Work.syncPosition, {
     connection: createRedis(),
+    defaultJobOptions: {
+      removeOnComplete: true,
+      backoff: {
+        type: "exponential",
+      },
+    },
   });
   const scheduleQueue = new Queue(Work.syncPositionSchedule, {
     connection: createRedis(),
@@ -34,13 +40,21 @@ export default async function createSchedule({
 
     await Promise.all(
       wallets.flatMap((wallet) =>
-        supportedDex.map((dex) =>
-          syncQueue.add(
+        supportedDexes.map((dex) => {
+          const id = format("%s/%s", dex, wallet.id);
+          return syncQueue.add(
             Work.syncPosition,
             { dex, wallet },
-            { jobId: format("%s/%s", dex, wallet.id), removeOnComplete: true },
-          ),
-        ),
+            {
+              jobId: id,
+              backoff: {
+                type: "exponential",
+              },
+              removeOnComplete: true,
+              deduplication: { id, replace: true },
+            },
+          );
+        }),
       ),
     );
   };
@@ -52,9 +66,6 @@ export default async function createSchedule({
       connection: createRedis({ maxRetriesPerRequest: null }),
     },
   );
-
-  // run now
-  await syncPositionSchedule();
 
   worker.on("failed", (job, error) => {
     console.error(error);

@@ -2,6 +2,8 @@
 
 type DecimalProps<T extends React.ElementType> = {
   as?: T;
+  prefix?: string;
+  suffix?: string;
   disableTruncate?: boolean;
   value: number | string;
   minValue?: number;
@@ -14,6 +16,8 @@ export default function Decimal<T extends React.ElementType>({
   value,
   as,
   minValue,
+  prefix,
+  suffix,
   disableTruncate,
   truncateStyle,
   ...props
@@ -23,11 +27,17 @@ export default function Decimal<T extends React.ElementType>({
 
   const [wholeNumber, fractionalNumber] = value.toString().split(/\./g);
   if (minValue && Number(value) < minValue && Number(value) > 0)
-    return <span {...props}>&lt;{intl.format(minValue)}</span>;
+    return (
+      <span {...props}>
+        {prefix}&lt;{intl.format(minValue)}
+        {suffix}
+      </span>
+    );
   if (fractionalNumber && Number(wholeNumber) === 0 && !disableTruncate) {
     const truncate = fractionalNumber.slice(1, fractionalNumber.length - 3);
     return (
       <As {...props}>
+        {prefix}
         {/** just pick the formatted string before decimals */}
         {intl.format(Number(wholeNumber)).split(/\./g)[0]}.
         {fractionalNumber.slice(0, 3)}
@@ -35,7 +45,15 @@ export default function Decimal<T extends React.ElementType>({
           <sub style={truncateStyle}>{truncate.length}</sub>
         )}
         {fractionalNumber.slice(fractionalNumber.length - 3)}
+        {suffix}
       </As>
     );
-  } else return <As {...props}>{intl.format(Number(value))}</As>;
+  } else
+    return (
+      <As {...props}>
+        {prefix}
+        {intl.format(Number(value))}
+        {suffix}
+      </As>
+    );
 }

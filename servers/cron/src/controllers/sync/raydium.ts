@@ -11,22 +11,23 @@ import { PublicKey, type Connection } from "@solana/web3.js";
 import type Coingecko from "@coingecko/coingecko-typescript";
 import type { AmmV3 } from "@rhiva-ag/decoder/programs/idls/types/raydium";
 import {
-  PoolInfoLayout,
-  Raydium,
-  PositionUtils,
-  TickUtils,
-  CLMM_PROGRAM_ID,
-  TickArrayLayout,
-  PositionInfoLayout,
-  getPdaPersonalPositionAddress,
-} from "@raydium-io/raydium-sdk-v2";
-import {
   chunkFetchMultipleAccounts,
   collectionToMap,
   isNative,
   isTokenProgram,
   mapFilter,
 } from "@rhiva-ag/shared";
+import {
+  PoolInfoLayout,
+  Raydium,
+  PositionUtils,
+  TickUtils,
+  SqrtPriceMath,
+  CLMM_PROGRAM_ID,
+  TickArrayLayout,
+  PositionInfoLayout,
+  getPdaPersonalPositionAddress,
+} from "@raydium-io/raydium-sdk-v2";
 import {
   rewards,
   mints,
@@ -36,6 +37,7 @@ import {
   positions,
   type Database,
   type walletSelectSchema,
+  buildConflictUpdateColumns,
 } from "@rhiva-ag/datasource";
 
 import { sendNotification } from "../send-notification";
@@ -49,11 +51,14 @@ export const syncRaydiumPositionsForWallet = async (
   const raydium = await Raydium.load({
     connection,
     owner: new PublicKey(wallet.id),
+    disableLoadToken: true,
+    disableFeatureCheck: true,
   });
   const walletPositions = await db.query.positions.findMany({
     columns: {
       id: true,
       pool: false,
+      config: true,
       amountUsd: true,
     },
     with: {
@@ -172,7 +177,14 @@ export const syncRaydiumPositionsForWallet = async (
   const epochInfo = await raydium.fetchEpochInfo();
 
   const pnlUpdates: (typeof pnls.$inferInsert)[] = [];
-  const positionUpdates: { id: string; update: { active: boolean } }[] = [];
+  const poolUpdates: {
+    id: string;
+    update: Partial<typeof pools.$inferInsert>;
+  }[] = [];
+  const positionUpdates: {
+    id: string;
+    update: Partial<typeof positions.$inferInsert>;
+  }[] = [];
 
   for (const { pool, ...position } of clmmPositionsWithTickAddress) {
     const lowerTickArray = tickArraysMap.get(
@@ -195,10 +207,25 @@ export const syncRaydiumPositionsForWallet = async (
     const active =
       pool.tickCurrent >= position.tickLower &&
       pool.tickCurrent <= position.tickUpper;
+    const lowerTickPrice = SqrtPriceMath.sqrtPriceX64ToPrice(
+      SqrtPriceMath.getSqrtPriceX64FromTick(position.tickLower),
+      offchainPosition.pool.baseToken.decimals,
+      offchainPosition.pool.quoteToken.decimals,
+    ).toNumber();
 
-    let feeUsd = 0,
-      amountUsd = 0,
-      rewardUsd = 0;
+    const upperTickPrice = SqrtPriceMath.sqrtPriceX64ToPrice(
+      SqrtPriceMath.getSqrtPriceX64FromTick(position.tickUpper),
+      offchainPosition.pool.baseToken.decimals,
+      offchainPosition.pool.quoteToken.decimals,
+    ).toNumber();
+
+    const priceRange: [number, number] = [lowerTickPrice, upperTickPrice];
+
+    let rewardUsd = 0,
+      baseAmountUsd = 0,
+      quoteAmountUsd = 0,
+      baseFeeUsd = 0,
+      quoteFeeUsd = 0;
 
     const baseToken = offchainPosition.pool.baseToken;
     const quoteToken = offchainPosition.pool.quoteToken;
@@ -255,13 +282,13 @@ export const syncRaydiumPositionsForWallet = async (
     const priceY = prices[quoteToken.id];
 
     if (priceX) {
-      feeUsd += priceX.usd * feeX;
-      amountUsd += priceX.usd * amountX;
+      baseFeeUsd += priceX.usd * feeX;
+      baseAmountUsd += priceX.usd * amountX;
     }
 
     if (priceY) {
-      feeUsd += priceY.usd * feeY;
-      amountUsd += priceY.usd * amountY;
+      quoteFeeUsd += priceY.usd * feeY;
+      quoteAmountUsd += priceY.usd * amountY;
     }
 
     if (rewardToken) {
@@ -273,18 +300,49 @@ export const syncRaydiumPositionsForWallet = async (
       if (priceReward) rewardUsd += priceReward.usd * rewardAmount;
     }
 
+    const feeUsd = baseFeeUsd + quoteFeeUsd;
+    const amountUsd = baseAmountUsd + quoteAmountUsd;
     const tvl = offchainPosition.amountUsd;
     const totalTVL = amountUsd + feeUsd + rewardUsd;
     const pnlUsd = tvl - totalTVL;
 
-    positionUpdates.push({ id: offchainPosition.id, update: { active } });
+    const currentPrice = SqrtPriceMath.sqrtPriceX64ToPrice(
+      SqrtPriceMath.getSqrtPriceX64FromTick(pool.tickCurrent),
+      offchainPosition.pool.baseToken.decimals,
+      offchainPosition.pool.quoteToken.decimals,
+    ).toNumber();
+
+    positionUpdates.push({
+      id: offchainPosition.id,
+      update: { active, config: { ...offchainPosition.config, priceRange } },
+    });
+    poolUpdates.push({
+      id: offchainPosition.pool.id,
+      update: {
+        config: {
+          ...offchainPosition.pool.config,
+          extra: {
+            currentPrice,
+            binId: pool.tickCurrent,
+          },
+        },
+      },
+    });
     pnlUpdates.push({
       feeUsd,
       pnlUsd,
       rewardUsd,
       amountUsd,
-      state: "opened",
       claimedFeeUsd: 0,
+      state: "opened",
+      baseAmountUsd,
+      quoteAmountUsd,
+      baseAmount: amountX,
+      quoteAmount: amountY,
+      unclaimedBaseFee: feeX,
+      unclaimedQuoteFee: feeY,
+      unclaimedBaseFeeUsd: baseFeeUsd,
+      unclaimedQuoteFeeUsd: quoteFeeUsd,
       position: offchainPosition.id,
     });
   }
@@ -295,15 +353,27 @@ export const syncRaydiumPositionsForWallet = async (
       .values(pnlUpdates)
       .onConflictDoUpdate({
         target: [pnls.position, pnls.createdAt],
-        set: {
-          state: pnls.state,
-          pnlUsd: pnls.pnlUsd,
-          feeUsd: pnls.feeUsd,
-          rewardUsd: pnls.rewardUsd,
-          amountUsd: pnls.amountUsd,
-        },
+        set: buildConflictUpdateColumns(pnls, [
+          "state",
+          "feeUsd",
+          "pnlUsd",
+          "rewardUsd",
+          "amountUsd",
+          "baseAmount",
+          "quoteAmount",
+          "claimedFeeUsd",
+          "baseAmountUsd",
+          "quoteAmountUsd",
+          "unclaimedBaseFee",
+          "unclaimedQuoteFee",
+          "unclaimedBaseFeeUsd",
+          "unclaimedQuoteFeeUsd",
+        ]),
       })
       .returning(),
+    ...poolUpdates.map(({ id, update }) =>
+      db.update(pools).set(update).where(eq(pools.id, id)).returning(),
+    ),
     ...positionUpdates.flatMap(({ id, update }) =>
       db.update(positions).set(update).where(eq(positions.id, id)).returning(),
     ),
@@ -448,7 +518,7 @@ export const syncRaydiumPositionStateFromEvent = async ({
   type,
   events,
   wallet,
-  positionNftMint,
+  positionNftMint: positionId,
   extra: { signature },
 }: {
   db: Database;
@@ -456,23 +526,21 @@ export const syncRaydiumPositionStateFromEvent = async ({
   coingecko: Coingecko;
   extra: { signature: string };
   events: ProgramEventType<AmmV3>[];
-  positionNftMint: PublicKey | undefined;
+  positionNftMint: string | undefined;
   wallet: Pick<z.infer<typeof walletSelectSchema>, "id" | "user">;
   type?: "closed-position" | "create-position" | "claim-reward";
 }) => {
   const results = [];
+
   for (const event of events) {
     if (event.name === "createPersonalPositionEvent") {
       const data = event.data;
       const pool = await upsertPool(db, connection, data.poolState.toBase58());
 
-      if (pool && positionNftMint) {
+      if (pool && positionId) {
+        let amountUsd = 0;
         const rawAmountX = data.depositAmount0,
           rawAmountY = data.depositAmount1;
-        let baseAmount = 0,
-          quoteAmount = 0,
-          amountUsd = 0;
-
         const price = (await coingecko.simple.tokenPrice.getID("solana", {
           vs_currencies: "usd",
           contract_addresses: [pool.baseToken.id, pool.quoteToken.id].join(","),
@@ -486,7 +554,6 @@ export const syncRaydiumPositionStateFromEvent = async ({
             .div(Math.pow(10, pool.baseToken.decimals))
             .toNumber();
 
-          baseAmount -= amount;
           if (baseTokenPrice) amountUsd -= baseTokenPrice * amount;
         }
 
@@ -495,20 +562,17 @@ export const syncRaydiumPositionStateFromEvent = async ({
             .div(Math.pow(10, pool.quoteToken.decimals))
             .toNumber();
 
-          quoteAmount -= amount;
           if (quoteTokenPrice) amountUsd -= quoteTokenPrice * amount;
         }
 
         const values: typeof positions.$inferInsert = {
-          baseAmount,
-          quoteAmount,
           amountUsd,
           active: true,
           pool: pool.id,
           state: "open",
           wallet: wallet.id,
           status: "successful",
-          id: positionNftMint.toBase58(),
+          id: positionId,
           config: {
             history: {
               openPrice: {
@@ -540,9 +604,8 @@ export const syncRaydiumPositionStateFromEvent = async ({
               external: true,
               text: "position.created",
               params: {
-                baseAmount,
-                quoteAmount,
                 signature,
+                position: positionId,
                 baseToken: { symbol: pool.baseToken.symbol },
                 quoteToken: { symbol: pool.quoteToken.symbol },
               },
@@ -552,64 +615,14 @@ export const syncRaydiumPositionStateFromEvent = async ({
 
         results.push(position);
       }
-    } else if (event.name === "increaseLiquidityEvent") {
+    } else if (
+      event.name === "decreaseLiquidityEvent" &&
+      type === "closed-position"
+    ) {
       const data = event.data;
       const positionId = data.positionNftMint.toBase58();
       const position = await getPositionById(db, positionId);
 
-      if (position) {
-        const { pool } = position;
-        const rawAmountX = data.amount0,
-          rawAmountY = data.amount1;
-        let baseAmount = position.baseAmount,
-          quoteAmount = position.quoteAmount,
-          amountUsd = position.amountUsd;
-
-        const price = (await coingecko.simple.tokenPrice.getID("solana", {
-          vs_currencies: "usd",
-          contract_addresses: [pool.baseToken.id, pool.quoteToken.id].join(","),
-        })) as Record<string, { usd: number }>;
-
-        if (rawAmountX) {
-          const priceUsd = price[pool.baseToken.id];
-          const amount = new Decimal(rawAmountX.toString())
-            .div(Math.pow(10, pool.baseToken.decimals))
-            .toNumber();
-
-          baseAmount += amount;
-          if (priceUsd) amountUsd += priceUsd.usd * amount;
-        }
-
-        if (rawAmountY) {
-          const priceUsd = price[pool.quoteToken.id];
-          const amount = new Decimal(rawAmountY.toString())
-            .div(Math.pow(10, pool.quoteToken.decimals))
-            .toNumber();
-
-          quoteAmount += amount;
-          if (priceUsd) amountUsd += priceUsd.usd * amount;
-        }
-
-        const values: Partial<typeof positions.$inferInsert> = {
-          baseAmount,
-          quoteAmount,
-          amountUsd,
-          active: true,
-          status: "successful",
-        };
-
-        const [updatedPosition] = await db
-          .update(positions)
-          .set(values)
-          .where(eq(positions.id, position.id))
-          .returning();
-
-        results.push(updatedPosition);
-      }
-    } else if (event.name === "decreaseLiquidityEvent") {
-      const data = event.data;
-      const positionId = data.positionNftMint.toBase58();
-      const position = await getPositionById(db, positionId);
       if (!position) return;
 
       const { pool } = position;
@@ -621,8 +634,8 @@ export const syncRaydiumPositionStateFromEvent = async ({
       const baseTokenPrice = price[pool.baseToken.id]?.usd;
       const quoteTokenPrice = price[pool.quoteToken.id]?.usd;
 
-      if (type === "closed-position") {
-        const [updatedPosition] = await db
+      const [updatedPosition] = await Promise.all([
+        db
           .update(positions)
           .set({
             state: "closed",
@@ -638,46 +651,6 @@ export const syncRaydiumPositionStateFromEvent = async ({
             },
           })
           .where(eq(positions.id, positionId))
-          .returning();
-
-        results.push(updatedPosition);
-
-        continue;
-      }
-
-      const rawAmountX = data.decreaseAmount0,
-        rawAmountY = data.decreaseAmount1;
-      let baseAmount = position.baseAmount,
-        quoteAmount = position.quoteAmount,
-        amountUsd = position.amountUsd;
-
-      if (rawAmountX) {
-        const amount = new Decimal(rawAmountX.toString())
-          .div(Math.pow(10, pool.baseToken.decimals))
-          .toNumber();
-
-        baseAmount -= amount;
-        if (baseTokenPrice) amountUsd -= baseTokenPrice * amount;
-      }
-
-      if (rawAmountY) {
-        const amount = new Decimal(rawAmountY.toString())
-          .div(Math.pow(10, pool.quoteToken.decimals))
-          .toNumber();
-
-        quoteAmount -= amount;
-        if (quoteTokenPrice) amountUsd -= quoteTokenPrice * amount;
-      }
-
-      const [updatedPosition] = await Promise.all([
-        db
-          .update(positions)
-          .set({
-            baseAmount,
-            quoteAmount,
-            amountUsd,
-          })
-          .where(eq(positions.id, positionId))
           .returning(),
         sendNotification(db, {
           user: wallet.user,
@@ -688,8 +661,7 @@ export const syncRaydiumPositionStateFromEvent = async ({
             text: "position.closed",
             params: {
               signature,
-              baseAmount: position.baseAmount,
-              quoteAmount: position.quoteAmount,
+              position: positionId,
               duration: moment().diff(moment(position.createdAt)),
               baseToken: { symbol: position.pool.baseToken.symbol },
               quoteToken: { symbol: position.pool.quoteToken.symbol },

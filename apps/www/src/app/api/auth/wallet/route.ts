@@ -26,6 +26,12 @@ export async function POST(request: Request) {
     httpOnly: true,
     maxAge: expiresIn / 1_000,
   });
+  cookie.set("user", JSON.stringify(user), {
+    path: "/",
+    secure: true,
+    httpOnly: true,
+    maxAge: 300,
+  });
 
   return NextResponse.json(user);
 }

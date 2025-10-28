@@ -70,8 +70,6 @@ import { AuthMiddleware } from "../src/controllers/auth.controller";
         id: "pitQ9ym11hjoxEAkifkWnkPjrFBkjbBfWrQRNmY21Ka",
         pool: "HTvjzsfX3yU6BUodCjZ5vZkUrAxMDTrBs3CJaq43ashR",
         amountUsd: 5.93,
-        baseAmount: 0.029993998,
-        quoteAmount: 0,
         active: true,
         state: "open",
         status: "successful",

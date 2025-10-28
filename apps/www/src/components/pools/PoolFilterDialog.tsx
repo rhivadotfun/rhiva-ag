@@ -58,7 +58,9 @@ export default function PoolFilterDialog(
     queryFn: () => trpcClient.poolFilter.list.query(),
   });
 
-  const { mutateAsync } = useMutation(trpc.poolFilter.create.mutationOptions());
+  const { mutateAsync } = useMutation(
+    trpc.poolFilter.create.mutationOptions({}),
+  );
 
   return (
     <Formik

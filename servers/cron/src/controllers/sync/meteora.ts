@@ -1,14 +1,13 @@
-import moment from "moment";
 import { format } from "util";
 import Decimal from "decimal.js";
 import type { z } from "zod/mini";
 import { MintLayout } from "@solana/spl-token";
 import { and, eq, inArray, not } from "drizzle-orm";
-import DLMM, { createProgram } from "@meteora-ag/dlmm";
 import type { ProgramEventType } from "@rhiva-ag/decoder";
 import { PublicKey, type Connection } from "@solana/web3.js";
 import type Coingecko from "@coingecko/coingecko-typescript";
 import type { LbClmm } from "@rhiva-ag/decoder/programs/idls/types/meteora";
+import DLMM, { createProgram, getPriceOfBinByBinId } from "@meteora-ag/dlmm";
 import {
   chunkFetchMultipleAccounts,
   collectionToMap,
@@ -21,14 +20,25 @@ import {
   mints,
   pnls,
   pools,
+  rewards,
   positions,
   poolRewardTokens,
   type Database,
   type walletSelectSchema,
-  rewards,
+  buildConflictUpdateColumns,
 } from "@rhiva-ag/datasource";
 
 import { sendNotification } from "../send-notification";
+
+function fromPricePerLamport(
+  pricePerLamport: Decimal,
+  decimal0: number,
+  decimal1: number,
+) {
+  return new Decimal(pricePerLamport).div(
+    new Decimal(10 ** (decimal1 - decimal0)),
+  );
+}
 
 export const syncMeteoraPositionsForWallet = async (
   db: Database,
@@ -40,6 +50,7 @@ export const syncMeteoraPositionsForWallet = async (
     columns: {
       id: true,
       pool: false,
+      config: true,
       amountUsd: true,
     },
     with: {
@@ -110,7 +121,14 @@ export const syncMeteoraPositionsForWallet = async (
   })) as Record<string, { usd: number }>;
 
   const pnlUpdates: (typeof pnls.$inferInsert)[] = [];
-  const positionUpdates: { id: string; update: { active: boolean } }[] = [];
+  const poolUpdates: {
+    id: string;
+    update: Partial<typeof pools.$inferInsert>;
+  }[] = [];
+  const positionUpdates: {
+    id: string;
+    update: Partial<typeof positions.$inferInsert>;
+  }[] = [];
 
   for (const { lbPair, ...position } of lbPairWithPositions) {
     const activeBin = lbPair.activeId;
@@ -122,13 +140,24 @@ export const syncMeteoraPositionsForWallet = async (
 
     if (!offchainPosition) continue;
 
+    const { pool } = offchainPosition;
+
     const active =
       activeBin >= position.positionData.lowerBinId &&
       activeBin <= position.positionData.upperBinId;
+    const lowerBinPrice = fromPricePerLamport(
+      getPriceOfBinByBinId(position.positionData.lowerBinId, lbPair.binStep),
+      pool.baseToken.decimals,
+      pool.quoteToken.decimals,
+    ).toNumber();
+    const upperBinPrice = fromPricePerLamport(
+      getPriceOfBinByBinId(position.positionData.upperBinId, lbPair.binStep),
+      pool.baseToken.decimals,
+      pool.quoteToken.decimals,
+    ).toNumber();
+    const priceRange: [number, number] = [lowerBinPrice, upperBinPrice];
 
-    let feeUsd = 0,
-      amountUsd = 0,
-      rewardUsd = 0,
+    let rewardUsd = 0,
       claimedFeeUsd = 0;
 
     const { baseToken, quoteToken } = offchainPosition.pool;
@@ -155,6 +184,8 @@ export const syncMeteoraPositionsForWallet = async (
     const rawClaimedFeeY =
       position.positionData.totalClaimedFeeYAmount.toString();
 
+    let reward1Amount = 0,
+      reward2Amount = 0;
     const feeX = new Decimal(rawFeeX)
       .div(Math.pow(10, baseToken.decimals))
       .toNumber();
@@ -174,25 +205,29 @@ export const syncMeteoraPositionsForWallet = async (
       .div(Math.pow(10, quoteToken.decimals))
       .toNumber();
 
-    const priceX = prices[baseToken.id];
-    const priceY = prices[quoteToken.id];
+    const priceX = prices[baseToken.id]?.usd;
+    const priceY = prices[quoteToken.id]?.usd;
+
+    let baseAmountUsd = 0,
+      quoteAmountUsd = 0,
+      baseFeeUsd = 0,
+      quoteFeeUsd = 0;
 
     if (priceX) {
-      feeUsd += priceX.usd * feeX;
-      amountUsd += priceX.usd * amountX;
-      claimedFeeUsd += priceX.usd * claimedFeeX;
+      baseFeeUsd += priceX * feeX;
+      baseAmountUsd += priceX * amountX;
+      claimedFeeUsd += priceX * claimedFeeX;
     }
 
     if (priceY) {
-      feeUsd += priceY.usd * feeY;
-      amountUsd += priceY.usd * amountY;
-      claimedFeeUsd += priceY.usd * claimedFeeY;
+      quoteFeeUsd += priceY * feeY;
+      quoteAmountUsd += priceY * amountY;
+      claimedFeeUsd += priceY * claimedFeeY;
     }
 
     if (reward1Token) {
       const priceReward1 = prices[reward1Token.mint.id];
-
-      const reward1Amount = new Decimal(rawReward1Amount)
+      reward1Amount = new Decimal(rawReward1Amount)
         .div(Math.pow(10, reward1Token.mint.decimals))
         .toNumber();
 
@@ -201,26 +236,56 @@ export const syncMeteoraPositionsForWallet = async (
 
     if (reward2Token) {
       const priceReward2 = prices[reward2Token.mint.id];
-
-      const reward2Amount = new Decimal(rawReward2Amount)
+      reward2Amount = new Decimal(rawReward2Amount)
         .div(Math.pow(10, reward2Token.mint.decimals))
         .toNumber();
 
       if (priceReward2) rewardUsd += priceReward2.usd * reward2Amount;
     }
 
+    const feeUsd = baseFeeUsd + quoteFeeUsd;
+    const amountUsd = baseAmountUsd + quoteAmountUsd;
     const tvl = offchainPosition.amountUsd;
     const totalTVL = amountUsd + feeUsd + rewardUsd;
     const pnlUsd = totalTVL - tvl;
 
-    positionUpdates.push({ id: offchainPosition.id, update: { active } });
+    const currentPrice = fromPricePerLamport(
+      getPriceOfBinByBinId(lbPair.activeId, lbPair.binStep),
+      pool.baseToken.decimals,
+      pool.quoteToken.decimals,
+    ).toNumber();
+    console.log(currentPrice, lbPair.activeId, pnlUpdates, { depth: null });
+    positionUpdates.push({
+      id: offchainPosition.id,
+      update: { active, config: { ...offchainPosition.config, priceRange } },
+    });
+    poolUpdates.push({
+      id: offchainPosition.pool.id,
+      update: {
+        config: {
+          ...offchainPosition.pool.config,
+          extra: {
+            currentPrice,
+            binId: lbPair.activeId,
+          },
+        },
+      },
+    });
     pnlUpdates.push({
       feeUsd,
       pnlUsd,
       rewardUsd,
       amountUsd,
-      state: "opened",
       claimedFeeUsd,
+      state: "opened",
+      baseAmountUsd,
+      quoteAmountUsd,
+      baseAmount: amountX,
+      quoteAmount: amountY,
+      unclaimedBaseFee: feeX,
+      unclaimedQuoteFee: feeY,
+      unclaimedBaseFeeUsd: baseFeeUsd,
+      unclaimedQuoteFeeUsd: quoteFeeUsd,
       position: offchainPosition.id,
     });
   }
@@ -231,16 +296,28 @@ export const syncMeteoraPositionsForWallet = async (
       .values(pnlUpdates)
       .onConflictDoUpdate({
         target: [pnls.position, pnls.createdAt],
-        set: {
-          state: pnls.state,
-          pnlUsd: pnls.pnlUsd,
-          feeUsd: pnls.feeUsd,
-          rewardUsd: pnls.rewardUsd,
-          amountUsd: pnls.amountUsd,
-        },
+        set: buildConflictUpdateColumns(pnls, [
+          "state",
+          "feeUsd",
+          "pnlUsd",
+          "rewardUsd",
+          "amountUsd",
+          "baseAmount",
+          "quoteAmount",
+          "claimedFeeUsd",
+          "baseAmountUsd",
+          "quoteAmountUsd",
+          "unclaimedBaseFee",
+          "unclaimedQuoteFee",
+          "unclaimedBaseFeeUsd",
+          "unclaimedQuoteFeeUsd",
+        ]),
       })
       .returning(),
-    ...positionUpdates.flatMap(({ id, update }) =>
+    ...poolUpdates.map(({ id, update }) =>
+      db.update(pools).set(update).where(eq(pools.id, id)).returning(),
+    ),
+    ...positionUpdates.map(({ id, update }) =>
       db.update(positions).set(update).where(eq(positions.id, id)).returning(),
     ),
   ]);
@@ -382,9 +459,9 @@ export const syncMeteoraPositionStateFromEvent = async ({
   db,
   coingecko,
   connection,
-  type,
   events,
   wallet,
+  type,
   extra: { signature },
 }: {
   db: Database;
@@ -396,45 +473,18 @@ export const syncMeteoraPositionStateFromEvent = async ({
   type?: "closed-position" | "create-position" | "claim-reward";
 }) => {
   const results = [];
+  let newPosition = type === "create-position";
 
   for (const event of events) {
-    if (event.name === "positionCreate") {
+    if (event.name === "positionCreate") newPosition = true;
+    else if (newPosition && event.name === "addLiquidity") {
       const data = event.data;
+      const positionId = data.position.toBase58();
       const pool = await upsertPool(db, connection, data.lbPair.toBase58());
 
       if (pool) {
-        const [position] = await db
-          .insert(positions)
-          .values({
-            config: {},
-            active: true,
-            state: "open",
-            pool: pool.id,
-            amountUsd: 0,
-            baseAmount: 0,
-            quoteAmount: 0,
-            wallet: wallet.id,
-            status: "pending",
-            id: data.position.toBase58(),
-          })
-          .onConflictDoNothing({
-            target: [positions.id],
-          })
-          .returning();
-
-        results.push(position);
-      }
-    } else if (event.name === "addLiquidity") {
-      const data = event.data;
-      const positionId = data.position.toBase58();
-      const position = await getPositionById(db, positionId);
-
-      if (position) {
-        const { pool } = position;
         const [rawAmountX, rawAmountY] = data.amounts;
-        let baseAmount = position.baseAmount,
-          quoteAmount = position.quoteAmount,
-          amountUsd = position.amountUsd;
+        let amountUsd = 0;
 
         const price = (await coingecko.simple.tokenPrice.getID("solana", {
           vs_currencies: "usd",
@@ -448,7 +498,6 @@ export const syncMeteoraPositionStateFromEvent = async ({
           const amount = new Decimal(rawAmountX.toString())
             .div(Math.pow(10, pool.baseToken.decimals))
             .toNumber();
-          baseAmount += amount;
           if (baseTokenPrice) amountUsd += baseTokenPrice * amount;
         }
 
@@ -456,41 +505,36 @@ export const syncMeteoraPositionStateFromEvent = async ({
           const amount = new Decimal(rawAmountY.toString())
             .div(Math.pow(10, pool.quoteToken.decimals))
             .toNumber();
-          quoteAmount += amount;
           if (quoteTokenPrice) amountUsd += quoteTokenPrice * amount;
         }
 
-        let values: Partial<typeof positions.$inferInsert> = {
-          baseAmount,
-          quoteAmount,
+        const values: typeof positions.$inferInsert = {
           amountUsd,
-          active: true,
+          pool: pool.id,
+          id: positionId,
+          state: "open",
           status: "successful",
-        };
-
-        if (position.amountUsd === 0)
-          values = {
-            ...values,
-            config: {
-              ...values.config,
-              history: {
-                openPrice: {
-                  baseToken: baseTokenPrice,
-                  quoteToken: quoteTokenPrice,
-                },
+          active: true,
+          wallet: wallet.id,
+          config: {
+            history: {
+              openPrice: {
+                baseToken: baseTokenPrice,
+                quoteToken: quoteTokenPrice,
               },
             },
-          };
+          },
+        };
 
         const [updatedPosition] = await Promise.all([
           db
-            .update(positions)
-            .set(values)
-            .where(eq(positions.id, position.id))
+            .insert(positions)
+            .values(values)
+            .onConflictDoNothing({ target: [positions.id] })
             .returning(),
           db.insert(rewards).values({
-            user: wallet.user,
             key: "swap",
+            user: wallet.user,
             xp: Math.floor(amountUsd),
           }),
           sendNotification(db, {
@@ -502,8 +546,7 @@ export const syncMeteoraPositionStateFromEvent = async ({
               text: "position.created",
               params: {
                 signature,
-                baseAmount,
-                quoteAmount,
+                position: positionId,
                 baseToken: { symbol: pool.baseToken.symbol },
                 quoteToken: { symbol: pool.quoteToken.symbol },
               },
@@ -513,52 +556,27 @@ export const syncMeteoraPositionStateFromEvent = async ({
 
         results.push(updatedPosition);
       }
-    } else if (event.name === "removeLiquidity") {
-      if (type === "closed-position") continue;
-
+    } else if (event.name === "positionClose") {
       const data = event.data;
       const positionId = data.position.toBase58();
-
       const position = await getPositionById(db, positionId);
 
-      if (position) {
-        const { pool } = position;
-        const [rawAmountX, rawAmountY] = data.amounts;
-        let baseAmount = position.baseAmount,
-          quoteAmount = position.quoteAmount,
-          amountUsd = position.amountUsd;
+      if (!position) return;
 
-        const price = (await coingecko.simple.tokenPrice.getID("solana", {
-          vs_currencies: "usd",
-          contract_addresses: [pool.baseToken.id, pool.quoteToken.id].join(","),
-        })) as Record<string, { usd: number }>;
-        const baseTokenPrice = price[pool.baseToken.id]?.usd;
-        const quoteTokenPrice = price[pool.quoteToken.id]?.usd;
+      const { pool } = position;
+      const price = (await coingecko.simple.tokenPrice.getID("solana", {
+        vs_currencies: "usd",
+        contract_addresses: [pool.baseToken.id, pool.quoteToken.id].join(","),
+      })) as Record<string, { usd: number }>;
 
-        if (rawAmountX) {
-          const amount = new Decimal(rawAmountX.toString())
-            .div(Math.pow(10, pool.baseToken.decimals))
-            .toNumber();
+      const baseTokenPrice = price[pool.baseToken.id]?.usd;
+      const quoteTokenPrice = price[pool.quoteToken.id]?.usd;
 
-          baseAmount -= amount;
-          if (baseTokenPrice) amountUsd -= baseTokenPrice * amount;
-        }
-
-        if (rawAmountY) {
-          const amount = new Decimal(rawAmountY.toString())
-            .div(Math.pow(10, pool.quoteToken.decimals))
-            .toNumber();
-
-          quoteAmount -= amount;
-          if (quoteTokenPrice) amountUsd -= quoteTokenPrice * amount;
-        }
-
-        const [updatedPosition] = await db
+      const [updatedPosition] = await Promise.all([
+        db
           .update(positions)
           .set({
-            baseAmount,
-            quoteAmount,
-            amountUsd,
+            state: "closed",
             config: {
               ...positions.config,
               history: {
@@ -571,26 +589,8 @@ export const syncMeteoraPositionStateFromEvent = async ({
             },
           })
           .where(eq(positions.id, positionId))
-          .returning();
-
-        results.push(updatedPosition);
-      }
-    } else if (event.name === "positionClose") {
-      const data = event.data;
-      const positionId = data.position.toBase58();
-
-      await db
-        .update(positions)
-        .set({
-          state: "closed",
-        })
-        .where(eq(positions.id, positionId))
-        .returning();
-
-      const position = await getPositionById(db, positionId);
-
-      if (position) {
-        await sendNotification(db, {
+          .returning(),
+        sendNotification(db, {
           user: wallet.user,
           type: "transactions",
           title: { external: true, text: "position.closed" },
@@ -599,17 +599,15 @@ export const syncMeteoraPositionStateFromEvent = async ({
             text: "position.closed",
             params: {
               signature,
-              baseAmount: position.baseAmount,
-              quoteAmount: position.quoteAmount,
-              duration: moment().diff(moment(position.createdAt)),
+              position: positionId,
               baseToken: { symbol: position.pool.baseToken.symbol },
               quoteToken: { symbol: position.pool.quoteToken.symbol },
             },
           },
-        });
+        }),
+      ]);
 
-        results.push(position);
-      }
+      results.push(updatedPosition);
     }
   }
 

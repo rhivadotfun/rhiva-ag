@@ -1,6 +1,6 @@
 import Dex from "@rhiva-ag/dex";
 import { Work } from "@rhiva-ag/cron";
-import { mints } from "@rhiva-ag/datasource";
+import { buildConflictUpdateColumns, mints } from "@rhiva-ag/datasource";
 import { loadWallet } from "@rhiva-ag/shared";
 
 import { createQueue } from "../shared";
@@ -24,11 +24,7 @@ export const meteoraRoute = router({
           .values(input.tokens)
           .onConflictDoUpdate({
             target: [mints.id],
-            set: {
-              name: mints.name,
-              symbol: mints.symbol,
-              image: mints.image,
-            },
+            set: buildConflictUpdateColumns(mints, ["name", "symbol", "image"]),
           });
 
       const dex = new Dex(ctx.connection);
@@ -49,7 +45,9 @@ export const meteoraRoute = router({
           type: "create-position",
           wallet: ctx.user.wallet,
         },
-        { jobId: bundleId },
+        {
+          jobId: bundleId,
+        },
       );
 
       return {

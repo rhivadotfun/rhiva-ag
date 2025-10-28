@@ -62,15 +62,18 @@ export type GetBundleStatusesRequest = {
   method: "getBundleStatuses";
 };
 
-export type GetBundleStatusesResponse = null | {
-  slot: number;
-  bundle_id: string;
-  transactions: string[];
-  confirmationStatus: TransactionConfirmationStatus;
-  err: {
-    ok: null;
-  };
-};
+export type GetBundleStatusesResponse =
+  | null
+  | {
+      slot: number;
+      bundle_id: string;
+      transactions: string[];
+      confirmationStatus: TransactionConfirmationStatus;
+      err: {
+        ok: null;
+      };
+    }
+  | { bundle_id: string; status: "Invalid"; confirmation_slot: null };
 
 export type GetInflightBundleStatusesRequest = {
   params: [string[]];

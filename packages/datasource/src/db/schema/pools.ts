@@ -1,6 +1,11 @@
 import { jsonb, pgTable, text, unique } from "drizzle-orm/pg-core";
 import { mints } from "./mints";
 
+type Extra = {
+  binId: number;
+  currentPrice: number;
+};
+
 export const pools = pgTable("pools", {
   id: text().primaryKey(),
   addressLookupTables: text().array(),
@@ -14,7 +19,7 @@ export const pools = pgTable("pools", {
   quoteToken: text()
     .references(() => mints.id, { onDelete: "restrict" })
     .notNull(),
-  config: jsonb().$type<object>().notNull(),
+  config: jsonb().$type<{ extra?: Extra }>().notNull(),
 });
 
 export const poolRewardTokens = pgTable(

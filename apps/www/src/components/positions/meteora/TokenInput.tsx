@@ -1,34 +1,26 @@
+import clsx from "clsx";
 import { useMemo, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { PublicKey } from "@solana/web3.js";
-import { useQuery } from "@tanstack/react-query";
-import { useConnection } from "@solana/wallet-adapter-react";
 
 type TokenInputProps = {
   name?: string;
   label?: string;
   value?: number;
+  balance: number;
   onChange: (value: number) => void;
+  inputContainerAttrs?: React.ComponentProps<"div">;
 };
 
 export default function TokenInput({
   name,
   label,
+  balance,
   value,
   onChange,
+  inputContainerAttrs,
 }: TokenInputProps) {
-  const { user } = useAuth();
-  const { connection } = useConnection();
   const [rawInput, setRawInput] = useState<string | number | undefined>(
     value ?? "",
   );
-
-  const { data: balance } = useQuery({
-    refetchInterval: 60000,
-    enabled: Boolean(user),
-    queryKey: [user.wallet.id, "balance"],
-    queryFn: () => connection.getBalance(new PublicKey(user.wallet.id)),
-  });
 
   const autoFillOptions = useMemo(
     () => [
@@ -41,7 +33,7 @@ export default function TokenInput({
   );
 
   return (
-    <div className="flex flex-col space-y-2">
+    <div className="relative flex flex-col space-y-2">
       {label && (
         <label
           htmlFor={name}
@@ -51,7 +43,13 @@ export default function TokenInput({
         </label>
       )}
       <div className="flex flex-col">
-        <div className="flex items-center justify-between bg-black/10 border border-white/20 p-2 rounded-md focus-within:border-primary">
+        <div
+          {...inputContainerAttrs}
+          className={clsx(
+            "flex items-center justify-between bg-black/10 border border-white/20 p-2 backdrop-blur rounded-md focus-within:border-primary",
+            inputContainerAttrs?.className,
+          )}
+        >
           <input
             name={name}
             type="number"
@@ -66,7 +64,9 @@ export default function TokenInput({
               else onChange(parseFloat(event.target.value));
             }}
           />
-          <span className="text-gray">SOL</span>
+          <div className="flex items-center space-x-2">
+            <span className="text-gray">SOL</span>
+          </div>
         </div>
         <div className="flex items-center justify-between text-xs text-gray">
           <p>Balance: {balance} SOL</p>
@@ -77,7 +77,11 @@ export default function TokenInput({
                 type="button"
                 className="p-2 last:bg-primary/5 last:py-1 last:rounded"
                 onClick={() => {
-                  if (balance) onChange(balance * option.value);
+                  if (balance) {
+                    const amount = balance * option.value;
+                    onChange(amount);
+                    setRawInput(amount);
+                  }
                 }}
               >
                 {option.label}

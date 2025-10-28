@@ -316,7 +316,7 @@ export default function PriceRangeInput({
               </div>
             )}
           </div>
-          <div className="flex justify-stretch space-x-8">
+          <div className="flex-1 flex justify-stretch space-x-8">
             <NumberInput
               label="Min Price"
               value={minPrice}

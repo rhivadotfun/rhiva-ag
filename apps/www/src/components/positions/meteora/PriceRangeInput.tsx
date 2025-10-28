@@ -40,7 +40,6 @@ export default function MeteoraPriceRangeInput({
   return (
     <PriceRangeInput
       {...props}
-      curveType="Spot"
       pool={pool}
       currentPrice={currentPrice}
       indexToPrice={indexToPrice}

@@ -2,7 +2,7 @@ import { currencyIntlArgs } from "@/constants/format";
 import Decimal from "../Decimal";
 
 type TokenInputProps = {
-  value?: number;
+  value?: number | string;
   amount: number;
   priceUsd: number;
   symbol: string;
