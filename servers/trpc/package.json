@@ -30,6 +30,7 @@
     "@rhiva-ag/cron": "*",
     "@rhiva-ag/datasource": "*",
     "@rhiva-ag/dex": "*",
+    "@rhiva-ag/decoder": "*",
     "@rhiva-ag/env": "*",
     "@rhiva-ag/mcp": "*",
     "@rhiva-ag/shared": "*",
