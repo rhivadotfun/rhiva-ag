@@ -1,11 +1,11 @@
 import xior from "xior";
 import { format } from "util";
 import { fromLegacyPublicKey } from "@solana/compat";
+import { lamports, type TransactionSigner } from "@solana/kit";
 import {
   getTransferSolInstruction,
   type TransferSolInstruction,
 } from "@solana-program/system";
-import { lamports, type TransactionSigner } from "@solana/kit";
 import {
   VersionedTransaction,
   type RpcResponseAndContext,
@@ -15,6 +15,7 @@ import {
   type TransactionInstruction,
 } from "@solana/web3.js";
 
+import { sleep } from "../utils";
 import {
   PercentileToKey,
   type BundleResponse,
@@ -130,6 +131,44 @@ export class SendTransaction {
         ),
       )
       .then(({ data }) => data);
+  };
+
+  readonly safeGetBundle = async (bundleId: string, maxRetries: number) => {
+    let retries = 0;
+
+    while (retries < maxRetries) {
+      const preflights = await this.getInflightBundleStatuses(bundleId).catch(
+        () => null,
+      );
+      const preflight = preflights?.result.value.find(
+        (value) => value?.bundle_id === bundleId,
+      );
+      if (preflight) {
+        if ("status" in preflight && preflight.status === "Invalid") break;
+        if ("transactions" in preflight)
+          return {
+            transactions: preflight.transactions,
+          };
+      }
+
+      retries++;
+      await sleep(2000);
+    }
+
+    retries = 0;
+    while (retries < maxRetries) {
+      const bundles = await this.getBundles(bundleId).catch(() => null);
+      const bundle = bundles?.find((value) => value.bundleId === bundleId);
+      if (bundle)
+        return {
+          transactions: bundle.txSignatures,
+        };
+
+      retries++;
+      await sleep(2000);
+    }
+
+    throw new Error("Bundle did not land");
   };
 
   readonly getBundleStatuses = async (...bundleIds: string[]) => {

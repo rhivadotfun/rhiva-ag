@@ -72,6 +72,8 @@ export const getWalletTokens = async (
   );
 
   const nativeToken = tokens.get(NATIVE_MINT.toBase58())!;
+  nativeToken.symbol = "SOL";
+  nativeToken.name = "Solana";
 
   return [
     { ...nativeToken, balance: nativeBalance / Math.pow(10, 9) },
@@ -104,6 +106,6 @@ export const getWalletPNL = async (
       balanceChange:
         balance24h > 0 ? ((balance - balance24h) / balance24h) * 100 : 0,
     },
-    tokens,
+    tokens: tokens.sort((a, b) => b.balance - a.balance),
   };
 };

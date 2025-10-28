@@ -25,7 +25,7 @@ export default function PortfolioClientPage() {
         className="sticky top-0 z-10"
       />
       <div className="flex-1 flex flex-col space-y-4 px-4 overflow-y-scroll">
-        <div className="flex xl:grid xl:grid-cols-5 xl:gap-4 sm:space-x-16 lt-sm:flex-col lt-sm:space-y-4 md:p-10 md:border border-white/20 rounded">
+        <div className="flex flex-col sm:space-y-4 lt-sm:space-y-4 md:p-10 md:border md:border-white/20 md:rounded xl:grid xl:grid-cols-5 xl:space-x-16 xl:gap-4">
           <PortfolioInfo className="xl:col-span-2" />
           <PortfolioHistory className="xl:col-span-3 md:p-4 md:border border-white/20 rounded" />
         </div>

@@ -1,19 +1,30 @@
 import clsx from "clsx";
+import Link from "next/link";
+import { format } from "util";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "next/navigation";
 
 import Decimal from "../Decimal";
 import { useTRPC } from "@/trpc.client";
+import { useCurrencies } from "@/hooks/useCurrency";
 import { currencyIntlArgs, percentageIntlArgs } from "@/constants/format";
 
 export default function PortfolioInfo(props: React.ComponentProps<"div">) {
   const trpc = useTRPC();
+  const currencies = useCurrencies();
+  const searchParams = useSearchParams();
   const { data } = useQuery(trpc.position.aggregrate.queryOptions());
-  const winRate = useMemo(
-    () =>
-      data ? (data.profitUsd === 0 ? 0 : data.profitUsd / data.lossUsd) : 0,
-    [data],
-  );
+
+  const currency = useMemo(() => searchParams.get("currency"), [searchParams]);
+
+  const winRate = useMemo(() => {
+    if (!data) return 0;
+    const { profitUsd = 0, lossUsd = 0 } = data;
+    const total = profitUsd + lossUsd;
+    if (total === 0) return 0;
+    return (profitUsd / total) * 100;
+  }, [data]);
 
   return (
     data && (
@@ -25,24 +36,29 @@ export default function PortfolioInfo(props: React.ComponentProps<"div">) {
           <div className="flex flex-col">
             <p className="text-gray uppercase">Total Net Worth</p>
             <Decimal
-              value={data.profitUsd}
+              value={data.networthUsd}
               intlArgs={currencyIntlArgs}
               className="text-2xl font-semibold"
             />
           </div>
-          <div className="flex items-center border border-white/10 divide-x divide-white/10 rounded overflow-hidden !hidden">
-            <button
-              type="button"
-              className="px-2 bg-primary text-black"
-            >
-              USD
-            </button>
-            <button
-              type="button"
-              className="px-2"
-            >
-              SOL
-            </button>
+          <div className="flex items-center border border-white/10 divide-x divide-white/10 rounded overflow-hidden">
+            {currencies.map(({ label, value }) => {
+              const selected = value === currency;
+              const urlSearchParams = new URLSearchParams(searchParams);
+              if (selected) urlSearchParams.delete("currency");
+              else if (value) urlSearchParams.set("currency", value);
+              else urlSearchParams.delete("currency");
+
+              return (
+                <Link
+                  key={value}
+                  href={format("?%s", urlSearchParams.toString())}
+                  className={clsx("px-2", selected && "bg-primary text-black")}
+                >
+                  {label}
+                </Link>
+              );
+            })}
           </div>
         </div>
         <div className="grid grid-cols-4 gap-4 sm:grid-cols-2">

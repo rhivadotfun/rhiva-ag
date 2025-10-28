@@ -1,8 +1,22 @@
 @unocss all;
 
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 400;
+  src:
+    url("https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxM.woff2")
+    format("woff2"),
+    url("https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxO.woff")
+    format("woff"),
+    url("https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxO.ttf")
+    format("truetype");
+}
+
 * {
   -ms-overflow-style: none;
   scrollbar-width: none;
+  outline: none;
 }
 
 body {

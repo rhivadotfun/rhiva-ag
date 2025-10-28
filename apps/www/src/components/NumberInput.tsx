@@ -20,7 +20,7 @@ export default function NumberInput({
   );
 
   return (
-    <div className="flex flex-col space-y-2">
+    <div className="flex-1 flex flex-col space-y-2">
       <p className="text-light-secondary lt-sm:text-xs">{label}</p>
       <div className="flex items-center px-2 border border-white/20 rounded-md focus-within:border-primary">
         <button

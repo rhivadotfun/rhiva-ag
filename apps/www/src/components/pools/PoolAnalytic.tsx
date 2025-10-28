@@ -110,7 +110,7 @@ export default function PoolAnalytic({
           </div>
         )}
       </div>
-      <div className="flex sm:grid sm:grid-cols-2 sm:gap-4 sm:bg-white/3 sm:p-4 sm:rounded-md">
+      <div className="flex backdrop-blur sm:grid sm:grid-cols-2 sm:gap-4 sm:bg-white/3 sm:p-4 sm:rounded-md">
         <div className="lt-sm:flex-1 lt-sm:flex lt-sm:flex-col">
           <span className="text-gray lt-sm:text-xs sm:after:content-[':_']">
             Bin Step

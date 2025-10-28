@@ -93,13 +93,14 @@ export const createPosition = async (
     }
   } else throw new Error("unsupported input mint");
 
-  const { signers, builder } = await dex.dlmm.raydium.buildCreatePosition({
-    slippage,
-    priceChanges,
-    pool: pair.toBase58(),
-    inputMint: (tokenB > 0n ? tokenYMint : tokenXMint).toBase58(),
-    inputAmount: new BN((tokenB > 0n ? tokenB : tokenA).toString()),
-  });
+  const { signers, builder, extInfo } =
+    await dex.dlmm.raydium.buildCreatePosition({
+      slippage,
+      priceChanges,
+      pool: pair.toBase58(),
+      inputMint: (tokenB > 0n ? tokenYMint : tokenXMint).toBase58(),
+      inputAmount: new BN((tokenB > 0n ? tokenB : tokenA).toString()),
+    });
 
   const jitoTipInstruction = await sender.getJitoTipInstruction(
     owner.publicKey,
@@ -123,6 +124,7 @@ export const createPosition = async (
   });
 
   return {
+    positionNftMint: extInfo.nftMint,
     bundleSimulationResponse,
     async execute() {
       const { result } = await sender.sendBundle(transactions);

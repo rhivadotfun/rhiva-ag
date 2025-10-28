@@ -18,22 +18,25 @@ import SelectTokenModal from "./SelectTokenModal";
 import { DefaultToken } from "@/constants/tokens";
 
 type SwapModalProps = {
+  modal?: boolean;
   tokens?: [Token, Token];
 } & React.ComponentProps<typeof Dialog>;
 
-export default function SwapModal({ tokens, ...props }: SwapModalProps) {
+export default function Swap({ tokens, modal, ...props }: SwapModalProps) {
   const form = useMemo(() => <SwapForm tokens={tokens} />, [tokens]);
 
-  return (
+  return modal ? (
     <>
       <div className="lt-md:hidden">{form}</div>
-      <SwapModalSmall
+      <SwapModal
         {...props}
         className="md:hidden"
       >
         {form}
-      </SwapModalSmall>
+      </SwapModal>
     </>
+  ) : (
+    <SwapModal {...props}>{form}</SwapModal>
   );
 }
 
@@ -49,7 +52,7 @@ function SwapForm({
   const [showSelectOutputTokenModal, setShowSelectOutputTokenModal] =
     useState(false);
 
-  const { mutateAsync } = useMutation(trpc.token.swap.mutationOptions());
+  const { mutateAsync } = useMutation(trpc.token.swap.mutationOptions({}));
 
   const formikContext = useFormik({
     initialValues: {
@@ -140,7 +143,7 @@ function SwapForm({
   );
 }
 
-function SwapModalSmall({
+function SwapModal({
   children,
   ...props
 }: React.PropsWithChildren<React.ComponentProps<typeof Dialog>>) {
@@ -150,8 +153,8 @@ function SwapModalSmall({
       className={clsx("relative z-50", props.className)}
     >
       <div className="fixed inset-0 flex lt-sm:items-end sm:items-center sm:justify-center">
-        <DialogBackdrop className="lt-md:absolute lt-md:inset-0 lt-md:bg-black/50 lt-md:-z-10" />
-        <DialogPanel className="flex flex-col space-y-4 bg-dark-secondary p-4 rounded-xl lt-md:min-w-9/10">
+        <DialogBackdrop className="absolute inset-0 bg-black/50 -z-10" />
+        <DialogPanel className="flex flex-col space-y-4 bg-dark-secondary p-4 rounded-xl lt-md:min-w-9/10 md:min-w-md">
           <header className="flex items-center justify-between py-4">
             <DialogTitle className="text-lg font-bold sm:text-xl">
               Swap

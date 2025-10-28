@@ -1,5 +1,3 @@
-import moment from "moment";
-import assert from "assert";
 import Decimal from "decimal.js";
 import type { z } from "zod/mini";
 import { PublicKey } from "@solana/web3.js";
@@ -22,6 +20,7 @@ import {
   decreaseLiquidityQuote,
   collectRewardsQuote,
   getTickArrayStartTickIndex,
+  tickIndexToPrice,
 } from "@orca-so/whirlpools-core";
 import {
   getWhirlpoolDecoder,
@@ -40,6 +39,7 @@ import {
   positions,
   type Database,
   type walletSelectSchema,
+  buildConflictUpdateColumns,
 } from "@rhiva-ag/datasource";
 import {
   type Address,
@@ -70,6 +70,7 @@ export const syncOrcaPositionsForWallet = async (
     columns: {
       id: true,
       pool: false,
+      config: true,
       amountUsd: true,
     },
     with: {
@@ -208,7 +209,14 @@ export const syncOrcaPositionsForWallet = async (
   })) as Record<string, { usd: number }>;
 
   const pnlUpdates: (typeof pnls.$inferInsert)[] = [];
-  const positionUpdates: { id: string; update: { active: boolean } }[] = [];
+  const poolUpdates: {
+    id: string;
+    update: Partial<typeof pools.$inferInsert>;
+  }[] = [];
+  const positionUpdates: {
+    id: string;
+    update: Partial<typeof positions.$inferInsert>;
+  }[] = [];
 
   const epochInfo = await rpc.getEpochInfo().send();
 
@@ -238,10 +246,24 @@ export const syncOrcaPositionsForWallet = async (
     const active =
       pool.tickCurrentIndex >= position.data.tickLowerIndex &&
       pool.tickCurrentIndex <= position.data.tickUpperIndex;
+    const lowerTickPrice = tickIndexToPrice(
+      position.data.tickLowerIndex,
+      offchainPosition.pool.baseToken.decimals,
+      offchainPosition.pool.quoteToken.decimals,
+    );
+    const upperTickPrice = tickIndexToPrice(
+      position.data.tickUpperIndex,
+      offchainPosition.pool.baseToken.decimals,
+      offchainPosition.pool.quoteToken.decimals,
+    );
 
-    let feeUsd = 0,
-      amountUsd = 0,
-      rewardUsd = 0;
+    const priceRange: [number, number] = [lowerTickPrice, upperTickPrice];
+
+    let rewardUsd = 0,
+      baseAmountUsd = 0,
+      quoteAmountUsd = 0,
+      baseFeeUsd = 0,
+      quoteFeeUsd = 0;
 
     const baseToken = offchainPosition.pool.baseToken;
     const quoteToken = offchainPosition.pool.quoteToken;
@@ -328,13 +350,13 @@ export const syncOrcaPositionsForWallet = async (
     const priceY = prices[quoteToken.id];
 
     if (priceX) {
-      feeUsd += priceX.usd * feeX;
-      amountUsd += priceX.usd * amountX;
+      baseFeeUsd += priceX.usd * feeX;
+      baseAmountUsd += priceX.usd * amountX;
     }
 
     if (priceY) {
-      feeUsd += priceY.usd * feeY;
-      amountUsd += priceY.usd * amountY;
+      quoteFeeUsd += priceY.usd * feeY;
+      quoteAmountUsd += priceY.usd * amountY;
     }
 
     if (rewardToken) {
@@ -342,18 +364,49 @@ export const syncOrcaPositionsForWallet = async (
       if (priceReward) rewardUsd += priceReward.usd * rewardAmount;
     }
 
+    const feeUsd = baseFeeUsd + quoteFeeUsd;
+    const amountUsd = baseAmountUsd + quoteAmountUsd;
     const tvl = offchainPosition.amountUsd;
     const totalTVL = amountUsd + feeUsd + rewardUsd;
     const pnlUsd = tvl - totalTVL;
 
-    positionUpdates.push({ id: offchainPosition.id, update: { active } });
+    const currentPrice = tickIndexToPrice(
+      pool.tickCurrentIndex,
+      offchainPosition.pool.baseToken.decimals,
+      offchainPosition.pool.quoteToken.decimals,
+    );
+
+    positionUpdates.push({
+      id: offchainPosition.id,
+      update: { active, config: { ...offchainPosition.config, priceRange } },
+    });
+    poolUpdates.push({
+      id: offchainPosition.pool.id,
+      update: {
+        config: {
+          ...offchainPosition.pool.config,
+          extra: {
+            currentPrice,
+            binId: pool.tickCurrentIndex,
+          },
+        },
+      },
+    });
     pnlUpdates.push({
       feeUsd,
       pnlUsd,
       rewardUsd,
       amountUsd,
-      state: "opened",
       claimedFeeUsd: 0,
+      state: "opened",
+      baseAmountUsd,
+      quoteAmountUsd,
+      baseAmount: amountX,
+      quoteAmount: amountY,
+      unclaimedBaseFee: feeX,
+      unclaimedQuoteFee: feeY,
+      unclaimedBaseFeeUsd: baseFeeUsd,
+      unclaimedQuoteFeeUsd: quoteFeeUsd,
       position: offchainPosition.id,
     });
   }
@@ -364,15 +417,27 @@ export const syncOrcaPositionsForWallet = async (
       .values(pnlUpdates)
       .onConflictDoUpdate({
         target: [pnls.position, pnls.createdAt],
-        set: {
-          state: pnls.state,
-          pnlUsd: pnls.pnlUsd,
-          feeUsd: pnls.feeUsd,
-          rewardUsd: pnls.rewardUsd,
-          amountUsd: pnls.amountUsd,
-        },
+        set: buildConflictUpdateColumns(pnls, [
+          "state",
+          "feeUsd",
+          "pnlUsd",
+          "rewardUsd",
+          "amountUsd",
+          "baseAmount",
+          "quoteAmount",
+          "claimedFeeUsd",
+          "baseAmountUsd",
+          "quoteAmountUsd",
+          "unclaimedBaseFee",
+          "unclaimedQuoteFee",
+          "unclaimedBaseFeeUsd",
+          "unclaimedQuoteFeeUsd",
+        ]),
       })
       .returning(),
+    ...poolUpdates.map(({ id, update }) =>
+      db.update(pools).set(update).where(eq(pools.id, id)).returning(),
+    ),
     ...positionUpdates.flatMap(({ id, update }) =>
       db.update(positions).set(update).where(eq(positions.id, id)).returning(),
     ),
@@ -532,41 +597,15 @@ export const syncOrcaPositionStateFromEvent = async ({
   const results = [];
 
   for (const event of events) {
-    if (event.name === "liquidityIncreased") {
+    if (event.name === "liquidityIncreased" && type === "create-position") {
       const data = event.data;
-      let position = await getPositionById(db, data.position.toBase58());
+      const positionId = data.position.toBase58();
+      const pool = await upsertPool(db, rpc, data.whirlpool.toBase58());
 
-      if (!position) {
-        const pool = await upsertPool(db, rpc, data.whirlpool.toBase58());
-
-        assert(pool, "pool not created");
-
-        await db
-          .insert(positions)
-          .values({
-            config: {},
-            active: true,
-            state: "open",
-            pool: pool.id,
-            amountUsd: 0,
-            baseAmount: 0,
-            quoteAmount: 0,
-            wallet: wallet.id,
-            status: "pending",
-            id: data.position.toBase58(),
-          })
-          .returning();
-
-        position = await getPositionById(db, data.position.toBase58());
-      }
-
-      if (position) {
-        const { pool } = position;
+      if (pool) {
+        let amountUsd = 0;
         const rawAmountX = data.tokenAAmount,
           rawAmountY = data.tokenBAmount;
-        let baseAmount = position.baseAmount,
-          quoteAmount = position.quoteAmount,
-          amountUsd = position.amountUsd;
 
         const price = (await coingecko.simple.tokenPrice.getID("solana", {
           vs_currencies: "usd",
@@ -581,7 +620,6 @@ export const syncOrcaPositionStateFromEvent = async ({
             .div(Math.pow(10, pool.baseToken.decimals))
             .toNumber();
 
-          baseAmount -= amount;
           if (baseTokenPrice) amountUsd -= baseTokenPrice * amount;
         }
 
@@ -590,41 +628,36 @@ export const syncOrcaPositionStateFromEvent = async ({
             .div(Math.pow(10, pool.quoteToken.decimals))
             .toNumber();
 
-          quoteAmount -= amount;
           if (quoteTokenPrice) amountUsd -= quoteTokenPrice * amount;
         }
 
-        let values: Partial<typeof positions.$inferInsert> = {
-          baseAmount,
-          quoteAmount,
+        const values: typeof positions.$inferInsert = {
           amountUsd,
-          active: true,
+          pool: pool.id,
+          id: positionId,
+          state: "open",
           status: "successful",
-        };
-
-        if (position.amountUsd === 0)
-          values = {
-            ...values,
-            config: {
-              ...values.config,
-              history: {
-                openPrice: {
-                  baseToken: baseTokenPrice,
-                  quoteToken: quoteTokenPrice,
-                },
+          active: true,
+          wallet: wallet.id,
+          config: {
+            history: {
+              openPrice: {
+                baseToken: baseTokenPrice,
+                quoteToken: quoteTokenPrice,
               },
             },
-          };
+          },
+        };
 
-        const [updatedPosition] = await Promise.all([
+        const [position] = await Promise.all([
           db
-            .update(positions)
-            .set(values)
-            .where(eq(positions.id, position.id))
+            .insert(positions)
+            .values(values)
+            .onConflictDoNothing({ target: [positions.id] })
             .returning(),
           db.insert(rewards).values({
-            user: wallet.user,
             key: "swap",
+            user: wallet.user,
             xp: Math.floor(amountUsd),
           }),
           sendNotification(db, {
@@ -636,8 +669,7 @@ export const syncOrcaPositionStateFromEvent = async ({
               text: "position.created",
               params: {
                 signature,
-                baseAmount,
-                quoteAmount,
+                position: positionId,
                 baseToken: { symbol: pool.baseToken.symbol },
                 quoteToken: { symbol: pool.quoteToken.symbol },
               },
@@ -645,12 +677,16 @@ export const syncOrcaPositionStateFromEvent = async ({
           }),
         ]);
 
-        results.push(updatedPosition);
+        results.push(position);
       }
-    } else if (event.name === "liquidityDecreased") {
+    } else if (
+      event.name === "liquidityDecreased" &&
+      type === "closed-position"
+    ) {
       const data = event.data;
       const positionId = data.position.toBase58();
       const position = await getPositionById(db, positionId);
+
       if (!position) return;
 
       const { pool } = position;
@@ -662,61 +698,11 @@ export const syncOrcaPositionStateFromEvent = async ({
       const baseTokenPrice = price[pool.baseToken.id]?.usd;
       const quoteTokenPrice = price[pool.quoteToken.id]?.usd;
 
-      if (type === "closed-position") {
-        const [updatedPosition] = await db
-          .update(positions)
-          .set({
-            state: "closed",
-            config: {
-              ...positions.config,
-              history: {
-                ...position.config.history,
-                closingPrice: {
-                  baseToken: baseTokenPrice,
-                  quoteToken: quoteTokenPrice,
-                },
-              },
-            },
-          })
-          .where(eq(positions.id, positionId))
-          .returning();
-
-        results.push(updatedPosition);
-
-        continue;
-      }
-
-      const rawAmountX = data.tokenAAmount,
-        rawAmountY = data.tokenBAmount;
-      let baseAmount = position.baseAmount,
-        quoteAmount = position.quoteAmount,
-        amountUsd = position.amountUsd;
-
-      if (rawAmountX) {
-        const amount = new Decimal(rawAmountX.toString())
-          .div(Math.pow(10, pool.baseToken.decimals))
-          .toNumber();
-
-        baseAmount -= amount;
-        if (baseTokenPrice) amountUsd -= baseTokenPrice * amount;
-      }
-
-      if (rawAmountY) {
-        const amount = new Decimal(rawAmountY.toString())
-          .div(Math.pow(10, pool.quoteToken.decimals))
-          .toNumber();
-
-        quoteAmount -= amount;
-        if (quoteTokenPrice) amountUsd -= quoteTokenPrice * amount;
-      }
-
       const [updatedPosition] = await Promise.all([
         db
           .update(positions)
           .set({
-            baseAmount,
-            quoteAmount,
-            amountUsd,
+            state: "closed",
             config: {
               ...positions.config,
               history: {
@@ -739,9 +725,7 @@ export const syncOrcaPositionStateFromEvent = async ({
             text: "position.closed",
             params: {
               signature,
-              baseAmount: position.baseAmount,
-              quoteAmount: position.quoteAmount,
-              duration: moment().diff(moment(position.createdAt)),
+              position: positionId,
               baseToken: { symbol: position.pool.baseToken.symbol },
               quoteToken: { symbol: position.pool.quoteToken.symbol },
             },

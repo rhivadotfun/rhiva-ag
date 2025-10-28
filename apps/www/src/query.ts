@@ -1,5 +1,4 @@
 import { cache } from "react";
-import SuperJSON from "superjson";
 import {
   defaultShouldDehydrateQuery,
   QueryClient,
@@ -21,9 +20,9 @@ export const makeQueryClient = () =>
           );
         },
       },
-      hydrate: {
-        deserializeData: SuperJSON.deserialize,
-      },
+      // hydrate: {
+      //   deserializeData: SuperJSON.deserialize,
+      // },
     },
   });
 export const getQueryClient = cache(() => new QueryClient());

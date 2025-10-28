@@ -1,9 +1,5 @@
-import { and, sum, type SQL } from "drizzle-orm";
-import {
-  buildDrizzleWhereClauseFromObject,
-  date,
-  pnls,
-} from "@rhiva-ag/datasource";
+import { and, gte, lte, sum } from "drizzle-orm";
+import { coalesce, date, pnls } from "@rhiva-ag/datasource";
 
 import { pnlFilterSchema } from "./pnl.schema";
 import { orcaRoute } from "./orca/orca.router";
@@ -13,20 +9,21 @@ import { raydiumRoute } from "./raydium/raydium.router";
 
 export const pnlRoute = router({
   history: privateProcedure.input(pnlFilterSchema).query(({ ctx, input }) => {
-    let where: SQL<unknown> | undefined;
-    if (input) where = and(...buildDrizzleWhereClauseFromObject(input));
     const dayColumn = date(pnls.createdAt);
     return ctx.drizzle
       .select({
         day: dayColumn,
-        feeUsd: sum(pnls.feeUsd),
-        rewardUsd: sum(pnls.feeUsd),
-        profitUsd: sum(pnls.pnlUsd),
+        pnlUsd: coalesce(sum(pnls.pnlUsd), 0).mapWith(Number),
       })
       .from(pnls)
       .groupBy(dayColumn)
       .orderBy(dayColumn)
-      .where(where)
+      .where(
+        and(
+          gte(pnls.createdAt, input.start.toISOString()),
+          lte(pnls.createdAt, input.end.toISOString()),
+        ),
+      )
       .execute();
   }),
   orca: orcaRoute,

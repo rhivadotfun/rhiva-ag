@@ -25,21 +25,24 @@ export default function Pagination({
     [maxPage],
   );
   const currentStartPage = useMemo(
-    () => (currentPage - 1) * (itemsPerPage + 1),
+    () => ((currentPage + 1) * itemsPerPage + currentPage > 0 ? 1 : 0),
     [currentPage, itemsPerPage],
   );
   const currentMaxPage = useMemo(
-    () => Math.min(currentPage * itemsPerPage, totalItems),
+    () => Math.min((currentPage + 1) * itemsPerPage, totalItems),
     [currentPage, itemsPerPage, totalItems],
   );
   const canBack = useMemo(() => currentPage > 1, [currentPage]);
-  const canNext = useMemo(() => currentPage < maxPage, [currentPage, maxPage]);
+  const canNext = useMemo(
+    () => currentPage + 1 < maxPage,
+    [currentPage, maxPage],
+  );
 
   return (
     <div
       {...props}
       className={clsx(
-        "flex items-center justify-between p-4 text-sm",
+        "flex items-center justify-between p-2 text-sm",
         props.className,
       )}
     >
@@ -50,6 +53,7 @@ export default function Pagination({
       <div className="flex items-center space-x-2">
         <button
           type="button"
+          disabled={!canBack}
           className={clsx(
             "size-8 flex items-center justify-center bg-white/5 rounded hover:bg-white/10",
             canBack ? "text-gray" : "text-gray/50",
@@ -62,8 +66,8 @@ export default function Pagination({
         </button>
         <div className="flex items-center space-x-2 lt-sm:[&>:nth-child(n+2):not(:last-child)]:hidden sm:[&>:nth-child(n+4):not(:last-child)]:hidden">
           {pages.map((page, index) => {
-            const selected = currentPage === page;
-            const showElipsis = index === pages.length - 1;
+            const selected = currentPage === page - 1;
+            const showElipsis = pages.length > 1 && index === pages.length - 1;
 
             return (
               <div
@@ -80,7 +84,7 @@ export default function Pagination({
                       ? "bg-primary text-black"
                       : "bg-white/5 text-gray border border-white/10 hover:bg-white/10",
                   )}
-                  onClick={() => setCurrentPage(page)}
+                  onClick={() => setCurrentPage(page - 1)}
                 >
                   {page}
                 </button>
@@ -90,6 +94,7 @@ export default function Pagination({
         </div>
         <button
           type="button"
+          disabled={!canNext}
           className={clsx(
             "size-8 flex items-center justify-center bg-white/5 rounded hover:bg-white/10",
             canNext ? "text-gray" : "text-gray/50",

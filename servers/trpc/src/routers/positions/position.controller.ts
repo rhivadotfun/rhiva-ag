@@ -1,15 +1,27 @@
 import type z from "zod";
 import moment from "moment";
-import { and, avg, count, eq, gt, lt, not, sum, type SQL } from "drizzle-orm";
+import {
+  and,
+  avg,
+  count,
+  desc,
+  eq,
+  gt,
+  lt,
+  not,
+  sum,
+  type SQL,
+} from "drizzle-orm";
 import {
   pnls,
-  wallets,
-  type walletSelectSchema,
-  type Database,
   positions,
   caseWhen,
   int,
   coalesce,
+  decimal,
+  add,
+  type Database,
+  type walletSelectSchema,
 } from "@rhiva-ag/datasource";
 
 export const getWalletPositions = async (
@@ -36,12 +48,13 @@ export const getWalletPositions = async (
       with: {
         pnls: {
           limit: 1,
-          orderBy: pnls.createdAt,
+          orderBy: desc(pnls.createdAt),
         },
         pool: {
           columns: {
             id: true,
             dex: true,
+            config: true,
           },
           with: {
             baseToken: true,
@@ -82,18 +95,22 @@ export const getWalletPositionsAggregrate = (
 
   return db
     .select({
+      networthUsd: coalesce(
+        add(sum(qPnls.amountUsd), sum(qPnls.pnlUsd)),
+        0,
+      ).mapWith(Number),
       avgInvestedUsd: coalesce(avg(positions.amountUsd), 0).mapWith(Number),
       lossUsd: coalesce(
-        sum(int(caseWhen(lt(qPnls.pnlUsd, 0), qPnls.pnlUsd))),
+        sum(decimal(caseWhen(lt(qPnls.pnlUsd, 0), qPnls.pnlUsd))),
         0,
       ).mapWith(Number),
       feeUsd: coalesce(sum(qPnls.feeUsd), 0).mapWith(Number),
       profitUsd: coalesce(
-        sum(int(caseWhen(gt(qPnls.pnlUsd, 0), qPnls.pnlUsd))),
+        sum(decimal(caseWhen(gt(qPnls.pnlUsd, 0), qPnls.pnlUsd))),
         0,
       ).mapWith(Number),
       avgMonthlyProfit: coalesce(
-        sum(int(caseWhen(gt(positions.createdAt, month), qPnls.pnlUsd))),
+        sum(decimal(caseWhen(gt(positions.createdAt, month), qPnls.pnlUsd))),
         0,
       ).mapWith(Number),
       closed: coalesce(

@@ -24,7 +24,7 @@ export default function TokenSelect({
       as="div"
       className="relative flex flex-col space-y-12"
     >
-      <MenuButton className="flex items-center justify-between border border-white/5 bg-black p-2 rounded">
+      <MenuButton className="flex items-center justify-between border border-white/5 bg-black p-3 rounded">
         <div className="flex items-center space-x-2">
           <Image
             src={value.icon}

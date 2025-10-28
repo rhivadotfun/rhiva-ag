@@ -1,4 +1,5 @@
 import z from "zod";
+import { cpus } from "os";
 import type { Logger } from "pino";
 import { type Job, Worker } from "bullmq";
 import { createSolanaRpc } from "@solana/kit";
@@ -65,6 +66,7 @@ export default async function createWorker({
       );
     },
     {
+      concurrency: cpus().length,
       connection: createRedis({ maxRetriesPerRequest: null }),
     },
   );

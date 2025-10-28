@@ -1,5 +1,8 @@
 import clsx from "clsx";
-import { useEffect, useState } from "react";
+import { format } from "util";
+import { useMemo, useState } from "react";
+import type { AppRouter } from "@rhiva-ag/trpc";
+import { collectionToMap } from "@rhiva-ag/shared";
 import {
   IoChevronBackOutline,
   IoChevronDownOutline,
@@ -12,18 +15,15 @@ import {
   DisclosurePanel,
 } from "@headlessui/react";
 
+import { getCalender } from "@/lib/calender";
 import { currencyIntlArgs } from "@/constants/format";
-import { getCalender, type DailyPnL } from "@/lib/calender";
+import { useTRPC } from "@/trpc.client";
+import { useQuery } from "@tanstack/react-query";
 
-interface PortfolioHistoryProps extends React.ComponentProps<"div"> {
-  dailyPnLData?: DailyPnL[];
-}
+type PNL = Awaited<ReturnType<AppRouter["pnl"]["history"]>>[number];
 
-export function PortfolioHistory({
-  dailyPnLData,
-  ...props
-}: PortfolioHistoryProps) {
-  const calender = <PortfolioCalender dailyPnLData={dailyPnLData} />;
+export function PortfolioHistory(props: React.ComponentProps<"div">) {
+  const calender = useMemo(() => <PortfolioCalender />, []);
   return (
     <>
       <div className={clsx("lt-sm:hidden", props.className)}>
@@ -37,16 +37,46 @@ export function PortfolioHistory({
   );
 }
 
-interface PortfolioCalenderProps extends React.ComponentProps<"div"> {
-  dailyPnLData?: DailyPnL[];
-}
+function PortfolioCalender(props: React.ComponentProps<"div">) {
+  const trpc = useTRPC();
+  const intl = useMemo(
+    () =>
+      Intl.NumberFormat("en-US", {
+        ...currencyIntlArgs,
+        maximumFractionDigits: 3,
+      }),
+    [],
+  );
+  const [calender, setCalender] = useState<ReturnType<typeof getCalender>>(
+    getCalender(undefined),
+  );
 
-function PortfolioCalender({ dailyPnLData, ...props }: PortfolioCalenderProps) {
-  const [calender, setCalender] = useState<ReturnType<typeof getCalender>>();
+  const { data } = useQuery({
+    ...trpc.pnl.history.queryOptions({
+      start: calender.dates[0].toDate(),
+      end: calender.dates[calender!.dates.length - 1].toDate(),
+    }),
+    enabled: Boolean(calender?.dates),
+  });
 
-  useEffect(() => {
-    setCalender(getCalender(undefined, dailyPnLData));
-  }, [dailyPnLData]);
+  const mapDailyPnlData = useMemo(
+    () =>
+      data ? collectionToMap(data, (pnl) => pnl.day) : new Map<string, PNL>(),
+    [data],
+  );
+
+  const totalMonthlyProfit = useMemo(
+    () => (data ? data.reduce((acc, cur) => acc + cur.pnlUsd, 0) : 0),
+    [data],
+  );
+
+  const goToPreviousMonth = () => {
+    setCalender(getCalender(calender?.previous));
+  };
+
+  const goToNextMonth = () => {
+    setCalender(getCalender(calender?.next));
+  };
 
   if (calender) {
     const [peek] = calender.dates;
@@ -57,11 +87,23 @@ function PortfolioCalender({ dailyPnLData, ...props }: PortfolioCalenderProps) {
         className={clsx("flex flex-col space-y-4", props.className)}
       >
         <div className="self-end flex items-center space-x-2">
-          <IoChevronBackOutline />
+          <button
+            type="button"
+            className="p-2"
+            onClick={goToPreviousMonth}
+          >
+            <IoChevronBackOutline />
+          </button>
           <span className="uppercase font-medium">
             {peek.format("MMM YYYY")}
           </span>
-          <IoChevronForwardOutline />
+          <button
+            type="button"
+            className="p-2"
+            onClick={goToNextMonth}
+          >
+            <IoChevronForwardOutline />
+          </button>
         </div>
         <div className="grid grid-cols-7 gap-x-2 gap-y-2">
           {calender.weekdays.map((weekday) => (
@@ -72,66 +114,62 @@ function PortfolioCalender({ dailyPnLData, ...props }: PortfolioCalenderProps) {
               {weekday}
             </div>
           ))}
-          {calender.calendarGrid.map((week) =>
-            week.map((cell) => (
-              <div
-                key={cell?.key}
-                className={clsx(
-                  "flex flex-col items-center justify-center md:aspect-square/4 text-center p-2",
-                  cell && "border border-primary/20 rounded bg-primary/5",
-                )}
-              >
-                {cell && (
-                  <>
-                    <p className="text-gray font-medium text-sm">
-                      {cell.moment.date()}
-                    </p>
-                    <p
-                      className={clsx(
-                        "text-2/5 lg:text-xs font-semibold",
-                        cell.pnl !== undefined
-                          ? cell.pnl >= 0
-                            ? "text-green-500"
-                            : "text-red-500"
-                          : "text-white",
-                      )}
-                    >
-                      {cell.pnl !== undefined ? (
+          {calender.calendarGrid.map((week, weekIndex) =>
+            week.map((cell, index) => {
+              const pnl = cell
+                ? mapDailyPnlData.get(cell.format("YYYY-MM-D"))?.pnlUsd
+                : undefined;
+              return (
+                <div
+                  key={format("%s-%s", weekIndex, index)}
+                  className={clsx(
+                    "flex flex-col items-center justify-center md:aspect-square/4 text-center p-2",
+                    cell && "border border-primary/20 rounded bg-primary/5",
+                  )}
+                >
+                  {cell && (
+                    <div className="flex flex-col space-y-1 text-gray font-medium text-sm">
+                      <p>{cell.date()}</p>
+                      {pnl && (
                         <>
-                          {cell.pnl >= 0 ? "+" : ""}
                           <Decimal
-                            value={cell.pnl}
+                            as="p"
+                            value={pnl}
                             intlArgs={currencyIntlArgs}
+                            className={clsx(
+                              "lt-sm:hidden",
+                              pnl >= 0 ? "text-primary" : "text-red-500",
+                            )}
                           />
+                          <p
+                            className={clsx(
+                              "sm:hidden",
+                              pnl >= 0 ? "text-primary" : "text-red-500",
+                            )}
+                          >
+                            {intl.format(pnl)}
+                          </p>
                         </>
-                      ) : (
-                        <Decimal
-                          value={0}
-                          intlArgs={currencyIntlArgs}
-                        />
                       )}
-                    </p>
-                  </>
-                )}
-              </div>
-            )),
+                    </div>
+                  )}
+                </div>
+              );
+            }),
           )}
         </div>
 
-        <div className="flex mt-4 p-3">
-          <p className="text-gray text-sm font-medium">
-            TOTAL MONTHLY PROFIT: &nbsp;
-            <span
+        <div className="flex">
+          <p className="text-gray font-medium">
+            <span className="text-sm">TOTAL MONTHLY PROFIT &nbsp;</span>
+            <Decimal
+              value={totalMonthlyProfit}
+              intlArgs={{ ...currencyIntlArgs, signDisplay: "exceptZero" }}
               className={clsx(
                 "font-bold",
-                calender.monthlyTotal >= 0 ? "text-green-500" : "text-red-500",
+                totalMonthlyProfit >= 0 ? "text-primary" : "text-red-500",
               )}
-            >
-              <Decimal
-                value={calender.monthlyTotal}
-                intlArgs={{ ...currencyIntlArgs, signDisplay: "exceptZero" }}
-              />
-            </span>
+            />
           </p>
         </div>
       </div>

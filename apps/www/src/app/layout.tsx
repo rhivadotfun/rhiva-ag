@@ -1,10 +1,12 @@
 import clsx from "clsx";
 import Image from "next/image";
-import "@unocss/reset/tailwind.css";
-import "rc-slider/assets/index.css";
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import { ToastContainer } from "react-toastify";
+
+import "@unocss/reset/tailwind.css";
+import "rc-slider/assets/index.css";
+import "react-tooltip/dist/react-tooltip.css";
 
 import "./globals.css";
 import Provider from "@/providers";

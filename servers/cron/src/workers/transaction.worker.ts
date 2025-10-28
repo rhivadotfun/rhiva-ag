@@ -1,11 +1,12 @@
 import { z } from "zod";
+import { cpus } from "os";
 import { Worker } from "bullmq";
 import type { Logger } from "pino";
 import { Pipeline } from "@rhiva-ag/decoder";
-import type { Connection, PublicKey } from "@solana/web3.js";
+import type { Connection } from "@solana/web3.js";
 import { createSolanaRpc, type Rpc, type SolanaRpcApi } from "@solana/kit";
 import {
-  publicKey,
+  address,
   walletSelectSchema,
   type Database,
 } from "@rhiva-ag/datasource";
@@ -38,7 +39,7 @@ export const transactionWorkSchema = z
           dex: z.enum(["orca", "meteora"]),
         }),
         z.object({
-          positionNftMint: publicKey().optional(),
+          positionNftMint: address().optional(),
           dex: z.enum(["raydium-clmm"]),
         }),
       ])
@@ -73,7 +74,7 @@ export const createTransactionPipeline = ({
   coingecko: Coingecko;
   rpc: Rpc<SolanaRpcApi>;
   connection: Connection;
-  positionNftMint?: PublicKey;
+  positionNftMint?: string;
   wallet: Pick<z.infer<typeof walletSelectSchema>, "id" | "user">;
   type?: "closed-position" | "create-position" | "claim-reward";
 }) =>
@@ -182,23 +183,19 @@ export default async function createWorker({
             "positionNftMint" in data ? data.positionNftMint : undefined,
         });
 
-        const bundles = await sender.getBundles(data.bundleId);
-
-        return Promise.all(
-          bundles.map(async (bundle) => {
-            const response = mapFilter(
-              await connection.getParsedTransactions(bundle.txSignatures, {
-                maxSupportedTransactionVersion: 0,
-              }),
-              (transaction) => transaction,
-            );
-
-            return pipeline.process(...response);
+        const bundle = await sender.safeGetBundle(data.bundleId, 6);
+        const response = mapFilter(
+          await connection.getParsedTransactions(bundle.transactions, {
+            maxSupportedTransactionVersion: 0,
           }),
+          (transaction) => transaction,
         );
+
+        return pipeline.process(...response);
       }
     },
     {
+      concurrency: cpus().length,
       connection: createRedis({ maxRetriesPerRequest: null }),
     },
   );

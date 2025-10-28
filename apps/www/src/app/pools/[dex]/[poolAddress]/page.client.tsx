@@ -98,6 +98,7 @@ export default function PoolClientPage({
                 pool={data}
                 open={showCreatePositionModal}
                 onClose={setShowCreatePositionModal}
+                className="min-w-2xl"
               />
             )}
             <button

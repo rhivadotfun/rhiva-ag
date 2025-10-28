@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MdClose, MdVerified } from "react-icons/md";
+import { useConnection } from "@solana/wallet-adapter-react";
 import {
   Dialog,
   DialogBackdrop,
@@ -13,8 +14,8 @@ import Image from "../Image";
 import { dexApi } from "@/instances";
 import { truncateString } from "@/lib";
 import SearchInput from "../SearchInput";
-import { useAppSelector } from "@/store";
-import { walletTokenSelectors } from "@/store/wallet";
+import { useAuth } from "@/hooks/useAuth";
+import { getWalletPNL } from "@/lib/get-tokens";
 
 export type Token = {
   icon: string;
@@ -36,14 +37,20 @@ export default function SelectTokenModal({
   onChange,
   ...props
 }: SelectTokenModalProps) {
+  const { user } = useAuth();
+  const { connection } = useConnection();
   const [tokenArgs, setTokenArgs] = useState<
     Parameters<typeof dexApi.jup.token.list>[number]
   >({
     timestamp: "5m",
     category: "toptraded",
   });
-  const { walletToken } = useAppSelector((state) => state.wallet);
-  const walletTokens = walletTokenSelectors.selectAll(walletToken);
+
+  const { data: walletPNL } = useQuery({
+    enabled: Boolean(user),
+    queryKey: ["wallet", "tokens", user?.wallet?.id],
+    queryFn: async () => getWalletPNL(connection, dexApi, user?.wallet?.id),
+  });
 
   const { data } = useQuery({
     queryKey: ["tokens", tokenArgs.category, tokenArgs.query, tokenArgs.query],
@@ -53,8 +60,11 @@ export default function SelectTokenModal({
   const tokens: Token[] = useMemo(() => {
     if (data) {
       const added = new Map<string, Token>();
-      for (const token of [...walletTokens, ...data]) {
-        if (added.has(token.id)) continue;
+      for (const token of [...(walletPNL ? walletPNL.tokens : []), ...data]) {
+        const _token = added.get(token.id);
+
+        if (_token && !("balance" in token)) continue;
+
         added.set(token.id, {
           mint: token.id,
           icon: token.icon,
@@ -69,18 +79,21 @@ export default function SelectTokenModal({
       return added.values().toArray();
     }
 
-    return walletTokens.map((token) => ({
-      mint: token.id,
+    if (walletPNL)
+      return walletPNL?.tokens.map((token) => ({
+        mint: token.id,
 
-      icon: token.icon,
-      name: token.name,
-      symbol: token.symbol,
-      balance: token.balance,
-      decimals: token.decimals,
+        icon: token.icon,
+        name: token.name,
+        symbol: token.symbol,
+        balance: token.balance,
+        decimals: token.decimals,
 
-      verified: token.isVerified,
-    }));
-  }, [data, walletTokens]);
+        verified: token.isVerified,
+      }));
+
+    return [];
+  }, [data, walletPNL]);
 
   return (
     <Dialog

@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { format } from "util";
 import { useMemo } from "react";
 import { number, object } from "yup";
 import { PublicKey } from "@solana/web3.js";
@@ -11,6 +12,7 @@ import { useConnection } from "@solana/wallet-adapter-react";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 
 import { useTRPC } from "@/trpc.client";
+import { useAuth } from "@/hooks/useAuth";
 import DepositInput from "../DepositInput";
 import PriceRangeInput from "./PriceRangeInput";
 import PositionOverview from "../PositionOverview";
@@ -19,6 +21,8 @@ import { getPoolState } from "@/lib/web3/raydium-patch";
 type RaydiumOpenPositionProps = {
   pool: Pair;
 } & React.ComponentProps<typeof Dialog>;
+
+const POSITION_FEE = 0.00245688;
 
 export default function RaydiumOpenPosition({
   pool,
@@ -44,22 +48,51 @@ function RaydiumOpenPositionForm({
   ...props
 }: React.ComponentProps<typeof Form> & Pick<RaydiumOpenPositionProps, "pool">) {
   const trpc = useTRPC();
+  const { user } = useAuth();
   const { connection } = useConnection();
-  const curves = useMemo(() => [{ label: "Spot", value: "Spot" }], []);
+  const nativeMint = NATIVE_MINT.toBase58();
+
+  const { data: rawBalance } = useQuery({
+    refetchInterval: 60_000,
+    queryKey: ["balance", nativeMint, user.wallet.id],
+    queryFn: () => connection.getBalance(new PublicKey(user.wallet.id)),
+  });
 
   const { data: poolState } = useQuery({
     queryKey: ["raydium", pool.address],
     queryFn: () => getPoolState(connection, new PublicKey(pool.address)),
   });
 
+  const curves = useMemo(() => [{ label: "Spot", value: "Spot" }], []);
+  const balance = useMemo(
+    () => (rawBalance ? rawBalance / Math.pow(10, 9) : 0),
+    [rawBalance],
+  );
+
   const { mutateAsync } = useMutation(
-    trpc.position.raydium.create.mutationOptions(),
+    trpc.position.raydium.create.mutationOptions({}),
   );
 
   const formikContext = useFormik({
     validateOnMount: true,
     validationSchema: object({
-      inputAmount: number().moreThan(0).required(),
+      inputAmount: number()
+        .label("amount")
+        .min(0, "Invalid amount")
+        .max(balance)
+        .test(
+          "fee",
+          format("You need %d SOL more to create position", POSITION_FEE),
+          (value) => {
+            if (value) {
+              const remainingBalance = balance - value;
+              if (remainingBalance > POSITION_FEE) return true;
+              if (value > POSITION_FEE) return true;
+              return false;
+            }
+          },
+        )
+        .required(),
     }),
     initialValues: {
       inputAmount: undefined as unknown as number,
@@ -96,7 +129,8 @@ function RaydiumOpenPositionForm({
     },
   });
 
-  const { values, isValid, setFieldValue, isSubmitting } = formikContext;
+  const { values, errors, isValid, setFieldValue, isSubmitting } =
+    formikContext;
 
   return (
     poolState && (
@@ -150,7 +184,12 @@ function RaydiumOpenPositionForm({
               />
               <DepositInput
                 apr={pool.apr}
+                balance={balance}
                 value={values.inputAmount}
+                error={errors.inputAmount}
+                inputContainerAttrs={{
+                  className: clsx(errors.inputAmount && "!border-red"),
+                }}
                 onChange={(value) => setFieldValue("inputAmount", value)}
               />
             </div>

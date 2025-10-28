@@ -1,7 +1,8 @@
 import Dex from "@rhiva-ag/dex";
 import { Work } from "@rhiva-ag/cron";
-import { mints } from "@rhiva-ag/datasource";
+import { buildConflictUpdateColumns, mints } from "@rhiva-ag/datasource";
 import { loadWallet } from "@rhiva-ag/shared";
+import { fromLegacyPublicKey } from "@solana/compat";
 
 import { createQueue } from "../shared";
 import { privateProcedure, router } from "../../../trpc";
@@ -28,16 +29,12 @@ export const raydiumRoute = router({
           .values(input.tokens)
           .onConflictDoUpdate({
             target: [mints.id],
-            set: {
-              name: mints.name,
-              symbol: mints.symbol,
-              image: mints.image,
-            },
+            set: buildConflictUpdateColumns(mints, ["name", "symbol", "image"]),
           });
       const dex = new Dex(ctx.connection);
       const owner = await loadWallet(ctx.user.wallet, ctx.secret);
 
-      const { execute } = await createPosition(
+      const { positionNftMint, execute } = await createPosition(
         dex,
         ctx.sendTransaction,
         owner,
@@ -52,6 +49,7 @@ export const raydiumRoute = router({
           dex: "raydium-clmm",
           type: "create-position",
           wallet: ctx.user.wallet,
+          positionNftMint: fromLegacyPublicKey(positionNftMint),
         },
         { jobId: bundleId },
       );

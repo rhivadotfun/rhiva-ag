@@ -16,6 +16,7 @@ export default function PositionOverview({
     () =>
       new Intl.NumberFormat("en-US", {
         ...percentageIntlArgs,
+        maximumFractionDigits: 8,
         signDisplay: "never",
       }),
     [],
@@ -24,7 +25,7 @@ export default function PositionOverview({
   return (
     <div
       className={clsx(
-        "flex flex-col space-y-2 border border-white/10 p-4 rounded-md",
+        "flex flex-col space-y-2 border border-white/10 backdrop-blur p-4 rounded-md",
         props.className,
       )}
     >

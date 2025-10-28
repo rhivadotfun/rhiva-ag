@@ -1,5 +1,5 @@
 {
-  "id": "d986310e-1ad6-433a-8b06-dfd9b60b9425",
+  "id": "c8789e20-2917-4285-b22a-169e90a81885",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -17,18 +17,6 @@
         "state": {
           "name": "state",
           "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "amountUsd": {
-          "name": "amountUsd",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "claimedFeeUsd": {
-          "name": "claimedFeeUsd",
-          "type": "double precision",
           "primaryKey": false,
           "notNull": true
         },
@@ -56,6 +44,80 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "amountUsd": {
+          "name": "amountUsd",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "claimedFeeUsd": {
+          "name": "claimedFeeUsd",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "baseAmount": {
+          "name": "baseAmount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "baseAmountUsd": {
+          "name": "baseAmountUsd",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "quoteAmount": {
+          "name": "quoteAmount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "quoteAmountUsd": {
+          "name": "quoteAmountUsd",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "unclaimedBaseFee": {
+          "name": "unclaimedBaseFee",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "unclaimedBaseFeeUsd": {
+          "name": "unclaimedBaseFeeUsd",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "unclaimedQuoteFee": {
+          "name": "unclaimedQuoteFee",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "unclaimedQuoteFeeUsd": {
+          "name": "unclaimedQuoteFeeUsd",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "config": {
+          "name": "config",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -764,18 +826,6 @@
         },
         "amountUsd": {
           "name": "amountUsd",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "baseAmount": {
-          "name": "baseAmount",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "quoteAmount": {
-          "name": "quoteAmount",
           "type": "double precision",
           "primaryKey": false,
           "notNull": true

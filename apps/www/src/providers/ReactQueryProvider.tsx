@@ -11,7 +11,6 @@ import {
 let browserQueryClient: QueryClient;
 function getQueryClient() {
   if (isServer) return makeQueryClient();
-
   if (!browserQueryClient) browserQueryClient = makeQueryClient();
 
   return browserQueryClient;
