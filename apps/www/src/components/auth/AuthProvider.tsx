@@ -60,6 +60,7 @@ export default withCookieProvider(function AuthProvider({
   serverUser?: User;
 }) {
   const manualFetchUser = useRef(false);
+  const disableWalletConnect = useRef(false);
   const signInRejecter = useRef<(error: Error) => void>(null);
   const signInResolver = useRef<(user: User) => void>(null);
 
@@ -82,13 +83,13 @@ export default withCookieProvider(function AuthProvider({
   }, [user]);
 
   const signOut = useCallback(async () => {
-    await Promise.all([
-      firebaseSignOut(auth),
-      xior.delete<z.infer<typeof extendedUserSelectSchema>>(
-        "/api/auth/session",
-      ),
-      wallet.disconnect(),
-    ]);
+    disableWalletConnect.current = true;
+    wallet.disconnect().catch(() => null);
+    firebaseSignOut(auth).catch(() => null);
+    xior
+      .delete<z.infer<typeof extendedUserSelectSchema>>("/api/auth/session")
+      .catch(() => null);
+    localStorage.clear();
 
     setUser(undefined);
     setIsAuthenticated(false);
@@ -103,9 +104,9 @@ export default withCookieProvider(function AuthProvider({
     if (signInResolver.current) {
       signInResolver.current(data);
       signInResolver.current = null;
-      setShowAuthModal(false);
     }
 
+    setShowAuthModal(false);
     return data;
   }, []);
 
@@ -113,11 +114,11 @@ export default withCookieProvider(function AuthProvider({
     const emailLink = location.href;
 
     if (isSignInWithEmailLink(auth, emailLink) && cookies.email) {
-      signInWithEmailLink(auth, cookies.email, emailLink).then(
-        async ({ user }) => {
+      signInWithEmailLink(auth, cookies.email, emailLink)
+        .then(async ({ user }) => {
           fetchServerUser(user);
-        },
-      );
+        })
+        .catch(console.error);
     }
   }, [cookies.email, auth, fetchServerUser]);
 
@@ -158,6 +159,7 @@ export default withCookieProvider(function AuthProvider({
   }, [wallet]);
 
   useEffect(() => {
+    if (disableWalletConnect.current) return;
     if (user) return;
     if (wallet.publicKey) signInWithWallet();
   }, [wallet, user, signInWithWallet]);

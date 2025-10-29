@@ -1,14 +1,27 @@
 import z from "zod";
 import Dex from "@rhiva-ag/dex";
 import Decimal from "decimal.js";
-import { loadWallet } from "@rhiva-ag/shared";
 import { rewards } from "@rhiva-ag/datasource";
+import { isNative, loadWallet } from "@rhiva-ag/shared";
+import { createTransferCheckedInstruction } from "@solana/spl-token";
+import {
+  PublicKey,
+  SystemProgram,
+  TransactionMessage,
+  VersionedTransaction,
+  type TransactionInstruction,
+} from "@solana/web3.js";
+import {
+  createAssociatedTokenAccountIdempotentInstruction,
+  getAssociatedTokenAddressSync,
+} from "@solana/spl-token";
 import type { TradeGetResponse } from "@coingecko/coingecko-typescript/resources/onchain/networks/pools/trades.js";
 import type { OhlcvGetTimeframeResponse } from "@coingecko/coingecko-typescript/resources/onchain/networks/pools/ohlcv.js";
 
 import { privateProcedure, publicProcedure, router } from "../../trpc";
 import {
   tokenChartFilter,
+  tokenSendSchema,
   tokenSwapSchema,
   tokenTradeFilter,
 } from "./token.schema";
@@ -108,5 +121,77 @@ export const tokenRoute = router({
         });
 
       return result;
+    }),
+  send: privateProcedure
+    .input(tokenSendSchema)
+    .mutation(async ({ ctx, input }) => {
+      const transferInstructions: TransactionInstruction[] = [];
+      const owner = new PublicKey(ctx.user.wallet.id);
+      const wallet = await loadWallet(ctx.user.wallet, ctx.secret);
+
+      if (isNative(input.inputMint))
+        transferInstructions.push(
+          SystemProgram.transfer({
+            fromPubkey: owner,
+            toPubkey: input.recipient,
+            lamports: input.inputAmount,
+          }),
+        );
+      else {
+        const fromAta = getAssociatedTokenAddressSync(
+          input.inputMint,
+          owner,
+          false,
+          input.inputTokenProgram,
+        );
+        const toAta = getAssociatedTokenAddressSync(
+          input.inputMint,
+          input.recipient,
+          false,
+          input.inputTokenProgram,
+        );
+        transferInstructions.push(
+          createAssociatedTokenAccountIdempotentInstruction(
+            owner,
+            toAta,
+            owner,
+            input.inputMint,
+            input.inputTokenProgram,
+          ),
+        );
+        transferInstructions.push(
+          createTransferCheckedInstruction(
+            fromAta,
+            input.inputMint,
+            toAta,
+            owner,
+            input.inputAmount,
+            input.inputDecimals,
+            undefined,
+            input.inputTokenProgram,
+          ),
+        );
+      }
+      const { blockhash: recentBlockhash } =
+        await ctx.connection.getLatestBlockhash();
+      const v0Message = new TransactionMessage({
+        payerKey: owner,
+        recentBlockhash,
+        instructions: transferInstructions,
+      }).compileToV0Message();
+      const v0Transaction = new VersionedTransaction(v0Message);
+
+      const simulateResponse = await ctx.connection.simulateTransaction(
+        v0Transaction,
+        {
+          sigVerify: false,
+          replaceRecentBlockhash: true,
+        },
+      );
+      if (simulateResponse.value.err) throw simulateResponse.value.err;
+
+      v0Transaction.sign([wallet]);
+
+      return ctx.connection.sendTransaction(v0Transaction);
     }),
 });

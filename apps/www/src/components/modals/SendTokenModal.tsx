@@ -1,8 +1,10 @@
 import clsx from "clsx";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "react-toastify";
 import { MdClose } from "react-icons/md";
 import { Field, Form, Formik } from "formik";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { getAnalytics, logEvent } from "firebase/analytics";
 import { useConnection } from "@solana/wallet-adapter-react";
 import {
   Dialog,
@@ -16,6 +18,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { getWalletPNL } from "@/lib/get-tokens";
 import TokenInput from "../send-token/TokenInput";
 import TokenSelect from "../send-token/TokenSelect";
+import { number, object, string } from "yup";
+import type { Token } from "@rhiva-ag/dex-api/jup/types";
+import { useTRPC } from "@/trpc.client";
 
 export default function SendTokenModal(
   props: React.ComponentProps<typeof Dialog>,
@@ -47,27 +52,61 @@ export default function SendTokenModal(
 }
 
 function SendTokenForm(props: React.ComponentProps<typeof Form>) {
+  const trpc = useTRPC();
   const { connection } = useConnection();
   const { isAuthenticated, user } = useAuth();
+  const [token, setToken] = useState<Token & { balance: number }>();
 
   const { data } = useQuery({
     queryKey: ["wallet", "tokens", user.wallet.id],
     queryFn: async () => getWalletPNL(connection, dexApi, user.wallet.id),
   });
 
+  const { mutateAsync } = useMutation(trpc.token.send.mutationOptions());
+
+  const analytics = useMemo(() => getAnalytics(), []);
   const tokens = useMemo(() => data?.tokens, [data]);
 
+  useEffect(() => {
+    if (tokens) setToken((token) => (token ? token : tokens[0]));
+  }, [tokens]);
+
   return (
-    tokens && (
+    tokens &&
+    token && (
       <Formik
+        validationSchema={object({
+          recipient: string().required(),
+          inputAmount: number()
+            .label("amount")
+            .min(0, "Invalid amount")
+            .max(token.balance)
+            .required(),
+        })}
         initialValues={{
           amount: "",
-          token: tokens[0],
           recipient: "",
         }}
-        onSubmit={() => {}}
+        onSubmit={async (values) => {
+          if (token) {
+            const sendValues = {
+              inputMint: token.id,
+              recipient: values.recipient,
+              inputDecimals: token.decimals,
+              inputTokenProgram: token.tokenProgram,
+              inputAmount:
+                BigInt(values.amount) * BigInt(Math.pow(10, token.decimals)),
+            };
+            const signature = await mutateAsync(sendValues);
+            logEvent(analytics, "send_token_transaction", {
+              signature,
+              ...sendValues,
+            });
+            toast.success("🎉 Token sent successfully.");
+          }
+        }}
       >
-        {({ values, setFieldValue }) => (
+        {({ values, setFieldValue, errors, isValid, isSubmitting }) => (
           <Form
             {...props}
             className={clsx("flex flex-col space-y-8", props.className)}
@@ -75,9 +114,9 @@ function SendTokenForm(props: React.ComponentProps<typeof Form>) {
             <div className="relative flex flex-col justify-center space-y-4">
               <TokenInput
                 value={values.amount}
-                amount={values.token.balance}
-                priceUsd={values.token.usdPrice}
-                symbol={values.token.symbol}
+                amount={token.balance}
+                priceUsd={token.usdPrice}
+                symbol={token.symbol}
                 onChange={(value) => setFieldValue("amount", value)}
               />
               <div className="flex flex-col space-y-2">
@@ -88,18 +127,28 @@ function SendTokenForm(props: React.ComponentProps<typeof Form>) {
                   Token
                 </label>
                 <TokenSelect
-                  value={values.token}
+                  value={token}
                   tokens={tokens}
                   onChange={(value) => setFieldValue("token", value)}
                 />
               </div>
               <div className="flex flex-col space-y-2">
                 <label htmlFor="recipient">Recipient</label>
-                <Field
-                  name="recipient"
-                  placeholder="Paste address"
-                  className="border border-white/5 bg-black/10 lt-sm:text-center p-3 placeholder-text-gray rounded"
-                />
+                <div className="flex flex-col">
+                  <Field
+                    name="recipient"
+                    placeholder="Paste address"
+                    className={clsx(
+                      "bg-black/10 p-3 placeholder-text-gray rounded lt-sm:text-center",
+                      errors.recipient
+                        ? "border-red-500"
+                        : "border border-white/5",
+                    )}
+                  />
+                  <span className="text-xs text-red-500">
+                    {errors.recipient}
+                  </span>
+                </div>
               </div>
             </div>
             <div className="flex flex-col space-y-2">
@@ -111,14 +160,19 @@ function SendTokenForm(props: React.ComponentProps<typeof Form>) {
               </div>
               <button
                 type="submit"
+                disabled={!isValid}
                 className={clsx(
-                  "p-2 rounded-md",
-                  !isAuthenticated
+                  "rounded-md",
+                  isAuthenticated && isValid
                     ? "bg-primary text-black"
                     : "bg-gray/30 text-gray border border-white/10",
                 )}
               >
-                Send
+                {isSubmitting ? (
+                  <div className="my-2 size-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <span className="my-2">Open Positon</span>
+                )}
               </button>
             </div>
           </Form>

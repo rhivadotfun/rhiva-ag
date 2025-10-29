@@ -150,10 +150,11 @@ function MeteoraOpenPositionForm({
         pair: pool.address,
         slippage: user.settings.slippage * 100,
       };
-      const bundleId = await mutateAsync(createPositionValue);
+      const { bundleId } = await mutateAsync(createPositionValue);
 
       logEvent(analytic, "position_opened", {
         bundleId,
+        dex: "meteora",
         ...createPositionValue,
       });
       toast.success("🎉 Position opened successfully");

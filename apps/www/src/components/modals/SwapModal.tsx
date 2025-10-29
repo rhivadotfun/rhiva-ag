@@ -1,8 +1,10 @@
 import clsx from "clsx";
+import { toast } from "react-toastify";
 import { useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { MdClose, MdSwapVert } from "react-icons/md";
 import { Form, FormikContext, useFormik } from "formik";
+import { getAnalytics, logEvent } from "firebase/analytics";
 import {
   Dialog,
   DialogBackdrop,
@@ -50,11 +52,11 @@ function SwapForm({
 }: React.ComponentProps<typeof Form> & Pick<SwapModalProps, "tokens">) {
   const trpc = useTRPC();
   const { isAuthenticated, signIn, user } = useAuth();
-
   const [showSelectInputTokenModal, setShowSelectInputTokenModal] =
     useState(false);
   const [showSelectOutputTokenModal, setShowSelectOutputTokenModal] =
     useState(false);
+  const analytics = useMemo(() => getAnalytics(), []);
 
   const { mutateAsync } = useMutation(trpc.token.swap.mutationOptions({}));
 
@@ -67,18 +69,22 @@ function SwapForm({
     },
     async onSubmit(values) {
       if (!isAuthenticated) await signIn();
-      return mutateAsync({
+      const swapValue = {
         amount: values.inputAmount,
         inputMint: values.inputToken.mint,
         outputMint: values.outputToken.mint,
         slippage: user.settings.slippage * 100,
         inputDecimals: values.inputToken.decimals,
         outputDecimals: values.outputToken.decimals,
-      });
+      };
+      const bundleId = await mutateAsync(swapValue);
+      logEvent(analytics, "swap_transaction", { bundleId, ...swapValue });
+
+      toast.success("🎉 Token swapped successfully.");
     },
   });
 
-  const { values, setFieldValue } = formikContext;
+  const { values, setFieldValue, isValid, isSubmitting } = formikContext;
 
   return (
     <FormikContext value={formikContext}>
@@ -121,14 +127,19 @@ function SwapForm({
         </div>
         <button
           type="submit"
+          disabled={!isValid}
           className={clsx(
-            "p-3 rounded-md",
-            isAuthenticated
+            "rounded-md",
+            isAuthenticated && isValid
               ? "bg-primary text-black"
               : "border border-white/20 bg-gray/30 text-gray",
           )}
         >
-          Swap
+          {isSubmitting ? (
+            <div className="my-2 size-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <span className="my-2">Open Positon</span>
+          )}
         </button>
         <SelectTokenModal
           value={values.inputToken}

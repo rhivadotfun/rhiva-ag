@@ -1,16 +1,10 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @unocss all;
 
 @font-face {
   font-family: "Roboto";
   font-style: normal;
   font-weight: 400;
-  src:
-    url("https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxM.woff2")
-    format("woff2"),
-    url("https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxO.woff")
-    format("woff"),
-    url("https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxO.ttf")
-    format("truetype");
 }
 
 * {

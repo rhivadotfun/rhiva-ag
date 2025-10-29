@@ -5,6 +5,7 @@ import { mapFilter } from "@rhiva-ag/shared";
 import type { AppRouter } from "@rhiva-ag/trpc";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
+import { getAnalytics, logEvent } from "firebase/analytics";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 
@@ -44,6 +45,7 @@ export default function OpenPositionTable({
     null,
   );
 
+  const analytic = useMemo(() => getAnalytics(), []);
   const dex = useMemo(() => searchParams.get("dex"), [searchParams]);
   const { data } = useQuery(
     trpc.position.list.queryOptions({
@@ -187,23 +189,38 @@ export default function OpenPositionTable({
   );
 
   const onClosePosition = useCallback(
-    (position: Position) => {
-      return toast.promise(closePosition(position), {
+    async (position: Position) => {
+      const result = await toast.promise(closePosition(position), {
         pending: "Sending close position transaction...",
-        success: "Transaction bundle sent successfully.",
+        success: "🎉 Transaction bundle sent successfully.",
         error: "Oops! Transaction failed.",
       });
+      if (result) {
+        const { bundleId } = result;
+        logEvent(analytic, "position_closed", {
+          bundleId,
+          dex,
+        });
+      }
     },
-    [closePosition],
+    [closePosition, dex, analytic],
   );
   const onClaimRewards = useCallback(
-    (position: Position) =>
-      toast.promise(claimRewards(position), {
+    async (position: Position) => {
+      const result = await toast.promise(claimRewards(position), {
         pending: "Sending claim reward transaction...",
         success: "Transaction bundle sent successfully.",
         error: "Oops! Transaction failed.",
-      }),
-    [claimRewards],
+      });
+      if (result) {
+        const { bundleId } = result;
+        logEvent(analytic, "rewards_claimed", {
+          bundleId,
+          dex: dex,
+        });
+      }
+    },
+    [claimRewards, dex, analytic],
   );
 
   return (

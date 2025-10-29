@@ -2,11 +2,13 @@ import clsx from "clsx";
 import { format } from "util";
 import { useMemo } from "react";
 import { number, object } from "yup";
+import { toast } from "react-toastify";
 import { PublicKey } from "@solana/web3.js";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { IoArrowBack } from "react-icons/io5";
 import type { Pair } from "@rhiva-ag/dex-api";
 import { Form, FormikContext, useFormik } from "formik";
+import { getAnalytics, logEvent } from "firebase/analytics";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
@@ -23,7 +25,6 @@ type RaydiumOpenPositionProps = {
 } & React.ComponentProps<typeof Dialog>;
 
 const POSITION_FEE = 0.00245688;
-
 export default function RaydiumOpenPosition({
   pool,
   ...props
@@ -63,6 +64,7 @@ function RaydiumOpenPositionForm({
     queryFn: () => getPoolState(connection, new PublicKey(pool.address)),
   });
 
+  const analytic = useMemo(() => getAnalytics(), []);
   const curves = useMemo(() => [{ label: "Spot", value: "Spot" }], []);
   const balance = useMemo(
     () => (rawBalance ? rawBalance / Math.pow(10, 9) : 0),
@@ -120,12 +122,20 @@ function RaydiumOpenPositionForm({
         },
       ],
     },
-    onSubmit: (values) => {
-      return mutateAsync({
+    onSubmit: async (values) => {
+      const createPositionValue = {
         ...values,
         slippage: 50,
         pair: pool.address,
+      };
+      const { bundleId } = await mutateAsync(createPositionValue);
+
+      logEvent(analytic, "position_opened", {
+        bundleId,
+        dex: "raydium",
+        ...createPositionValue,
       });
+      toast.success("🎉 Position opened successfully");
     },
   });
 

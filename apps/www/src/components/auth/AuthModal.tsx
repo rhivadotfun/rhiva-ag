@@ -90,6 +90,7 @@ export default function AuthModal({ onSignIn, ...props }: AuthModalProps) {
                   actionCodeSettings,
                 )
                   .then(() => {
+                    props.onClose?.(false);
                     toast.success(
                       format("🎉 Login email sent to %s.", values.email),
                     );

@@ -2,12 +2,14 @@ import clsx from "clsx";
 import { format } from "util";
 import { useMemo } from "react";
 import { number, object } from "yup";
+import { toast } from "react-toastify";
 import { PublicKey } from "@solana/web3.js";
 import type { Pair } from "@rhiva-ag/dex-api";
 import { IoArrowBack } from "react-icons/io5";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { address, createSolanaRpc } from "@solana/kit";
 import { Form, FormikContext, useFormik } from "formik";
+import { getAnalytics, logEvent } from "firebase/analytics";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { fetchWhirlpool } from "@orca-so/whirlpools-client";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -63,6 +65,7 @@ function OrcaOpenPositionForm({
     queryFn: () => fetchWhirlpool(rpc, address(pool.address)),
   });
 
+  const analytic = useMemo(() => getAnalytics(), []);
   const curves = useMemo(
     () => [
       { label: "Full", value: "full" },
@@ -130,14 +133,21 @@ function OrcaOpenPositionForm({
         },
       ],
     },
-    onSubmit: (values) => {
-      return mutateAsync({
+    onSubmit: async (values) => {
+      const createPositionValue = {
         ...values,
         slippage: 50,
         pair: pool.address,
         tokenADecimals: pool.baseToken.decimals,
         tokenBDecimals: pool.quoteToken.decimals,
+      };
+      const { bundleId } = await mutateAsync(createPositionValue);
+      logEvent(analytic, "position_opened", {
+        bundleId,
+        dex: "orca",
+        ...createPositionValue,
       });
+      toast.success("🎉 Position opened successfully");
     },
   });
 
