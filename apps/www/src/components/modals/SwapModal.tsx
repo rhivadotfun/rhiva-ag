@@ -22,10 +22,16 @@ type SwapModalProps = {
   tokens?: [Token, Token];
 } & React.ComponentProps<typeof Dialog>;
 
-export default function Swap({ tokens, modal, ...props }: SwapModalProps) {
+export default function Swap({
+  tokens,
+  modal = false,
+  ...props
+}: SwapModalProps) {
   const form = useMemo(() => <SwapForm tokens={tokens} />, [tokens]);
 
   return modal ? (
+    <SwapModal {...props}>{form}</SwapModal>
+  ) : (
     <>
       <div className="lt-md:hidden">{form}</div>
       <SwapModal
@@ -35,8 +41,6 @@ export default function Swap({ tokens, modal, ...props }: SwapModalProps) {
         {form}
       </SwapModal>
     </>
-  ) : (
-    <SwapModal {...props}>{form}</SwapModal>
   );
 }
 

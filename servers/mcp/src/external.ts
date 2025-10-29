@@ -1,1 +1,1 @@
-export type { agentOutputSchema } from "./schema";
+export { agentOutputSchema } from "./schema/agent.schema";

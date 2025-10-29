@@ -6,6 +6,7 @@ import type { MegafilterGetResponse } from "@coingecko/coingecko-typescript/reso
 
 import type { poolFilterSchema, poolSearchSchema } from "./pool.schema";
 
+const supportedDex = ["orca", "meteora", "saros-dlmm", "raydium-clmm"];
 export const getPools = async (
   coingecko: Coingecko,
   input:
@@ -27,12 +28,18 @@ export const getPools = async (
     return mapFilter(data, (data) => {
       const { relationships, attributes } = data;
       if (relationships && attributes) {
+        const dex = relationships.dex?.data;
         const base_token = mapIncludes.get(relationships.base_token?.data?.id);
         const quote_token = mapIncludes.get(
           relationships.quote_token?.data?.id,
         );
 
-        if (base_token && quote_token)
+        if (
+          base_token &&
+          quote_token &&
+          dex?.id &&
+          supportedDex.includes(dex.id)
+        )
           return {
             ...attributes,
             dex: relationships.dex?.data,

@@ -1,7 +1,7 @@
 import { z } from "zod/v3";
 
 export const positionInputSchema = z.object({
-  wallet: z.string(),
+  wallet: z.string().describe("user wallet address"),
 });
 
 export const tokenInputSchema = z.object({
@@ -288,13 +288,6 @@ export const tokenOutputSchema = z.object({
     })
     .nullable()
     .optional(),
-  analysis: z
-    .object({
-      confidence: z.number().describe("analysis confidence"),
-      suggestedDeposit: z.number().describe("suggested deposit"),
-    })
-    .nullable()
-    .optional(),
 });
 
 export const poolOutputSchema = z.object({
@@ -305,6 +298,26 @@ export const poolOutputSchema = z.object({
   base_token_price_usd: z.string().optional().nullable(),
   quote_token_price_usd: z.string().optional().nullable(),
   base_token_price_base_token: z.string().optional().nullable(),
+  base_token: z
+    .object({
+      address: z.string().optional().nullable(),
+      name: z.string().optional().nullable(),
+      symbol: z.string().optional().nullable(),
+      decimals: z.number().optional().nullable(),
+      image_url: z.string().optional().nullable(),
+    })
+    .optional()
+    .nullable(),
+  quote_token: z
+    .object({
+      address: z.string().optional().nullable(),
+      name: z.string().optional().nullable(),
+      symbol: z.string().optional().nullable(),
+      decimals: z.number().optional().nullable(),
+      image_url: z.string().optional().nullable(),
+    })
+    .optional()
+    .nullable(),
   dex: z
     .object({
       id: z.string().optional().nullable(),
@@ -387,19 +400,6 @@ export const poolOutputSchema = z.object({
     })
     .nullable()
     .optional(),
-  analysis: z
-    .object({
-      confidence: z.number().describe("analysis confidence"),
-      suggestedDeposit: z.number().describe("suggested deposit"),
-      suggestedRange: z
-        .tuple([z.number(), z.number()])
-        .describe("suggested price range"),
-      strategy: z
-        .enum(["full", "spot", "curve", "bid-ask"])
-        .describe("suggested strategy"),
-    })
-    .nullable()
-    .optional(),
 });
 
 export const positionOutputSchema = z.object({
@@ -425,28 +425,4 @@ export const positionOutputSchema = z.object({
     claimedFeeUsd: z.number(),
     state: z.enum(["opened", "closed"]),
   }),
-});
-
-export const agentOutputSchema = z.object({
-  bundleId: z.string().optional().nullable().describe("transaction bundle id."),
-  summary: z
-    .string()
-    .optional()
-    .nullable()
-    .describe("short summary of response."),
-  tokens: z
-    .array(tokenOutputSchema)
-    .describe("tokens array results")
-    .optional()
-    .nullable(),
-  pools: z
-    .array(poolOutputSchema)
-    .optional()
-    .nullable()
-    .describe("pools array results."),
-  positions: z
-    .array(positionOutputSchema)
-    .optional()
-    .nullable()
-    .describe("positions array results."),
 });

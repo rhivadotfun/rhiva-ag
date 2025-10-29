@@ -164,7 +164,7 @@ function PortfolioCalender(props: React.ComponentProps<"div">) {
             <span className="text-sm">TOTAL MONTHLY PROFIT &nbsp;</span>
             <Decimal
               value={totalMonthlyProfit}
-              intlArgs={{ ...currencyIntlArgs, signDisplay: "exceptZero" }}
+              intlArgs={currencyIntlArgs}
               className={clsx(
                 "font-bold",
                 totalMonthlyProfit >= 0 ? "text-primary" : "text-red-500",

@@ -8,7 +8,7 @@ import path from "path";
 export const __srcdir =
   process.env.NODE_ENV === "production"
     ? path.join(process.cwd(), "mcp")
-    : process.cwd();
+    : __dirname.replace("src", "");
 
 export const dexApi = new DexApi();
 export const db = createDB(getEnv("DATABASE_URL"));

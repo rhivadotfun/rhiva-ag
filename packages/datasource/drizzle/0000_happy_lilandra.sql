@@ -77,12 +77,12 @@ CREATE TABLE "messages" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"content" jsonb NOT NULL,
 	"role" text NOT NULL,
-	"thread" uuid NOT NULL,
+	"thread" text NOT NULL,
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "threads" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" text PRIMARY KEY NOT NULL,
 	"name" text,
 	"user" uuid NOT NULL,
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL

@@ -15,7 +15,7 @@ export const poolRoute = router({
   list: publicProcedure
     .input(
       z
-        .union([poolFilterSchema.optional(), poolSearchSchema.optional()])
+        .union([poolSearchSchema.optional(), poolFilterSchema.optional()])
         .optional(),
     )
     .query(async ({ ctx, input }) => getPools(ctx.coingecko, input)),

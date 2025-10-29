@@ -2,186 +2,216 @@
 import type z from "zod";
 import { object, string } from "yup";
 import { FiSend } from "react-icons/fi";
-import { useCallback, useMemo, useState } from "react";
-import { Field, FormikContext, useFormik } from "formik";
+import { useRouter } from "next/navigation";
+import type { messageOutputSchema } from "@rhiva-ag/trpc";
+import type { threadSelectSchema } from "@rhiva-ag/datasource";
+import { Field, FormikContext, useFormik, Form } from "formik";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type {
-  messageSelectSchema,
-  threadSelectSchema,
-} from "@rhiva-ag/datasource";
 
+import Chat from "@/components/ai/Chat";
 import Header from "@/components/ai/Header";
+import BounceDot from "@/components/BounceDot";
 import EmptyChat from "@/components/ai/EmptyChat";
 import ChatSidebar from "@/components/ai/ChatSidebar";
 import { useTRPC, useTRPCClient } from "@/trpc.client";
 
 type AiPageClientProps = {
   searchParams: { prompt?: string };
-  threads: z.infer<typeof threadSelectSchema>[];
 };
 
-export default function AiPageClient({
-  searchParams,
-  threads,
-}: AiPageClientProps) {
+type Message = z.infer<typeof messageOutputSchema>;
+type Thread = z.infer<typeof threadSelectSchema>;
+
+export default function AiPageClient({ searchParams }: AiPageClientProps) {
+  const listRef = useRef<HTMLDivElement | null>(null);
+
   const trpc = useTRPC();
+  const router = useRouter();
   const trpcClient = useTRPCClient();
   const queryClient = useQueryClient();
-  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [currentThread, setCurrentThread] = useState<Thread | undefined>(
+    undefined,
+  );
 
-  const formikContext = useFormik({
-    validationSchema: object({
-      prompt: string().trim().required(),
-    }),
-    initialValues: {
-      thread: threads[0],
-      prompt: searchParams.prompt,
+  const messageKey = useMemo(
+    () => ["messages", currentThread?.id],
+    [currentThread],
+  );
+
+  const { data: threads } = useQuery(trpc.ai.thread.list.queryOptions());
+  const updateMessages = useCallback(
+    <T extends unknown[]>(messages: Omit<Message, "thread">[], key?: T) => {
+      queryClient.setQueryData<Omit<Message, "thread">[]>(
+        key ?? messageKey,
+        (oldData) => {
+          const existing = oldData ?? [];
+          const map = new Map(existing.map((message) => [message.id, message]));
+          for (const message of messages) map.set(message.id, message);
+          return Array.from(map.values());
+        },
+      );
     },
-    async onSubmit(values, { setFieldValue, resetForm }) {
+    [queryClient, messageKey],
+  );
+  const updateThreads = useCallback(
+    (...threads: Thread[]) => {
+      queryClient.setQueryData<Thread[]>(
+        trpc.ai.thread.list.queryKey(),
+        (oldData) => {
+          const existing = oldData ?? [];
+          const map = new Map(existing.map((item) => [item.id, item]));
+          for (const item of threads) map.set(item.id, item);
+          return Array.from(map.values());
+        },
+      );
+    },
+    [queryClient, trpc],
+  );
+
+  const { mutateAsync, isPending } = useMutation(
+    trpc.ai.message.create.mutationOptions({
+      onSuccess(data) {
+        if (data) {
+          updateThreads(data.thread);
+          setCurrentThread(data.thread);
+          updateMessages(data.messages, ["messages", data.thread.id]);
+        }
+      },
+    }),
+  );
+
+  const sendMessage = useCallback(
+    async (
+      values: { prompt: string },
+      resetForm?: (values: {
+        values: {
+          prompt: string;
+        };
+      }) => void,
+    ) => {
+      let thread = currentThread?.id;
+      if (!thread) {
+        const newThread = await trpcClient.ai.thread.create.mutate({});
+        updateThreads(newThread);
+        setCurrentThread(newThread);
+        thread = newThread.id;
+      }
+
       const data = {
+        thread,
         role: "user" as const,
         id: crypto.randomUUID(),
-        thread: values.thread?.id,
         content: {
           text: values.prompt,
         },
         createdAt: new Date(),
       };
-      updateMessages(data);
-      resetForm({ values: { ...values, prompt: "" } });
-
-      if (!values.thread) {
-        const thread = await trpcClient.ai.thread.create.mutate({});
-        data.thread = thread.id;
-        setFieldValue("thread", thread);
-      }
+      updateMessages([data]);
+      resetForm?.({ values: { prompt: "" } });
 
       await mutateAsync({
         ...data,
         prompt: values.prompt!,
       });
     },
+    [mutateAsync, updateMessages, currentThread, trpcClient, updateThreads],
+  );
+
+  const formikContext = useFormik({
+    validationSchema: object({
+      prompt: string().trim().required(),
+    }),
+    initialValues: {
+      prompt: "",
+    },
+    async onSubmit(values, { resetForm }) {
+      return sendMessage({ prompt: values.prompt! }, resetForm);
+    },
   });
 
-  const { values, setFieldValue } = formikContext;
+  const { resetForm } = formikContext;
 
   const handleNewChat = useCallback(() => {
-    setFieldValue("thread", null);
-    setFieldValue("prompt", "");
+    setCurrentThread(undefined);
+    resetForm({ values: { prompt: "" } });
     queryClient.setQueryData(["messages", null], []);
-  }, [setFieldValue, queryClient]);
+  }, [queryClient, resetForm]);
 
   const handleThreadSelect = useCallback(
     (thread: z.infer<typeof threadSelectSchema>) => {
-      setFieldValue("thread", thread);
-      setFieldValue("prompt", "");
-      setShowMobileSidebar(false); // Close sidebar on mobile after selection
+      resetForm({ values: { prompt: "" } });
+      setIsCollapsed(true);
+      setCurrentThread(thread);
     },
-    [setFieldValue],
+    [resetForm],
   );
 
-  const messageKey = useMemo(
-    () => ["messages", values.thread?.id],
-    [values.thread?.id],
-  );
-
-  const updateMessages = useCallback(
-    (...messages: z.infer<typeof messageSelectSchema>[]) => {
-      queryClient.setQueryData<z.infer<typeof messageSelectSchema>[]>(
-        messageKey,
-        (oldData) => {
-          if (!oldData) return messages;
-          return [...oldData, ...messages];
-        },
-      );
-    },
-    [queryClient, messageKey],
-  );
-
-  const { mutateAsync } = useMutation(
-    trpc.ai.message.create.mutationOptions({
-      onSuccess(data) {
-        updateMessages(...data);
-      },
-    }),
-  );
-
-  const { data: messages, isFetching } = useQuery({
+  const { data: messages } = useQuery({
     queryKey: messageKey,
-    enabled: Boolean(values.thread),
+    enabled: Boolean(currentThread?.id),
     queryFn: async () => {
       const messages = await trpcClient.ai.message.list.query({
-        filter: {
-          thread: { eq: values.thread.id },
-        },
+        filter: currentThread
+          ? {
+              thread: currentThread.id,
+            }
+          : undefined,
       });
 
       return messages;
     },
   });
 
+  useEffect(() => {
+    const el = listRef.current;
+    if (el && messages?.length)
+      el.scrollTo({
+        top: el.scrollHeight,
+        behavior: "smooth",
+      });
+  }, [messages?.length]);
+
+  useEffect(() => {
+    if (searchParams.prompt && searchParams.prompt.trim().length > 0) {
+      sendMessage({ prompt: searchParams.prompt });
+      router.replace("/ai"); // todo
+    }
+  }, [searchParams.prompt, sendMessage, router]);
+
   return (
     <FormikContext value={formikContext}>
-      <div className="flex-1 flex h-screen overflow-hidden">
-        {/* Sidebar - Desktop only */}
+      <Form className="flex-1 flex h-screen overflow-hidden">
         <ChatSidebar
           threads={threads}
-          activeThread={values.thread}
+          isCollapsed={isCollapsed}
+          activeThread={currentThread}
           onThreadSelect={handleThreadSelect}
+          setIsCollapsed={setIsCollapsed}
           onNewChat={handleNewChat}
-          className="lt-sm:hidden bg-white/10 backdrop-blur-2xl"
         />
-
-        {/* Mobile Sidebar Drawer */}
-        {showMobileSidebar && (
-          <>
-            {/* Backdrop */}
-            <button
-              type="button"
-              className="sm:hidden fixed inset-0 bg-black/50 z-40"
-              onClick={() => setShowMobileSidebar(false)}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") {
-                  setShowMobileSidebar(false);
-                }
-              }}
-              aria-label="Close sidebar"
-            />
-            {/* Drawer */}
-            <ChatSidebar
-              threads={threads}
-              activeThread={values.thread}
-              onThreadSelect={handleThreadSelect}
-              onNewChat={() => {
-                handleNewChat();
-                setShowMobileSidebar(false);
-              }}
-              className="sm:hidden fixed left-0 top-0 bottom-0 z-50"
-            />
-          </>
-        )}
-
-        {/* Main Content */}
         <div className="flex-1 flex flex-col backdrop-blur-2xl overflow-hidden">
           <Header
             canBack
-            onMenuClick={() => setShowMobileSidebar(true)}
+            onMenuClick={() => setIsCollapsed(false)}
             className="sticky top-0 z-10 sm:bg-white/10 sm:backdrop-blur-3xl"
           />
-          <div className="flex-1 flex flex-col overflow-y-scroll">
-            {isFetching && <div className="m-auto" />}
+          <div className="flex-1 flex flex-col space-y-4 overflow-y-scroll p-4">
             {messages?.length ? (
               messages.map((message) => (
-                <div key={message.id}>
-                  <pre>{JSON.stringify(message.content)}</pre>
-                </div>
+                <Chat
+                  key={message.id}
+                  message={message}
+                />
               ))
             ) : (
-              <EmptyChat onPrompt={(value) => setFieldValue("prompt", value)} />
+              <EmptyChat onPrompt={(prompt) => sendMessage({ prompt })} />
             )}
+            {isPending && <BounceDot />}
           </div>
           <div className="sticky bottom-0 flex sm:items-center sm:justify-center sm:bg-white/10">
-            <div className="flex  items-center space-x-4 p-4 z-10 sm:self-center w-full sm:max-w-7xl">
+            <div className="flex items-center space-x-4 p-4 z-10 sm:self-center w-full sm:max-w-7xl">
               <Field
                 as="textarea"
                 name="prompt"
@@ -197,7 +227,7 @@ export default function AiPageClient({
             </div>
           </div>
         </div>
-      </div>
+      </Form>
     </FormikContext>
   );
 }

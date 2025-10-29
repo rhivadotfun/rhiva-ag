@@ -20,12 +20,15 @@ type Env =
   | "REDIS_SENTINEL_HOSTNAME"
   | "DATABASE_URL"
   | "COINGECKO_API_KEY"
+  | "CIVIC_CLIENT_ID"
   | "JITO_API_URL"
   | "JITO_UUID"
   | "HELIUS_API_URL"
   | "HELIUS_API_KEY"
   | "SECRET_KEY"
-  | "SOLANA_RPC_URL";
+  | "SOLANA_RPC_URL"
+  | "MCP_SERVER_URL"
+  | "OPEN_API_KEY";
 
 export const getEnv = <T>(name: Env, refine?: <K>(value: K) => T): T => {
   const value = process.env[name] || process.env[format("APP_%s", name)];

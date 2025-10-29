@@ -43,12 +43,12 @@ export default function NativeOrUsdAndPerentageValue({
   });
 
   const isPostiveValue = useMemo(
-    () => usdValue >= 0 || nativePrice > -1,
+    () => usdValue >= -1 || nativePrice > -1,
     [usdValue, nativePrice],
   );
 
   const isPostivePercentage = useMemo(
-    () => percentageValue && percentageValue > -1,
+    () => percentageValue != null && percentageValue > -1,
     [percentageValue],
   );
 
@@ -66,9 +66,7 @@ export default function NativeOrUsdAndPerentageValue({
             }
             className={clsx(
               "text-nowrap",
-              colorize &&
-                nativeValue !== 0 &&
-                (isPostiveValue ? "text-primary" : "text-red-500"),
+              colorize && (isPostiveValue ? "text-primary" : "text-red-500"),
             )}
           />
           {showNativeIcon && (
@@ -90,9 +88,7 @@ export default function NativeOrUsdAndPerentageValue({
       {percentageValue != null && (
         <span
           className={clsx(
-            colorize &&
-              percentageValue !== 0 &&
-              (isPostivePercentage ? "text-primary" : "text-red-500"),
+            colorize && (isPostivePercentage ? "text-primary" : "text-red-500"),
           )}
         >
           {percentageIntl.format(percentageValue)}

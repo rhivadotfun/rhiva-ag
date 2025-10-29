@@ -9,7 +9,7 @@ import {
   poolOutputSchema,
   positionInputSchema,
   positionOutputSchema,
-} from "./schema";
+} from "./schema/server.schema.ts";
 
 /** @type {import("@modelcontextprotocol/sdk/server/mcp.js").McpServer} */
 let server;

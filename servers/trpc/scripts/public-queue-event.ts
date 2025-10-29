@@ -12,7 +12,7 @@ const queue = createQueue();
       dex: "meteora",
       type: "create-position",
       wallet: {
-        user: "1c3f406b-7559-4114-b9a9-56730cb7a81a",
+        user: "3c797e4e-bb9b-4a12-af37-23eb4bd2b4d6",
         id: "B9smu3m37Zh3rhLbaAovXVBUyQxK5SBte5i1NBxjDnm2",
       },
     },

@@ -3,8 +3,8 @@ import { readFileSync } from "fs";
 import { sleep } from "@rhiva-ag/shared";
 import { Agent, type MCPServerStreamableHttp } from "@openai/agents";
 
-import { __srcdir } from "../src/instances";
-import { agentOutputSchema } from "../src/schema";
+import { __srcdir } from "./instances.ts";
+import { agentOutputSchema } from "./schema/agent.schema.ts";
 
 export class McpClientConnectionError extends Error {}
 
@@ -79,6 +79,7 @@ export class McpClient {
           await withTimeout(this.server.connect(), timeout);
           this.connected = true;
           this.connectionTime = Date.now();
+          break;
         } catch (error) {
           console.error(error);
           retries += 1;

@@ -4,21 +4,14 @@ import { Connection } from "@solana/web3.js";
 import { McpClient } from "@rhiva-ag/mcp/client";
 import { Client } from "@solana-tracker/data-api";
 import Coingecko from "@coingecko/coingecko-typescript";
+import { MCPServerStreamableHttp } from "@openai/agents";
 import { KMSSecret, Secret, SendTransaction } from "@rhiva-ag/shared";
 import {
   createDB,
   createRedis as defaultCreateRedis,
 } from "@rhiva-ag/datasource";
-import {
-  MCPServerStreamableHttp,
-  setDefaultOpenAIKey,
-  setTracingExportApiKey,
-} from "@openai/agents";
 
 import { getEnv } from "./env";
-
-setDefaultOpenAIKey(getEnv("OPEN_API_KEY"));
-setTracingExportApiKey(getEnv("OPEN_API_KEY"));
 
 export const secret =
   process.env.NODE_ENV === "production"

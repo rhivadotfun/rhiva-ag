@@ -2,15 +2,12 @@ import clsx from "clsx";
 import moment from "moment";
 import { format } from "util";
 import type React from "react";
+import { BsDownload } from "react-icons/bs";
+import { LuRefreshCw } from "react-icons/lu";
 import { toBlob, toPng } from "html-to-image";
 import type { AppRouter } from "@rhiva-ag/trpc";
 import { useCallback, useMemo, useRef, useState } from "react";
-import {
-  MdClose,
-  MdContentCopy,
-  MdOutlineDownload,
-  MdRefresh,
-} from "react-icons/md";
+import { MdClose, MdContentCopy } from "react-icons/md";
 import {
   Dialog,
   DialogBackdrop,
@@ -142,7 +139,7 @@ export default function PositionDetailModal({
                 type="button"
                 className="flex items-center space-x-2 border border-white/10 px-4 py-2 rounded"
               >
-                <MdRefresh size={18} />
+                <LuRefreshCw size={18} />
                 <span>Refresh</span>
               </button>
               <div className="flex space-x-4">
@@ -222,7 +219,7 @@ export default function PositionDetailModal({
                 className="w-36 flex items-center justify-center space-x-2 bg-primary text-black px-4 py-2 rounded"
                 onClick={exportCard}
               >
-                <MdOutlineDownload size={18} />
+                <BsDownload size={18} />
                 <span>Download</span>
               </button>
             </div>

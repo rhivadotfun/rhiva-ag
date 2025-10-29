@@ -43,7 +43,8 @@ import { AuthMiddleware } from "../src/controllers/auth.controller";
         decimals: 9,
         name: "Solana",
         symbol: "SOL",
-        image: "https://cryptologos.cc/logos/solana-sol-logo.png",
+        image:
+          "https://cdn.brandfetch.io/ide0NUuTHO/theme/dark/symbol.svg?c=1bxid64Mup7aczewSAYMX&t=1668516395705",
         tokenProgram: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
       },
       {
@@ -51,7 +52,8 @@ import { AuthMiddleware } from "../src/controllers/auth.controller";
         decimals: 6,
         name: "USD Coin",
         symbol: "USDC",
-        image: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png",
+        image:
+          "https://cdn.brandfetch.io/idVdsaOxtz/w/400/h/400/theme/dark/icon.png?c=1bxid64Mup7aczewSAYMX&t=1755465387758",
         tokenProgram: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
       },
     ];

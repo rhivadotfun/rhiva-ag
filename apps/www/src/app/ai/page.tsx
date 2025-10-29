@@ -2,7 +2,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import AiPageClient from "./page.client";
-import { getTRPCClient } from "@/trpc.server";
+import { getQueryClient, getTRPC } from "@/trpc.server";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
 export default async function AiPage(props: PageProps<"/ai">) {
   const searchParams = await props.searchParams;
@@ -10,14 +11,14 @@ export default async function AiPage(props: PageProps<"/ai">) {
   const cookie = await cookies();
   const session = cookie.get("session");
   if (session) {
-    const trpcClient = getTRPCClient(session.value, "Session");
-    const threads = await trpcClient.ai.thread.list.query();
+    const queryClient = getQueryClient();
+    const trpc = getTRPC(session.value);
+    await queryClient.prefetchQuery(trpc.ai.thread.list.queryOptions());
 
     return (
-      <AiPageClient
-        searchParams={searchParams}
-        threads={threads}
-      />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <AiPageClient searchParams={searchParams} />
+      </HydrationBoundary>
     );
   }
 
