@@ -32,6 +32,7 @@
     "@rhiva-ag/datasource": "*",
     "@rhiva-ag/decoder": "*",
     "@rhiva-ag/dex": "*",
+    "@rhiva-ag/dex-api": "*",
     "@rhiva-ag/env": "*",
     "@rhiva-ag/mcp": "*",
     "@rhiva-ag/shared": "*",

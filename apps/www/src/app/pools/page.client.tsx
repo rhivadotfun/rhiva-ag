@@ -46,7 +46,7 @@ export default function PoolClientPage({ searchParams }: PoolClientPageProps) {
                 <SearchInput
                   defaultValue={query}
                   placeholder="Search pools"
-                  className="lt-lg:flex-1 lg:self-start"
+                  className="lt-lg:flex-1 lg:self-start lg:min-w-md"
                   onChange={(value) => {
                     if (value) setQuery(value);
                     else setQuery(undefined);

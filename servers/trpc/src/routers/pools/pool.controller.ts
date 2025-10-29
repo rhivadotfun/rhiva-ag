@@ -33,7 +33,6 @@ export const getPools = async (
         const quote_token = mapIncludes.get(
           relationships.quote_token?.data?.id,
         );
-
         if (
           base_token &&
           quote_token &&

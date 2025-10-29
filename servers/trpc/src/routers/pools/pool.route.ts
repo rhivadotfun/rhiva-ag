@@ -1,10 +1,13 @@
 import z from "zod";
+import moment from "moment";
+import { DexApi } from "@rhiva-ag/dex-api";
 import type { TradeGetResponse } from "@coingecko/coingecko-typescript/resources/onchain/networks/tokens/trades.js";
 import type { OhlcvGetTimeframeResponse } from "@coingecko/coingecko-typescript/resources/onchain/networks/tokens/ohlcv.js";
 
 import { getPools } from "./pool.controller";
 import { publicProcedure, router } from "../../trpc";
 import {
+  poolAnalyticSchema,
   poolChartFilter,
   poolFilterSchema,
   poolSearchSchema,
@@ -13,11 +16,7 @@ import {
 
 export const poolRoute = router({
   list: publicProcedure
-    .input(
-      z
-        .union([poolSearchSchema.optional(), poolFilterSchema.optional()])
-        .optional(),
-    )
+    .input(z.union([poolFilterSchema, poolSearchSchema]).optional())
     .query(async ({ ctx, input }) => getPools(ctx.coingecko, input)),
 
   chart: publicProcedure
@@ -65,5 +64,39 @@ export const poolRoute = router({
       return response.data?.map(
         (data) => data.attributes,
       ) as NonNullable<TradeGetResponse.Data.Attributes>[];
+    }),
+  analytics: publicProcedure
+    .output(poolAnalyticSchema)
+    .query(async ({ ctx }) => {
+      const cacheKey = "pool_analytics";
+      const cache = await ctx.redis.get(cacheKey);
+      if (cache) return JSON.parse(cache);
+      const dexApi = new DexApi();
+      const [orcaStat, meteoraStat, raydiumStat, [sarosStat]] =
+        await Promise.all([
+          dexApi.orca.stat.retrieve(),
+          dexApi.meteora.stat.retrieve(),
+          dexApi.raydium.stat.retrieve().then(({ data }) => data),
+          dexApi.saros.pool
+            .chart(moment().startOf("day").toDate().getTime())
+            .then(({ data }) => data),
+        ]);
+
+      const result = {
+        tvl:
+          parseFloat(orcaStat.tvl) +
+          meteoraStat.total_tvl +
+          parseFloat(raydiumStat.tvl) +
+          0,
+        volume:
+          parseFloat(orcaStat.volume24hUsdc) +
+          meteoraStat.daily_trade_volume +
+          parseFloat(raydiumStat.volume24) +
+          (sarosStat ? parseFloat(sarosStat.volume) : 0),
+        fees:
+          parseFloat(orcaStat.revenue24hUsdc) + meteoraStat.daily_fee + 0 + 0,
+      };
+      ctx.redis.set(cacheKey, JSON.stringify(result));
+      return result;
     }),
 });

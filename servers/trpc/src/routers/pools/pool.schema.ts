@@ -2,6 +2,7 @@ import z from "zod";
 import { commaEnum } from "@rhiva-ag/datasource";
 
 export const poolFilterSchema = z.object({
+  query: z.string().optional(),
   page: z.number().describe("page through results").optional(),
   reserve_in_usd_min: z.number().describe("minimum reserve in USD").optional(),
   reserve_in_usd_max: z.number().describe("maximum reserve in USD").optional(),
@@ -155,4 +156,10 @@ export const poolChartFilter = z.object({
 export const poolTradeFilter = z.object({
   token: poolChartFilter.shape.token,
   trade_volume_in_usd_greater_than: z.number(),
+});
+
+export const poolAnalyticSchema = z.object({
+  tvl: z.number(),
+  volume: z.number(),
+  fees: z.number(),
 });

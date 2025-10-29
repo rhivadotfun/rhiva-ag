@@ -18,6 +18,7 @@ export default async function PoolPage(props: PageProps<"/pools">) {
         ...searchParams,
       }),
   });
+  await queryClient.prefetchQuery(trpc.pool.analytics.queryOptions());
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

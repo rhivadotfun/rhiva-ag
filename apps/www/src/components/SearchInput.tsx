@@ -21,7 +21,7 @@ export default function SearchInput({
     <div
       {...props}
       className={clsx(
-        "flex flex-nowrap items-center border border-white/10 px-2 rounded-md group focus-within:border-primary",
+        "flex flex-nowrap items-center border border-white/10 backdrop-blur px-2 rounded-md group focus-within:border-primary",
         props.className,
       )}
     >

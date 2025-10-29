@@ -64,7 +64,7 @@ export default function PoolSort(props: React.ComponentProps<"div">) {
       >
         <MenuButton
           type="button"
-          className="w-18 flex items-center space-x-2 border border-white/10 px-2 py-1  rounded-md focus:outline-none"
+          className="w-18 flex items-center space-x-2 border border-white/10 backdrop-blur px-2 py-1  rounded-md focus:outline-none"
         >
           <span className="text-gray">{sortTitle ?? "None"}</span>
           <MdArrowDropDown
