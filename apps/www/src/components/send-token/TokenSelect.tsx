@@ -24,7 +24,7 @@ export default function TokenSelect({
       as="div"
       className="relative flex flex-col space-y-12"
     >
-      <MenuButton className="flex items-center justify-between border border-white/5 bg-black p-3 rounded">
+      <MenuButton className="flex items-center justify-between border border-white/5 bg-black/10 p-3 rounded">
         <div className="flex items-center space-x-2">
           <Image
             src={value.icon}
@@ -37,7 +37,7 @@ export default function TokenSelect({
         </div>
         <IoChevronDown />
       </MenuButton>
-      <MenuItems className="max-h-56 overflow-y-scroll absolute inset-x-0 flex flex-col bg-dark-secondary border border-white/10 p-2 rounded-md">
+      <MenuItems className="max-h-56 overflow-y-scroll absolute inset-x-0 flex flex-col bg-black/10 backdrop-blur-2xl border border-white/10 p-2 rounded-md">
         {tokens.map((token) => (
           <MenuItem key={token.id}>
             <button

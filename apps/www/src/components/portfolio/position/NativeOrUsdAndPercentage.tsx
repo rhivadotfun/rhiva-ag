@@ -29,6 +29,14 @@ export default function NativeOrUsdAndPerentageValue({
     () => new Intl.NumberFormat("en-US", percentageIntlArgs),
     [],
   );
+  const percentageWithoutSignIntl = useMemo(
+    () =>
+      new Intl.NumberFormat("en-US", {
+        ...percentageIntlArgs,
+        signDisplay: "never",
+      }),
+    [],
+  );
 
   const [nativeValue] = useState(() => {
     if (props.nativeValue) return props.nativeValue;
@@ -42,8 +50,8 @@ export default function NativeOrUsdAndPerentageValue({
     return 0;
   });
 
-  const isPostiveValue = useMemo(
-    () => usdValue >= -1 || nativePrice > -1,
+  const isPositiveValue = useMemo(
+    () => usdValue > -1 || nativePrice > -1,
     [usdValue, nativePrice],
   );
 
@@ -66,7 +74,7 @@ export default function NativeOrUsdAndPerentageValue({
             }
             className={clsx(
               "text-nowrap",
-              colorize && (isPostiveValue ? "text-primary" : "text-red-500"),
+              colorize && (isPositiveValue ? "text-primary" : "text-red-500"),
             )}
           />
           {showNativeIcon && (
@@ -91,7 +99,9 @@ export default function NativeOrUsdAndPerentageValue({
             colorize && (isPostivePercentage ? "text-primary" : "text-red-500"),
           )}
         >
-          {percentageIntl.format(percentageValue)}
+          {colorize
+            ? percentageIntl.format(percentageValue)
+            : percentageWithoutSignIntl.format(percentageValue)}
         </span>
       )}
     </div>

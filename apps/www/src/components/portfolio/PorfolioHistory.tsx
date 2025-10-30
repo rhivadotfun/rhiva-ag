@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { format } from "util";
 import { useMemo, useState } from "react";
 import type { AppRouter } from "@rhiva-ag/trpc";
+import { useQuery } from "@tanstack/react-query";
 import { collectionToMap } from "@rhiva-ag/shared";
 import {
   IoChevronBackOutline,
@@ -15,10 +16,9 @@ import {
   DisclosurePanel,
 } from "@headlessui/react";
 
+import { useTRPC } from "@/trpc.client";
 import { getCalender } from "@/lib/calender";
 import { currencyIntlArgs } from "@/constants/format";
-import { useTRPC } from "@/trpc.client";
-import { useQuery } from "@tanstack/react-query";
 
 type PNL = Awaited<ReturnType<AppRouter["pnl"]["history"]>>[number];
 
@@ -137,13 +137,13 @@ function PortfolioCalender(props: React.ComponentProps<"div">) {
                             value={pnl}
                             intlArgs={currencyIntlArgs}
                             className={clsx(
-                              "lt-sm:hidden",
+                              "text-nowrap lt-sm:hidden",
                               pnl >= 0 ? "text-primary" : "text-red-500",
                             )}
                           />
                           <p
                             className={clsx(
-                              "sm:hidden",
+                              "text-nowrap sm:hidden",
                               pnl >= 0 ? "text-primary" : "text-red-500",
                             )}
                           >

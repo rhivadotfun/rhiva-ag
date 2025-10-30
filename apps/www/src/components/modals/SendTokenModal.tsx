@@ -62,10 +62,13 @@ function SendTokenForm(props: React.ComponentProps<typeof Form>) {
     queryFn: async () => getWalletPNL(connection, dexApi, user.wallet.id),
   });
 
-  const { mutateAsync } = useMutation(trpc.token.send.mutationOptions());
+  const { mutateAsync } = useMutation(trpc.token.send.mutationOptions({}));
 
   const analytics = useMemo(() => getAnalytics(), []);
-  const tokens = useMemo(() => data?.tokens, [data]);
+  const tokens = useMemo(
+    () => data?.tokens.filter((token) => token.balance > 0),
+    [data],
+  );
 
   useEffect(() => {
     if (tokens) setToken((token) => (token ? token : tokens[0]));
@@ -129,7 +132,7 @@ function SendTokenForm(props: React.ComponentProps<typeof Form>) {
                 <TokenSelect
                   value={token}
                   tokens={tokens}
-                  onChange={(value) => setFieldValue("token", value)}
+                  onChange={(value) => setToken(value)}
                 />
               </div>
               <div className="flex flex-col space-y-2">
@@ -139,10 +142,8 @@ function SendTokenForm(props: React.ComponentProps<typeof Form>) {
                     name="recipient"
                     placeholder="Paste address"
                     className={clsx(
-                      "bg-black/10 p-3 placeholder-text-gray rounded lt-sm:text-center",
-                      errors.recipient
-                        ? "border-red-500"
-                        : "border border-white/5",
+                      "bg-black/10 border p-3 placeholder-text-gray rounded lt-sm:text-center",
+                      errors.recipient ? "border-red-500" : "border-white/5",
                     )}
                   />
                   <span className="text-xs text-red-500">

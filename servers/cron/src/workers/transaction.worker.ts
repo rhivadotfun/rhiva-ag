@@ -200,8 +200,13 @@ export default async function createWorker({
     },
   );
 
+  worker.on("completed", (job) => {
+    logger.info(
+      { id: job.id, data: job.data },
+      "worker.transaction.sync.successful",
+    );
+  });
   worker.on("failed", (job, error) => {
-    console.error(error);
     logger.error(
       { error, job: { id: job?.id, data: job?.data } },
       "worker.transaction.sync.failed",

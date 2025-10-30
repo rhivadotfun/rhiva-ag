@@ -42,7 +42,7 @@ export default function ChatSidebar({
     >
       <div
         aria-hidden
-        className="fixed inset-0 bg-black/50 -z-10 backdrop-blur-[2px] lt-md:hidden"
+        className="fixed inset-0 bg-black/50 -z-10 backdrop-blur-[2px] md:hidden"
         onClick={() => setIsCollapsed(true)}
       />
       <aside

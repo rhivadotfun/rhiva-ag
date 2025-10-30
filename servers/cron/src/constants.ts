@@ -4,5 +4,4 @@ export enum Work {
   syncPositionSchedule = "sync-position-schedule",
 }
 
-// export const supportedDex = ["orca", "meteora", "raydium-clmm"];
-export const supportedDexes = ["meteora"];
+export const supportedDexes = ["orca", "meteora", "raydium-clmm"];

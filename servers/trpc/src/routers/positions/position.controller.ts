@@ -6,6 +6,7 @@ import {
   count,
   desc,
   eq,
+  getTableColumns,
   gt,
   lt,
   not,
@@ -85,32 +86,34 @@ export const getWalletPositionsAggregrate = (
   db: Database,
   wallet: z.infer<typeof walletSelectSchema>["id"],
 ) => {
-  const qPnls = db
-    .select()
+  const qPnl = db
+    .selectDistinctOn([pnls.position], getTableColumns(pnls))
     .from(pnls)
-    .limit(1)
-    .orderBy(pnls.createdAt)
-    .as("qPnls");
+    .orderBy(pnls.position, desc(pnls.createdAt))
+    .as("qPnl");
   const month = moment().startOf("month").toDate();
 
   return db
     .select({
-      networthUsd: coalesce(
-        add(sum(qPnls.amountUsd), sum(qPnls.pnlUsd)),
-        0,
-      ).mapWith(Number),
+      feeUsd: coalesce(sum(qPnl.feeUsd), 0).mapWith(Number),
       avgInvestedUsd: coalesce(avg(positions.amountUsd), 0).mapWith(Number),
-      lossUsd: coalesce(
-        sum(decimal(caseWhen(lt(qPnls.pnlUsd, 0), qPnls.pnlUsd))),
+      networthUsd: coalesce(
+        add(
+          sum(decimal(qPnl.amountUsd)),
+          coalesce(sum(caseWhen(gt(qPnl.pnlUsd, 0), qPnl.pnlUsd)), 0),
+        ),
         0,
       ).mapWith(Number),
-      feeUsd: coalesce(sum(qPnls.feeUsd), 0).mapWith(Number),
+      lossUsd: coalesce(
+        sum(decimal(caseWhen(lt(qPnl.pnlUsd, 0), qPnl.pnlUsd))),
+        0,
+      ).mapWith(Number),
       profitUsd: coalesce(
-        sum(decimal(caseWhen(gt(qPnls.pnlUsd, 0), qPnls.pnlUsd))),
+        sum(decimal(caseWhen(gt(qPnl.pnlUsd, 0), qPnl.pnlUsd))),
         0,
       ).mapWith(Number),
       avgMonthlyProfit: coalesce(
-        sum(decimal(caseWhen(gt(positions.createdAt, month), qPnls.pnlUsd))),
+        sum(decimal(caseWhen(gt(positions.createdAt, month), qPnl.pnlUsd))),
         0,
       ).mapWith(Number),
       closed: coalesce(
@@ -123,7 +126,7 @@ export const getWalletPositionsAggregrate = (
       ).mapWith(Number),
     })
     .from(positions)
-    .leftJoin(qPnls, eq(qPnls.position, positions.id))
+    .leftJoin(qPnl, eq(qPnl.position, positions.id))
     .where(eq(positions.wallet, wallet))
     .execute();
 };

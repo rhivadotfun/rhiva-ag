@@ -2,21 +2,35 @@ import clsx from "clsx";
 import Link from "next/link";
 import { format } from "util";
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 
 import Decimal from "../Decimal";
 import { useTRPC } from "@/trpc.client";
+import { useAuth } from "@/hooks/useAuth";
+import type { getWalletPNL } from "@/lib/get-tokens";
 import { useCurrencies } from "@/hooks/useCurrency";
 import { currencyIntlArgs, percentageIntlArgs } from "@/constants/format";
 
 export default function PortfolioInfo(props: React.ComponentProps<"div">) {
   const trpc = useTRPC();
+  const { user } = useAuth();
   const currencies = useCurrencies();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const { data } = useQuery(trpc.position.aggregrate.queryOptions());
 
   const currency = useMemo(() => searchParams.get("currency"), [searchParams]);
+
+  const token = useMemo(
+    () =>
+      queryClient.getQueryData<Awaited<ReturnType<typeof getWalletPNL>>>([
+        "wallet",
+        "tokens",
+        user.wallet.id,
+      ]),
+    [user, queryClient],
+  );
 
   const winRate = useMemo(() => {
     if (!data) return 0;
@@ -36,7 +50,7 @@ export default function PortfolioInfo(props: React.ComponentProps<"div">) {
           <div className="flex flex-col">
             <p className="text-gray uppercase">Total Net Worth</p>
             <Decimal
-              value={data.networthUsd}
+              value={data.networthUsd + (token?.summary?.balance || 0)}
               intlArgs={currencyIntlArgs}
               className="text-2xl font-semibold"
             />
@@ -85,7 +99,17 @@ export default function PortfolioInfo(props: React.ComponentProps<"div">) {
               className="text-base font-medium"
             />
           </div>
-
+          <div className="flex flex-col">
+            <p className="text-gray uppercase lt-sm:text-xs">Total Loss</p>
+            <Decimal
+              value={data.lossUsd}
+              intlArgs={currencyIntlArgs}
+              className={clsx(
+                "text-base font-medium",
+                data.lossUsd < 0 && "text-red-500",
+              )}
+            />
+          </div>
           <div className="flex flex-col">
             <p className="text-gray uppercase lt-sm:text-xs">Win rate</p>
             <Decimal
@@ -109,7 +133,10 @@ export default function PortfolioInfo(props: React.ComponentProps<"div">) {
             <Decimal
               value={data.avgMonthlyProfit}
               intlArgs={currencyIntlArgs}
-              className="text-base font-medium"
+              className={clsx(
+                "text-base font-medium",
+                data.avgMonthlyProfit >= 0 ? "text-primary" : "text-red-500",
+              )}
             />
           </div>
         </div>

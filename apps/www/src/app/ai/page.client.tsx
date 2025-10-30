@@ -155,7 +155,7 @@ export default function AiPageClient({ searchParams }: AiPageClientProps) {
       const messages = await trpcClient.ai.message.list.query({
         filter: currentThread
           ? {
-              thread: currentThread.id,
+              thread: { eq: currentThread.id },
             }
           : undefined,
       });
@@ -198,16 +198,16 @@ export default function AiPageClient({ searchParams }: AiPageClientProps) {
             className="sticky top-0 z-10 sm:bg-white/10 sm:backdrop-blur-3xl"
           />
           <div className="flex-1 flex flex-col space-y-4 overflow-y-scroll p-4">
-            {messages?.length ? (
-              messages.map((message) => (
-                <Chat
-                  key={message.id}
-                  message={message}
-                />
-              ))
-            ) : (
-              <EmptyChat onPrompt={(prompt) => sendMessage({ prompt })} />
-            )}
+            {messages?.length
+              ? messages.map((message) => (
+                  <Chat
+                    key={message.id}
+                    message={message}
+                  />
+                ))
+              : !isPending && (
+                  <EmptyChat onPrompt={(prompt) => sendMessage({ prompt })} />
+                )}
             {isPending && <BounceDot />}
           </div>
           <div className="sticky bottom-0 flex sm:items-center sm:justify-center sm:bg-white/10">

@@ -70,9 +70,13 @@ export default async function createWorker({
       connection: createRedis({ maxRetriesPerRequest: null }),
     },
   );
-
+  worker.on("completed", (job) => {
+    logger.info(
+      { id: job.id, data: job.data },
+      "worker.position.sync.successful",
+    );
+  });
   worker.on("failed", (job, error) => {
-    console.error(error);
     logger.error(
       { error, job: { id: job?.id, data: job?.data } },
       "worker.position.sync.failed",

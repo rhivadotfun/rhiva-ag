@@ -1,5 +1,6 @@
 import { currencyIntlArgs } from "@/constants/format";
 import Decimal from "../Decimal";
+import { useRef } from "react";
 
 type TokenInputProps = {
   value?: number | string;
@@ -16,14 +17,17 @@ export default function TokenInput({
   value = 0,
   onChange,
 }: TokenInputProps) {
+  const inputRef = useRef<HTMLDivElement>(null);
+
   return (
     <div className="flex justify-between">
       <div className="flex-1 overflow-x-scroll">
         <div className="flex items-end space-x-2">
           <div
+            ref={inputRef}
             itemType="number"
             datatype="decimal"
-            defaultValue={0}
+            defaultValue={value}
             contentEditable
             data-placeholder="0"
             className="text-4xl font-medium focus:outline-none"
@@ -47,6 +51,11 @@ export default function TokenInput({
         <button
           type="button"
           className="bg-primary/10 text-light px-3 py-0.5 text-xs rounded"
+          onClick={() => {
+            onChange(amount);
+            if (inputRef.current)
+              inputRef.current.innerHTML = amount.toString();
+          }}
         >
           Max
         </button>
@@ -55,6 +64,7 @@ export default function TokenInput({
             value={amount}
             minValue={0.01}
           />
+          &nbsp;
           {symbol}
         </p>
       </div>
