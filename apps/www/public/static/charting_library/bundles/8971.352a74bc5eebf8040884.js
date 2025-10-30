@@ -3237,7 +3237,8 @@
             null != t &&
             !(0, i.default)(t)
           ) ||
-          u.test(t) || !o.test(t) ||
+          u.test(t) ||
+          !o.test(t) ||
           (null != e && t in Object(e))
         );
       };

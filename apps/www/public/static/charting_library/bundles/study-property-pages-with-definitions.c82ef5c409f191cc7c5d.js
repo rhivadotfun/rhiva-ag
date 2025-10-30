@@ -461,7 +461,9 @@
         return (
           i !== u.RangeDependentStudyInputNames.FirstBar &&
           i !== u.RangeDependentStudyInputNames.LastBar &&
-          "time" !== e.type && !e.isHidden && !(t && !e.confirm) &&
+          "time" !== e.type &&
+          !e.isHidden &&
+          !(t && !e.confirm) &&
           void 0 === e.groupId
         );
       }

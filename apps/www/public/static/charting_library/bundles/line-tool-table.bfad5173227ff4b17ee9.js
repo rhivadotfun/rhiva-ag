@@ -1623,15 +1623,13 @@
         }
         undo() {
           const e = this._source();
-          e
-            .properties()
-            .recreateCellsPropsByState({
-              cells: this._cellsPropsState,
-              colsCount: this._colsCountPropsState,
-              rowsCount: this._rowsCountPropsState,
-              columnWidths: this._columnWidthsPropsState,
-              rowHeights: this._rowHeightsPropsState,
-            }),
+          e.properties().recreateCellsPropsByState({
+            cells: this._cellsPropsState,
+            colsCount: this._colsCountPropsState,
+            rowsCount: this._rowsCountPropsState,
+            columnWidths: this._columnWidthsPropsState,
+            rowHeights: this._rowHeightsPropsState,
+          }),
             e.setInplaceEditableCellIndexes(this._inplaceEditCellIndexes, !0);
         }
         _source() {

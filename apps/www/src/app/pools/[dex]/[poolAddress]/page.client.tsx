@@ -10,7 +10,7 @@ import PoolInfo from "@/components/pools/PoolInfo";
 import PoolAnalytic from "@/components/pools/PoolAnalytic";
 import OpenPosition from "@/components/positions/OpenPosition";
 import PoolTokenMetadata from "@/components/pools/PoolTokenMetadata";
-import TradingViewChart from "@/components/TradingViewChart";
+import TradingViewChart from "@/components/TradingViewChart/TradingViewPoolChart";
 
 type PoolClientPageProps = {
   params: {
@@ -91,12 +91,7 @@ export default function PoolClientPage({
             />
             <div className="sm:col-span-2" />
             <div className="col-span-2 h-[500px]">
-              <TradingViewChart
-                address={data.address}
-                type="pool"
-                network="solana"
-                interval="1H"
-              />
+              <TradingViewChart pool={data} />
             </div>
           </div>
 

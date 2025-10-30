@@ -7,12 +7,14 @@ import Logo from "@/assets/logo.png";
 import { usePathname } from "next/navigation";
 import { FaDiscord, FaXTwitter, FaYoutube } from "react-icons/fa6";
 
+import { useAuth } from "@/hooks/useAuth";
 import IcMessage from "@/assets/icons/ic_message";
 import IcSettings from "@/assets/icons/ic_settings";
 
 type NavItem = {
   name: string;
   path: string;
+  protected?: boolean;
   icon: React.ElementType;
 };
 
@@ -35,10 +37,11 @@ export default function SideNav({
   ...props
 }: SideNavProps) {
   const pathname = usePathname();
+  const { signIn, isAuthenticated } = useAuth();
 
   const navItems: NavItem[] = [
-    { name: "Messages", icon: IcMessage, path: "/messages" },
-    { name: "Settings", icon: IcSettings, path: "/settings" },
+    { name: "Messages", icon: IcMessage, path: "/messages", protected: true },
+    { name: "Settings", icon: IcSettings, path: "/settings", protected: true },
   ];
 
   const socials: Social[] = [
@@ -101,6 +104,13 @@ export default function SideNav({
                           : "text-white/70 fill-white/70",
                       )}
                       onMouseEnter={() => setExpanded?.(true)}
+                      onNavigate={(event) => {
+                        if (navItem.protected) {
+                          if (isAuthenticated) return;
+                          event.preventDefault();
+                          return signIn();
+                        }
+                      }}
                     >
                       <navItem.icon className="size-6" />
                       <span

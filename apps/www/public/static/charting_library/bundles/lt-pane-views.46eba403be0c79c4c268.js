@@ -12591,13 +12591,11 @@
             }
             w &&
               (d && (d += ", "),
-              (d += o
-                .t(null, void 0, i(44994))
-                .format({
-                  number: (0, a.forceLTRStr)(
-                    (0, h.getNumericFormatter)().format(Math.round(Number(g))),
-                  ),
-                }))),
+              (d += o.t(null, void 0, i(44994)).format({
+                number: (0, a.forceLTRStr)(
+                  (0, h.getNumericFormatter)().format(Math.round(Number(g))),
+                ),
+              }))),
               d && s.push("barsRange");
           }
           if (R) {

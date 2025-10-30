@@ -44,7 +44,7 @@ export default function AuthModal({ onSignIn, ...props }: AuthModalProps) {
   return (
     <Dialog
       {...props}
-      className={clsx(props.className, "relative z-10")}
+      className={clsx(props.className, "relative z-100")}
     >
       <div className="fixed flex flex-col inset-0">
         <DialogBackdrop className="absolute inset-0 bg-black/50 backdrop-blur-sm -z-10" />
@@ -135,11 +135,14 @@ export default function AuthModal({ onSignIn, ...props }: AuthModalProps) {
                 </Form>
               )}
             </Formik>
-            <div className="flex items-center space-x-2">
-              <hr className="flex-1 border-white/25" />
-              <p className="text-center">OR</p>
-              <hr className="flex-1 border-white/25" />
-            </div>
+            {authConnectors.length > 0 ||
+              (wallets.length > 0 && (
+                <div className="flex items-center space-x-2">
+                  <hr className="flex-1 border-white/25" />
+                  <p className="text-center">OR</p>
+                  <hr className="flex-1 border-white/25" />
+                </div>
+              ))}
             <div className="grid grid-cols-1 gap-2">
               {authConnectors.map((authConnector) => (
                 <button

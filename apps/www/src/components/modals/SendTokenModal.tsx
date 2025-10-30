@@ -1,11 +1,13 @@
 import clsx from "clsx";
-import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { MdClose } from "react-icons/md";
+import { number, object, string } from "yup";
 import { Field, Form, Formik } from "formik";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import type { Token } from "@rhiva-ag/dex-api/jup/types";
 import { getAnalytics, logEvent } from "firebase/analytics";
 import { useConnection } from "@solana/wallet-adapter-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Dialog,
   DialogBackdrop,
@@ -14,13 +16,11 @@ import {
 } from "@headlessui/react";
 
 import { dexApi } from "@/instances";
+import { useTRPC } from "@/trpc.client";
 import { useAuth } from "@/hooks/useAuth";
 import { getWalletPNL } from "@/lib/get-tokens";
 import TokenInput from "../send-token/TokenInput";
 import TokenSelect from "../send-token/TokenSelect";
-import { number, object, string } from "yup";
-import type { Token } from "@rhiva-ag/dex-api/jup/types";
-import { useTRPC } from "@/trpc.client";
 
 export default function SendTokenModal(
   props: React.ComponentProps<typeof Dialog>,
@@ -162,7 +162,7 @@ function SendTokenForm(props: React.ComponentProps<typeof Form>) {
                 type="submit"
                 disabled={!isValid}
                 className={clsx(
-                  "rounded-md",
+                  "flex items-center justify-center rounded-md",
                   isAuthenticated && isValid
                     ? "bg-primary text-black"
                     : "bg-gray/30 text-gray border border-white/10",
@@ -171,7 +171,7 @@ function SendTokenForm(props: React.ComponentProps<typeof Form>) {
                 {isSubmitting ? (
                   <div className="my-2 size-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <span className="my-2">Open Positon</span>
+                  <span className="my-2">Send</span>
                 )}
               </button>
             </div>

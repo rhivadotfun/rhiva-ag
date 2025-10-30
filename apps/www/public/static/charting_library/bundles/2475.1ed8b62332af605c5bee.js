@@ -1599,7 +1599,8 @@
                                   id: N(t, r, n),
                                   isFocused:
                                     !!S &&
-                                    S.groupIndex === t && S.col === r &&
+                                    S.groupIndex === t &&
+                                    S.col === r &&
                                     S.row === n,
                                   key: e.value(),
                                   searchSource: e,

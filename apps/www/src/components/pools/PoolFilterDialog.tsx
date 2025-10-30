@@ -64,18 +64,18 @@ export default function PoolFilterDialog(
 
   return (
     <Formik
+      validateOnMount
       validationSchema={object({ name: string().trim().required() })}
       initialValues={Object.fromEntries(searchParams.entries())}
       onSubmit={async ({ name, ...values }) => {
         if (!isAuthenticated) await signIn();
-
         return mutateAsync({
           name,
           data: values,
         });
       }}
     >
-      {({ values, setValues }) => (
+      {({ values, setValues, isValid, isSubmitting }) => (
         <Dialog
           as={Form}
           {...props}
@@ -153,12 +153,18 @@ export default function PoolFilterDialog(
                         >
                           Save Filter
                         </label>
-                        <Field
-                          name="name"
-                          placeholder="Filter name"
-                          className="p-2 bg-transparent border border-white/10 placeholder-text-gray rounded-md "
-                        />
-                        <ErrorMessage name="name" />
+                        <div className="flex flex-col">
+                          <Field
+                            name="name"
+                            placeholder="Filter name"
+                            className="p-2 bg-transparent border border-white/10 placeholder-text-gray rounded-md "
+                          />
+                          <ErrorMessage
+                            component="small"
+                            name="name"
+                            className="text-red-500 first-letter:uppercase"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -166,9 +172,17 @@ export default function PoolFilterDialog(
                 <div className="flex space-x-4 p-4">
                   <button
                     type="submit"
-                    className="flex-1 bg-primary p-2 text-black rounded"
+                    disabled={!isValid}
+                    className={clsx(
+                      "flex-1 flex items-center justify-center rounded",
+                      isValid ? "bg-primary text-black" : "bg-white/10",
+                    )}
                   >
-                    Save
+                    {isSubmitting ? (
+                      <div className="my-1 size-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <span className="my-2">Save</span>
+                    )}
                   </button>
                   <button
                     type="button"

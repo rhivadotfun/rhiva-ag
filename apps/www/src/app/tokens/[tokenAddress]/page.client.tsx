@@ -1,6 +1,5 @@
 "use client";
 import moment from "moment";
-import { format } from "util";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -94,19 +93,7 @@ export default function TokenPage({
               )}
             </div>
             <div className="flex-1 flex flex-col">
-              <TradingViewTokenChart
-                tokenAddress={token.id}
-                network="solana"
-                baseTokenSymbol={token.symbol}
-                quoteTokenSymbol="USDC"
-                interval="1H"
-              />
-              {/* <iframe
-                title="gmgn"
-                className="min-h-sm focus:outline-none"
-                src={format("https://www.gmgn.cc/kline/sol/%s", token.id)}
-                style={{ height: "100%", width: "100%" }}
-              /> */}
+              <TradingViewTokenChart token={token} />
             </div>
           </div>
           <div className="flex flex-col xl:flex xl:items-center">

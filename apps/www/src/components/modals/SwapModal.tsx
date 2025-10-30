@@ -129,7 +129,7 @@ function SwapForm({
           type="submit"
           disabled={!isValid}
           className={clsx(
-            "rounded-md",
+            "flex items-center justify-center rounded-md",
             isAuthenticated && isValid
               ? "bg-primary text-black"
               : "border border-white/20 bg-gray/30 text-gray",
@@ -138,7 +138,7 @@ function SwapForm({
           {isSubmitting ? (
             <div className="my-2 size-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
           ) : (
-            <span className="my-2">Open Positon</span>
+            <span className="my-2">Swap</span>
           )}
         </button>
         <SelectTokenModal

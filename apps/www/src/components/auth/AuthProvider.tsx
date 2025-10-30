@@ -34,8 +34,8 @@ import SolanaWalletProvider from "@/providers/SolanaWalletProvider";
 type User = z.infer<typeof safeAuthUserSchema>;
 
 export type TAuthContext = {
-  isAuthenticated: boolean;
   user?: User;
+  isAuthenticated: boolean;
   signIn: () => Promise<User>;
   signOut: () => Promise<void>;
   setUser: React.Dispatch<React.SetStateAction<User | undefined>>;

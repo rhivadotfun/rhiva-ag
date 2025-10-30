@@ -1,69 +1,113 @@
 "use client";
+import { useCallback, useMemo, useState } from "react";
+import type { Token } from "@rhiva-ag/dex-api/jup/types";
 
-import { useMemo } from "react";
-import TradingViewChart, { type TradingViewChartProps } from "./index";
-import { createTRPCDatafeed } from "./datafeed-trpc";
+import TradingViewChart from ".";
 import { useTRPCClient } from "@/trpc.client";
+import { transformOHLCVToBar } from "./utils";
+import type { SearchResultItem } from "./types";
+import type { CreateDataFeedArgs } from "./datafeed-trpc";
+import type { ResolutionString } from "../../../public/static/charting_library/charting_library";
+import { dexApi } from "@/instances";
 
-export type TradingViewTokenChartProps = {
-  tokenAddress: string;
-  network?: "solana";
-  baseTokenSymbol?: string;
-  quoteTokenSymbol?: string;
-} & Omit<TradingViewChartProps, "customDatafeed" | "symbol">;
+export type TradingViewtokenChartProps = {
+  token: Token;
+};
 
-/**
- * TradingView chart component for tokens
- * Automatically fetches OHLCV data from CoinGecko via tRPC
- */
-export default function TradingViewTokenChart({
-  tokenAddress,
-  network = "solana",
-  baseTokenSymbol,
-  quoteTokenSymbol,
-  ...chartProps
-}: TradingViewTokenChartProps) {
+export default function TradingViewtokenChart({
+  token,
+}: TradingViewtokenChartProps) {
   const trpcClient = useTRPCClient();
-
-  const datafeed = useMemo(() => {
-    if (!trpcClient) return null;
-
-    return createTRPCDatafeed(trpcClient, {
-      type: "token",
-      address: tokenAddress,
-      network,
-      baseTokenSymbol,
-      quoteTokenSymbol,
-    });
-  }, [trpcClient, tokenAddress, network, baseTokenSymbol, quoteTokenSymbol]);
-
-  const symbol = useMemo(() => {
-    if (baseTokenSymbol && quoteTokenSymbol) {
-      return `${baseTokenSymbol}/${quoteTokenSymbol}`;
-    }
-    return tokenAddress.slice(0, 8); // Fallback to short address
-  }, [baseTokenSymbol, quoteTokenSymbol, tokenAddress]);
-
-  if (!datafeed) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100%",
-        }}
+  const [cachedSearchResults, setCachedSearchResults] = useState<
+    Record<string, SearchResultItem>
+  >({
+    [token.name]: {
+      address: token.id,
+      base_token: {
+        name: token.name,
+        address: token.id,
+        symbol: token.symbol,
+        image_url: token.icon,
+        decimals: token.decimals,
+      },
+    },
+  });
+  const supportedResolutions = useMemo(
+    () =>
+      [
+        "1",
+        "5",
+        "15",
+        "30",
+        "60",
+        "240",
+        "1D",
+        "1W",
+        "1M",
+      ] as ResolutionString[],
+    [],
+  );
+  const search = useCallback(
+    async (
+      ...[{ userInput }]: Parameters<
+        Exclude<CreateDataFeedArgs["search"], undefined>
       >
-        <p>Loading chart...</p>
-      </div>
-    );
-  }
+    ) => {
+      const response = await dexApi.jup.token.list({
+        category: "search",
+        query: userInput,
+      });
+      if (response) {
+        const results = response?.map((token) => ({
+          address: token.id,
+
+          base_token: {
+            name: token.name,
+            address: token.id,
+            symbol: token.symbol,
+            image_url: token.icon,
+            decimals: token.decimals,
+          },
+        }));
+
+        setCachedSearchResults((cache) => ({
+          ...cache,
+          ...Object.fromEntries(
+            results.map((result) => [result.address, result]),
+          ),
+        }));
+
+        return results;
+      }
+      return [];
+    },
+    [],
+  );
+
+  const getBars = useCallback(
+    async (...[args]: Parameters<CreateDataFeedArgs["getBars"]>) => {
+      const { ohlcv_list } = await trpcClient.token.chart.query({
+        ...args,
+        token_address: args.address,
+      });
+      if (ohlcv_list) return ohlcv_list.map(transformOHLCVToBar);
+      return [];
+    },
+    [trpcClient],
+  );
 
   return (
     <TradingViewChart
-      {...chartProps}
-      symbol={symbol}
-      customDatafeed={datafeed}
+      symbol={token.name}
+      datafeedArgs={{
+        getBars,
+        search,
+        cachedSearchResults,
+        defaultConfig: {
+          network: "solana",
+          supportedResolutions,
+        },
+      }}
     />
   );
 }

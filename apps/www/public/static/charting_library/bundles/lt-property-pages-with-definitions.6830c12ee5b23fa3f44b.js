@@ -2179,12 +2179,10 @@
                       (e) =>
                         null !== e
                           ? parseFloat(
-                              t
-                                .getScaleRatioFormatter()
-                                .format(e, {
-                                  ignoreLocaleNumberFormat: !0,
-                                  noExponentialForm: !0,
-                                }),
+                              t.getScaleRatioFormatter().format(e, {
+                                ignoreLocaleNumberFormat: !0,
+                                noExponentialForm: !0,
+                              }),
                             )
                           : null,
                     ],

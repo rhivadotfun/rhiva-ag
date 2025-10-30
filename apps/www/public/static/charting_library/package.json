@@ -1,28 +1,18 @@
 {
+  "version": "30.0.0",
+  "name": "charting_library",
   "private": true,
-  "main": "charting_library/charting_library.cjs.js",
+  "module": "./charting_library.esm.js",
+    "types": "./charting_library.d.ts",
+  "main": "./charting_library.cjs.js",
   "exports": {
     ".": {
       "types": "./charting_library.d.ts",
-      "import": "./charting_library/charting_library.esm.js",
-      "require": "./charting_library/charting_library.cjs.js"
-    },
-    "./datafeeds/udf": {
-      "types": "./datafeeds/udf/types.d.ts",
-      "default": "./datafeeds/udf/lib/udf-compatible-datafeed.js"
+      "import": "./charting_library.esm.js",
+      "require": "./charting_library.cjs.js"
     }
   },
-  "module": "charting_library/charting_library.esm.js",
   "files": [
-    "charting_library/",
-    "datafeeds/",
     "/*.d.ts"
-  ],
-  "bugs": {
-    "url": "https://github.com/tradingview/charting_library/issues"
-  },
-  "homepage": "https://www.tradingview.com/charting-library-docs",
-  "name": "charting_library",
-  "version": "30.0.0",
-  "types": "charting_library.d.ts"
+  ]
 }

@@ -1708,27 +1708,25 @@
           const { property: e, hHistInfo: t } = this.props,
             { colors: l, transparencies: r, visible: i } = e.childs(),
             { titles: o } = t;
-          return l
-            .childNames()
-            .map((e) =>
-              n.createElement(
-                L.InputRow,
-                {
-                  key: e,
-                  grouped: !0,
-                  label: n.createElement(
-                    "div",
-                    { className: Q.childRowContainer },
-                    o[+e],
-                  ),
-                },
-                n.createElement(xe.BasicColorSelect, {
-                  disabled: !i.value(),
-                  color: l[+e],
-                  transparency: r[+e],
-                }),
-              ),
-            );
+          return l.childNames().map((e) =>
+            n.createElement(
+              L.InputRow,
+              {
+                key: e,
+                grouped: !0,
+                label: n.createElement(
+                  "div",
+                  { className: Q.childRowContainer },
+                  o[+e],
+                ),
+              },
+              n.createElement(xe.BasicColorSelect, {
+                disabled: !i.value(),
+                color: l[+e],
+                transparency: r[+e],
+              }),
+            ),
+          );
         }
       }
       Tt.contextType = I.StylePropertyContext;

@@ -3538,12 +3538,10 @@
             this._addValuesSpawnsSubscriptions(),
             e.symbolLogoViewModel().subscribe(this._updateSymbolLogoRenderer),
             this._updateSymbolLogoRenderer(e.symbolLogoViewModel().value()),
-            (this._actionsSpawnArray = this._model
-              .actions()
-              .map((e) => ({
-                visible: e.visible.spawn(),
-                title: void 0 === e.title ? null : e.title.spawn(),
-              })));
+            (this._actionsSpawnArray = this._model.actions().map((e) => ({
+              visible: e.visible.spawn(),
+              title: void 0 === e.title ? null : e.title.spawn(),
+            })));
           for (let e = 0; e < this._actionsSpawnArray.length; e++) {
             this._actionsSpawnArray[e].visible.subscribe(
               this._updateActionVisibilities.bind(this, e),
@@ -3929,14 +3927,12 @@
             this._updateTitlesVisibilitiesByMode();
         }
         _createValuesSpawns() {
-          this._valuesSpawnArray = this._values
-            .value()
-            .map((e) => ({
-              value: e.value.spawn(),
-              color: e.color.spawn(),
-              visible: e.visible.spawn(),
-              title: e.title.spawn(),
-            }));
+          this._valuesSpawnArray = this._values.value().map((e) => ({
+            value: e.value.spawn(),
+            color: e.color.spawn(),
+            visible: e.visible.spawn(),
+            title: e.title.spawn(),
+          }));
         }
         _removeValuesSpawnsSubscriptions() {
           for (const e of this._valuesSpawnArray)
@@ -6027,15 +6023,13 @@
           if (0 === e.items().length) return;
           const t = this._values.value();
           if (0 === t.length) {
-            const t = e
-              .items()
-              .map((e) => ({
-                value: new r.WatchedValue(e.value()),
-                color: new r.WatchedValue(St(e.color())),
-                visible: new r.WatchedValue(e.visible()),
-                unimportant: new r.WatchedValue(e.unimportant()),
-                title: new r.WatchedValue(e.title()),
-              }));
+            const t = e.items().map((e) => ({
+              value: new r.WatchedValue(e.value()),
+              color: new r.WatchedValue(St(e.color())),
+              visible: new r.WatchedValue(e.visible()),
+              unimportant: new r.WatchedValue(e.unimportant()),
+              title: new r.WatchedValue(e.title()),
+            }));
             this._values.setValue(t);
           } else {
             const s = e.items();
