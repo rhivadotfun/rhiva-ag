@@ -13,6 +13,7 @@ import SwapModal from "@/components/modals/SwapModal";
 import TokenInfo from "@/components/token/TokenInfo";
 import TokenAnalytic from "@/components/token/TokenAnalytic";
 import TokenMetadata from "@/components/token/TokenMetadata";
+import TradingViewTokenChart from "@/components/TradingViewChart/TradingViewTokenChart";
 
 export const TimeFrame = {
   stats5m: "5M",
@@ -93,12 +94,19 @@ export default function TokenPage({
               )}
             </div>
             <div className="flex-1 flex flex-col">
-              <iframe
+              <TradingViewTokenChart
+                tokenAddress={token.id}
+                network="solana"
+                baseTokenSymbol={token.symbol}
+                quoteTokenSymbol="USDC"
+                interval="1H"
+              />
+              {/* <iframe
                 title="gmgn"
                 className="min-h-sm focus:outline-none"
                 src={format("https://www.gmgn.cc/kline/sol/%s", token.id)}
                 style={{ height: "100%", width: "100%" }}
-              />
+              /> */}
             </div>
           </div>
           <div className="flex flex-col xl:flex xl:items-center">
