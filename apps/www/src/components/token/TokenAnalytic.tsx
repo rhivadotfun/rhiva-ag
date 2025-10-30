@@ -31,7 +31,11 @@ export default function TokenAnalytic({
   const sellsPercentage = netTrades ? (sells / netTrades) * 100 : 0;
 
   const percentageIntl = useMemo(
-    () => new Intl.NumberFormat("en-US", percentageIntlArgs),
+    () =>
+      new Intl.NumberFormat("en-US", {
+        ...percentageIntlArgs,
+        signDisplay: "never",
+      }),
     [],
   );
 
