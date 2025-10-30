@@ -59,35 +59,35 @@ export default function TokenInfo({
         </button>
       </div>
       <div>
-        <p className="text-xs text-gray">Current Liquidity</p>
+        <p className="text-xs text-gray md:text-sm">Current Liquidity</p>
         <Decimal
           value={liquidity}
           intlArgs={currencyIntlArgs}
         />
       </div>
       <div>
-        <p className="text-xs text-gray">Market Cap</p>
+        <p className="text-xs text-gray md:text-sm">Market Cap</p>
         <Decimal
           value={marketCap}
           intlArgs={currencyIntlArgs}
         />
       </div>
       <div>
-        <p className="text-xs text-gray">Volume</p>
+        <p className="text-xs text-gray md:text-sm">Volume</p>
         <Decimal
           value={volume}
           intlArgs={currencyIntlArgs}
         />
       </div>
       <div>
-        <p className="text-xs text-gray">Price</p>
+        <p className="text-xs text-gray md:text-sm">Price</p>
         <Decimal
           value={price}
           intlArgs={currencyIntlArgs}
         />
       </div>
       <div>
-        <p className="text-xs text-gray">Holders</p>
+        <p className="text-xs text-gray md:text-sm">Holders</p>
         <Decimal value={holders} />
       </div>
     </div>

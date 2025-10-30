@@ -67,7 +67,7 @@ export default function TokenAnalytic({
       </div>
 
       <div className="flex flex-col">
-        <p className="text-xs text-gray md:text-sm">Buys</p>
+        <p className="text-xs text-gray md:text-sm">{timeframe} Buys</p>
         <p className="text-green-500">
           {percentageIntl.format(buysPercentage)} Buys
         </p>
