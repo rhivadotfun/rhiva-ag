@@ -47,6 +47,7 @@ export const getUserById = async (
     .groupBy(referrers.referer)
     .as("qReferrers");
 
+  // performance issues todo
   const qRanks = db
     .select({
       id: users.id,
