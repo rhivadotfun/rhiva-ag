@@ -49,14 +49,16 @@ function RaydiumOpenPositionForm({
   ...props
 }: React.ComponentProps<typeof Form> & Pick<RaydiumOpenPositionProps, "pool">) {
   const trpc = useTRPC();
-  const { user } = useAuth();
   const { connection } = useConnection();
   const nativeMint = NATIVE_MINT.toBase58();
+  const { isAuthenticated, user, signIn } = useAuth();
 
   const { data: rawBalance } = useQuery({
+    initialData: 0,
     refetchInterval: 60_000,
-    queryKey: ["balance", nativeMint, user.wallet.id],
-    queryFn: () => connection.getBalance(new PublicKey(user.wallet.id)),
+    enabled: isAuthenticated,
+    queryKey: ["balance", nativeMint, user?.wallet?.id],
+    queryFn: () => connection.getBalance(new PublicKey(user?.wallet?.id)),
   });
 
   const { data: poolState } = useQuery({
@@ -123,6 +125,8 @@ function RaydiumOpenPositionForm({
       ],
     },
     onSubmit: async (values) => {
+      if (!isAuthenticated) await signIn();
+
       const createPositionValue = {
         ...values,
         slippage: 50,
@@ -208,7 +212,7 @@ function RaydiumOpenPositionForm({
               disabled={!isValid}
               className={clsx(
                 "flex items-center justify-center rounded-md",
-                isValid
+                isValid && isAuthenticated
                   ? "bg-primary text-black"
                   : "bg-gray/30 border border-white/10 text-gray",
               )}

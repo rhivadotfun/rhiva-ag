@@ -96,15 +96,13 @@ export default function PoolClientPage({
           </div>
 
           <div className="flex flex flex-col xl:flex xl:items-center">
-            {isAuthenticated && (
-              <OpenPosition
-                dex={dex}
-                pool={data}
-                open={showCreatePositionModal}
-                onClose={setShowCreatePositionModal}
-                className="min-w-2xl"
-              />
-            )}
+            <OpenPosition
+              dex={dex}
+              pool={data}
+              open={showCreatePositionModal}
+              onClose={setShowCreatePositionModal}
+              className="min-w-2xl"
+            />
             <button
               type="button"
               className="bg-primary text-black p-2 rounded-md sm:hidden"
