@@ -135,14 +135,7 @@ export default function AuthModal({ onSignIn, ...props }: AuthModalProps) {
                 </Form>
               )}
             </Formik>
-            {authConnectors.length > 0 ||
-              (wallets.length > 0 && (
-                <div className="flex items-center space-x-2">
-                  <hr className="flex-1 border-white/25" />
-                  <p className="text-center">OR</p>
-                  <hr className="flex-1 border-white/25" />
-                </div>
-              ))}
+
             <div className="grid grid-cols-1 gap-2">
               {authConnectors.map((authConnector) => (
                 <button
@@ -183,14 +176,14 @@ export default function AuthModal({ onSignIn, ...props }: AuthModalProps) {
           <div className="text-xs text-white/75 text-center">
             <span>By continuing, you agree to our</span>&nbsp;
             <a
-              href="legal.rhiva.fun"
+              href="#legal"
               className="text-primary"
             >
               Terms&nbsp;
             </a>
             <span>and </span>
             <a
-              href="legal.rhiva.fun"
+              href="#legal"
               className="text-primary"
             >
               Privacy <br /> Policy
