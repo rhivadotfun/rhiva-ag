@@ -115,7 +115,7 @@ export function PoolListSmall({ pools }: PoolListSmallProps) {
                 href={format("/pools/%s/%s/", pool.dex.id, pool.address)}
                 className="flex items-center"
               >
-                <div className="relative mr-2">
+                <div className="shrink-0 relative mr-2">
                   <Image
                     width={24}
                     height={24}
@@ -134,7 +134,6 @@ export function PoolListSmall({ pools }: PoolListSmallProps) {
                 <p className="font-semibold mr-2">
                   {pool.name.replace(/\s/g, "").replace(/\//g, "-")}
                 </p>
-
                 <CopyButton
                   content={pool.address}
                   className="text-gray mr-1 lt-sm:text-xs"

@@ -42,7 +42,7 @@ export default function TokenPage({
       }),
   });
 
-  if (data) {
+  if (data && data.length > 0) {
     const [token] = data;
     let stat = token[timeframe];
     stat = stat ? stat : token.stats24h;
@@ -92,7 +92,7 @@ export default function TokenPage({
                 />
               )}
             </div>
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-h-md">
               <TradingViewTokenChart token={token} />
             </div>
           </div>

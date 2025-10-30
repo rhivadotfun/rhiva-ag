@@ -26,7 +26,6 @@ export default function ProductList(props: React.ComponentProps<"section">) {
     {
       name: "Referrals",
       image: Referral,
-      protected: true,
       async onClick() {
         if (!isAuthenticated) await signIn();
         router.push("/referral");

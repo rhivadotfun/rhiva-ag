@@ -90,7 +90,7 @@ export default function PoolClientPage({
               price={data.price}
             />
             <div className="sm:col-span-2" />
-            <div className="col-span-2 h-[500px]">
+            <div className="col-span-2 min-h-md">
               <TradingViewChart pool={data} />
             </div>
           </div>
