@@ -3,6 +3,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import { ToastContainer } from "react-toastify";
+import { NextIntlClientProvider } from "next-intl";
 
 import "@unocss/reset/tailwind.css";
 import "rc-slider/assets/index.css";
@@ -31,34 +32,36 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: React.PropsWithChildren) {
   return (
-    <Auth>
-      <Provider>
-        <html
-          lang="en"
-          style={defaultFont.style}
-          className={clsx(defaultFont.variable, defaultFont.className)}
-        >
-          <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1, maximum-scale=1"
-          />
-
-          <body className="fixed inset-0 flex flex-col bg-dark text-white overflow-y-scroll lt-md:text-sm">
-            <Image
-              src={Line.src}
-              width={1643}
-              height={260}
-              alt="Background Line"
-              className="w-full absolute inset-x-0 z-0"
+    <NextIntlClientProvider>
+      <Auth>
+        <Provider>
+          <html
+            lang="en"
+            style={defaultFont.style}
+            className={clsx(defaultFont.variable, defaultFont.className)}
+          >
+            <meta
+              name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1"
             />
-            <div className="flex-1 flex z-10 lt-sm:flex-col-reverse overflow-y-scroll">
-              <NavBar />
-              {children}
-              <ToastContainer />
-            </div>
-          </body>
-        </html>
-      </Provider>
-    </Auth>
+
+            <body className="fixed inset-0 flex flex-col bg-dark text-white overflow-y-scroll lt-md:text-sm">
+              <Image
+                src={Line.src}
+                width={1643}
+                height={260}
+                alt="Background Line"
+                className="w-full absolute inset-x-0 z-0"
+              />
+              <div className="flex-1 flex z-10 lt-sm:flex-col-reverse overflow-y-scroll">
+                <NavBar />
+                {children}
+                <ToastContainer theme="dark" />
+              </div>
+            </body>
+          </html>
+        </Provider>
+      </Auth>
+    </NextIntlClientProvider>
   );
 }

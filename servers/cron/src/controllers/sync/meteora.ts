@@ -474,6 +474,9 @@ export const syncMeteoraPositionStateFromEvent = async ({
 }) => {
   const results = [];
   let newPosition = type === "create-position";
+  const closedPosition =
+    type === "closed-position" ||
+    events.find(({ name }) => name === "positionClose");
 
   for (const event of events) {
     if (event.name === "positionCreate") newPosition = true;
@@ -494,18 +497,21 @@ export const syncMeteoraPositionStateFromEvent = async ({
         const baseTokenPrice = price[pool.baseToken.id]?.usd;
         const quoteTokenPrice = price[pool.quoteToken.id]?.usd;
 
+        let baseAmount = 0,
+          quoteAmount = 0;
+
         if (rawAmountX) {
-          const amount = new Decimal(rawAmountX.toString())
+          baseAmount = new Decimal(rawAmountX.toString())
             .div(Math.pow(10, pool.baseToken.decimals))
             .toNumber();
-          if (baseTokenPrice) amountUsd += baseTokenPrice * amount;
+          if (baseTokenPrice) amountUsd += baseTokenPrice * baseAmount;
         }
 
         if (rawAmountY) {
-          const amount = new Decimal(rawAmountY.toString())
+          quoteAmount = new Decimal(rawAmountY.toString())
             .div(Math.pow(10, pool.quoteToken.decimals))
             .toNumber();
-          if (quoteTokenPrice) amountUsd += quoteTokenPrice * amount;
+          if (quoteTokenPrice) amountUsd += quoteTokenPrice * quoteAmount;
         }
 
         const values: typeof positions.$inferInsert = {
@@ -547,8 +553,16 @@ export const syncMeteoraPositionStateFromEvent = async ({
               params: {
                 signature,
                 position: positionId,
-                baseToken: { symbol: pool.baseToken.symbol },
-                quoteToken: { symbol: pool.quoteToken.symbol },
+                baseToken: {
+                  amount: baseAmount,
+                  price: baseTokenPrice,
+                  symbol: pool.baseToken.symbol,
+                },
+                quoteToken: {
+                  amount: quoteAmount,
+                  price: quoteTokenPrice,
+                  symbol: pool.quoteToken.symbol,
+                },
               },
             },
           }),
@@ -556,7 +570,7 @@ export const syncMeteoraPositionStateFromEvent = async ({
 
         results.push(updatedPosition);
       }
-    } else if (event.name === "positionClose") {
+    } else if (closedPosition && event.name === "removeLiquidity") {
       const data = event.data;
       const positionId = data.position.toBase58();
       const position = await getPositionById(db, positionId);
@@ -571,6 +585,18 @@ export const syncMeteoraPositionStateFromEvent = async ({
 
       const baseTokenPrice = price[pool.baseToken.id]?.usd;
       const quoteTokenPrice = price[pool.quoteToken.id]?.usd;
+
+      const [rawBaseAmount, rawQuoteAmount] = data.amounts;
+      let baseAmount = 0,
+        quoteAmount = 0;
+      if (rawBaseAmount)
+        baseAmount = new Decimal(rawBaseAmount.toString())
+          .div(Math.pow(10, pool.baseToken.decimals))
+          .toNumber();
+      if (rawQuoteAmount)
+        quoteAmount = new Decimal(rawQuoteAmount.toString())
+          .div(Math.pow(10, pool.quoteToken.decimals))
+          .toNumber();
 
       const [updatedPosition] = await Promise.all([
         db
@@ -600,8 +626,16 @@ export const syncMeteoraPositionStateFromEvent = async ({
             params: {
               signature,
               position: positionId,
-              baseToken: { symbol: position.pool.baseToken.symbol },
-              quoteToken: { symbol: position.pool.quoteToken.symbol },
+              baseToken: {
+                amount: baseAmount,
+                price: baseTokenPrice,
+                symbol: pool.baseToken.symbol,
+              },
+              quoteToken: {
+                amount: quoteAmount,
+                price: quoteTokenPrice,
+                symbol: pool.quoteToken.symbol,
+              },
             },
           },
         }),

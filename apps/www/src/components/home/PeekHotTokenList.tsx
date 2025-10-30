@@ -1,6 +1,7 @@
 "use client";
 import clsx from "clsx";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { MdChevronRight } from "react-icons/md";
 import { useQuery } from "@tanstack/react-query";
 
@@ -10,6 +11,8 @@ import TokenCard from "../token/TokenCard";
 type PeekHotTokenList = {} & React.ComponentProps<"section">;
 
 export default function PeekHotTokenList(props: PeekHotTokenList) {
+  const t = useTranslations("HomePage.TokenCard");
+
   const { data } = useQuery({
     queryKey: ["token", "toptrending"],
     queryFn: () =>
@@ -29,7 +32,7 @@ export default function PeekHotTokenList(props: PeekHotTokenList) {
       )}
     >
       <div className="flex items-center">
-        <p className="flex-1 text-base text-gray">Hot Tokens 🔥</p>
+        <p className="flex-1 text-base text-gray">{t("title")}</p>
         <Link
           href="/tokens"
           className="p-2"

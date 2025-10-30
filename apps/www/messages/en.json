@@ -1,3 +1,56 @@
 {
-  "HomePage": {}
+  "buttons": {
+    "swap": "Swap",
+    "back": "Back",
+    "login": "Login",
+    "open_position": "Open Position",
+    "close_position": "Close Position"
+  },
+  "HomePage": {
+    "HeroSection": {
+      "greetings": "GM, {name}",
+      "title": "Welcome to Rhiva",
+      "subtitle": "Liquidity Yield Aggregator On Solana",
+      "description": "Maximize your earnings with our simplified, AI-powered liquidity pool yield aggregator across top DEXes on Solana."
+    },
+    "Products": {
+      "swap": "Swap",
+      "points": "Points",
+      "rhiva_lens": "Rhiva Bot",
+      "rhiva_bot": "Rhiva Bot",
+      "referrals": "Referrals",
+      "rhiva_learn": "Rhiva learn"
+    },
+    "TokenCard": {
+      "title": "Hot Tokens 🔥"
+    }
+  },
+  "TokenPage": {
+    "search": "Search",
+    "table": {
+      "tokens": "Tokens"
+    }
+  },
+  "notifications": {
+    "transactions": {
+      "position_opened": {
+        "title": "",
+        "description": ""
+      },
+      "position_closed": {
+        "title": "",
+        "description": ""
+      }
+    },
+    "alert": {
+      "rebalance_successful": {
+        "title": "",
+        "description": ""
+      },
+      "rebalance_failed": {
+        "title": "",
+        "description": ""
+      }
+    }
+  }
 }

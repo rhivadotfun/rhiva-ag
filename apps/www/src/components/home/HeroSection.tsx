@@ -1,8 +1,15 @@
+"use client";
 import clsx from "clsx";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
+
+import { useAuth } from "@/hooks/useAuth";
 import Banner from "@/assets/bg/banner.svg";
 
 export default function HeroSection(props: React.ComponentProps<"section">) {
+  const { user } = useAuth();
+  const t = useTranslations("HomePage.HeroSection");
+
   return (
     <section
       {...props}
@@ -13,21 +20,20 @@ export default function HeroSection(props: React.ComponentProps<"section">) {
     >
       <div className="relative z-10 flex flex-col justify-center p-6 space-y-4 lt-xl:max-w-6/10 md:px-8 lg:px-12 max-w-2xl">
         <p className="text-sm text-gray-400 md:text-base lg:text-lg">
-          GM, User
+          {t("greetings", { name: user?.displayName ?? "User" })}
         </p>
 
         <div className="flex flex-col space-y-2 md:space-y-3">
           <h1 className="text-2xl font-bold text-primary sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl">
-            Welcome to Rhiva
+            {t("title")}
           </h1>
 
           <p className="text-base text-white/90 sm:text-lg md:text-xl lg:text-2xl font-medium">
-            Liquidity Yield Aggregator On Solana
+            {t("subtitle")}
           </p>
 
           <p className="text-sm text-gray-400 max-w-xl pt-2 lt-md:hidden md:text-base lg:text-lg ">
-            Maximize your earnings with our simplified, AI-powered liquidity
-            pool yield aggregator across top DEXes on Solana.
+            {t("description")}
           </p>
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 import clsx from "clsx";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IoArrowBackOutline, IoArrowForwardOutline } from "react-icons/io5";
@@ -16,6 +17,7 @@ import Referral from "@/assets/referral.png";
 
 export default function ProductList(props: React.ComponentProps<"section">) {
   const router = useRouter();
+  const t = useTranslations("HomePage.Products");
   const { isAuthenticated, signIn } = useAuth();
   const scrollContainerRef = useRef<HTMLElement>(null);
   const [showSwapModal, setShowSwapModal] = useState(false);
@@ -24,7 +26,7 @@ export default function ProductList(props: React.ComponentProps<"section">) {
 
   const products = [
     {
-      name: "Referrals",
+      name: t("referrals"),
       image: Referral,
       async onClick() {
         if (!isAuthenticated) await signIn();
@@ -32,7 +34,7 @@ export default function ProductList(props: React.ComponentProps<"section">) {
       },
     },
     {
-      name: "Points",
+      name: t("points"),
       image: Point,
       async onClick() {
         if (!isAuthenticated) await signIn();
@@ -41,28 +43,28 @@ export default function ProductList(props: React.ComponentProps<"section">) {
     },
 
     {
-      name: "Swap",
+      name: t("swap"),
       image: Swap,
       onClick() {
         setShowSwapModal(true);
       },
     },
     {
-      name: "Rhiva Bot",
+      name: t("rhiva_bot"),
       image: Bot,
       onClick() {
         window.open("https://t.me/rhivabot", "_blank");
       },
     },
     {
-      name: "Rhiva Lens",
+      name: t("rhiva_lens"),
       image: Lens,
       onClick() {
         window.open("https://lens.rhiva.fun", "_blank");
       },
     },
     {
-      name: "Rhiva Learn",
+      name: t("rhiva_learn"),
       image: Learn,
     },
   ];
@@ -128,7 +130,7 @@ export default function ProductList(props: React.ComponentProps<"section">) {
                 className="w-16 h-16 object-cover sm:w-36 sm:h-36"
               />
               <div className="w-full h-0.2 bg-gradient-to-r from-primary to-black/50 blur-[1px]" />
-              <p className="mt-2 text-center text-nowrap"> {product.name}</p>
+              <p className="mt-2 text-center text-nowrap">{product.name}</p>
             </button>
           ))}
         </section>
