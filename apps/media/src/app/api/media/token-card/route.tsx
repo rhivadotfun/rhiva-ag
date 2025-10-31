@@ -3,7 +3,7 @@ import path from "path";
 import moment from "moment";
 import { format } from "util";
 import { readFileSync } from "fs";
-import { ImageResponse } from "@vercel/og";
+import { ImageResponse } from "next/og";
 import type { Token } from "@rhiva-ag/dex-api/jup/types";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -28,7 +28,7 @@ const Text = <T extends React.ElementType>({
   );
 };
 
-export default async function Image(request: NextRequest) {
+export function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const data = searchParams.get("data");
   const percentageIntl = Intl.NumberFormat("en-US", {
