@@ -9,9 +9,9 @@ import type Coingecko from "@coingecko/coingecko-typescript";
 
 import { Work } from "../constants";
 import { createRedis } from "../instances";
-import { syncOrcaPositionsForWallet } from "../controllers/sync/orca";
-import { syncRaydiumPositionsForWallet } from "../controllers/sync/raydium";
-import { syncMeteoraPositionsForWallet } from "../controllers/sync/meteora";
+import { syncOrcaPositionsForWallet } from "../controllers/orca";
+import { syncRaydiumPositionsForWallet } from "../controllers/raydium";
+import { syncMeteoraPositionsForWallet } from "../controllers/meteora";
 
 export const positionWorkSchema = z.object({
   wallet: z.object({

@@ -70,6 +70,11 @@ export const meteoraClosePositionSchema = z
     pair: publicKey().describe("pair address"),
     slippage: z.number().describe("swap slippage"),
     position: publicKey().describe("position address"),
+    swapToNative: z
+      .boolean()
+      .default(true)
+      .optional()
+      .describe("skip swapping to native mint"),
   })
   .extend({
     jitoConfig: jitoTipConfigSchema.default({

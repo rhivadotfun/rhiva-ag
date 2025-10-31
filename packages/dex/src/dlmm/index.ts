@@ -1,6 +1,7 @@
 import { createSolanaRpc } from "@solana/kit";
 import type { Connection } from "@solana/web3.js";
 import type { Raydium } from "@raydium-io/raydium-sdk-v2";
+import { LiquidityBookServices, MODE } from "@saros-finance/dlmm-sdk";
 
 import { OrcaDLMM } from "./orca";
 import { SarosDLMM } from "./saros";
@@ -20,7 +21,14 @@ export class DLMM {
   constructor(connection: Connection, raydium?: Raydium) {
     this.rpc = createSolanaRpc(connection.rpcEndpoint);
     this.orca = new OrcaDLMM(this.rpc);
-    this.saros = new SarosDLMM();
+    this.saros = new SarosDLMM(
+      new LiquidityBookServices({
+        mode: MODE.MAINNET,
+        options: {
+          rpcUrl: connection.rpcEndpoint,
+        },
+      }),
+    );
     this.meteora = new MeteoraDLMM();
     this.raydium = new RaydiumCLMM(raydium);
   }

@@ -1,7 +1,7 @@
 export type { AppRouter } from "./routers";
 
-export { safeAuthUserSchema } from "./routes/auth/auth.route";
 export { getPools } from "./routers/pools/pool.controller";
+export { safeAuthUserSchema } from "./routes/auth/auth.route";
 export { extendedUserSelectSchema } from "./routers/users/user.schema";
 export { getWalletPositions } from "./routers/positions/position.controller";
 export { agentOutputSchema } from "./routers/ai/messages/agent.schema-patch";
@@ -24,3 +24,12 @@ export {
   raydiumClosePositionSchema,
   raydiumCreatePositionSchema,
 } from "./routers/positions/raydium/raydium.schema";
+
+export {
+  createPosition as createOrcaPosition,
+  closePosition as closeOrcaPosition,
+} from "./routers/positions/orca/orca.controller";
+export {
+  createPosition as createRaydiumPosition,
+  closePosition as closeRaydiumPosition,
+} from "./routers/positions/raydium/raydium.controller";

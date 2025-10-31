@@ -27,6 +27,7 @@
     "@rhiva-ag/datasource": "*",
     "@rhiva-ag/decoder": "*",
     "@rhiva-ag/dex": "*",
+    "@rhiva-ag/trpc": "*",
     "@rhiva-ag/dex-api": "*",
     "@rhiva-ag/env": "*",
     "@rhiva-ag/shared": "*",

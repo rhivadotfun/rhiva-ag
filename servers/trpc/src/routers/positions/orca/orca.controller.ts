@@ -137,6 +137,7 @@ export const createPosition = async (
   });
 
   return {
+    transactions,
     bundleSimulationResponse,
     async execute() {
       const { result } = await sender.sendBundle(
@@ -262,6 +263,7 @@ export const claimReward = async (
   });
 
   return {
+    transactions,
     bundleSimulationResponse,
     async execute() {
       const { result } = await sender.sendBundle(
@@ -283,6 +285,7 @@ export const closePosition = async (
     tokenA,
     tokenB,
     jitoConfig,
+    swapToNative,
   }: z.infer<typeof orcaClosePositionSchema>,
 ) => {
   const signer = await createKeyPairSignerFromBytes(owner.secretKey);
@@ -310,71 +313,72 @@ export const closePosition = async (
         tx,
       ),
   );
-
-  const tokenAAta = getAssociatedTokenAddressSync(
-    new PublicKey(pool.data.tokenMintA),
-    owner.publicKey,
-    false,
-    new PublicKey(tokenA.owner),
-  );
-  const tokenBAta = getAssociatedTokenAddressSync(
-    new PublicKey(pool.data.tokenMintB),
-    owner.publicKey,
-    false,
-    new PublicKey(tokenB.owner),
-  );
+  const swapV0Transactions = [];
 
   const closePositionV0Transaction: Transaction =
     await signTransactionMessageWithSigners(closePositionV0Message);
 
-  const preTokenBalanceChanges = await getPreTokenBalanceForAccounts(
-    dex.connection,
-    [tokenAAta, tokenBAta],
-  );
+  if (swapToNative) {
+    const tokenAAta = getAssociatedTokenAddressSync(
+      new PublicKey(pool.data.tokenMintA),
+      owner.publicKey,
+      false,
+      new PublicKey(tokenA.owner),
+    );
+    const tokenBAta = getAssociatedTokenAddressSync(
+      new PublicKey(pool.data.tokenMintB),
+      owner.publicKey,
+      false,
+      new PublicKey(tokenB.owner),
+    );
+    const preTokenBalanceChanges = await getPreTokenBalanceForAccounts(
+      dex.connection,
+      [tokenAAta, tokenBAta],
+    );
 
-  const simulationResponse = await dex.dlmm.rpc
-    .simulateTransaction(
-      getBase64EncodedWireTransaction(closePositionV0Transaction),
-      {
-        encoding: "base64",
-        sigVerify: false,
-        replaceRecentBlockhash: true,
-        accounts: {
-          addresses: [
-            fromLegacyPublicKey(tokenAAta),
-            fromLegacyPublicKey(tokenBAta),
-          ],
+    const simulationResponse = await dex.dlmm.rpc
+      .simulateTransaction(
+        getBase64EncodedWireTransaction(closePositionV0Transaction),
+        {
           encoding: "base64",
+          sigVerify: false,
+          replaceRecentBlockhash: true,
+          accounts: {
+            addresses: [
+              fromLegacyPublicKey(tokenAAta),
+              fromLegacyPublicKey(tokenBAta),
+            ],
+            encoding: "base64",
+          },
         },
-      },
-    )
-    .send();
+      )
+      .send();
 
-  if (simulationResponse.value.err) throw simulationResponse.value.err;
+    if (simulationResponse.value.err) throw simulationResponse.value.err;
 
-  const tokenBalanceChanges = getTokenBalanceChangesFromSimulation(
-    simulationResponse.value as unknown as RpcSimulateTransactionResult,
-    preTokenBalanceChanges,
-  );
+    const tokenBalanceChanges = getTokenBalanceChangesFromSimulation(
+      simulationResponse.value as unknown as RpcSimulateTransactionResult,
+      preTokenBalanceChanges,
+    );
 
-  const swapV0Transactions = [];
-  const tokens = [tokenA, tokenB];
+    const tokens = [tokenA, tokenB];
 
-  for (const token of tokens) {
-    if (!isNative(token.mint)) {
-      const quoteAmount = tokenBalanceChanges[token.mint] ?? 0n;
-      if (quoteAmount > 0n) {
-        const { transaction } = await dex.swap.jupiter.buildSwap({
-          slippage,
-          owner: owner.publicKey,
-          outputMint: NATIVE_MINT,
-          inputMint: new PublicKey(token.mint),
-          amount: quoteAmount.toString(),
-        });
+    for (const token of tokens) {
+      if (!isNative(token.mint)) {
+        const quoteAmount = tokenBalanceChanges[token.mint] ?? 0n;
+        if (quoteAmount > 0n) {
+          const { transaction } = await dex.swap.jupiter.buildSwap({
+            slippage,
+            owner: owner.publicKey,
+            outputMint: NATIVE_MINT,
+            inputMint: new PublicKey(token.mint),
+            amount: quoteAmount.toString(),
+          });
 
-        transaction.sign([owner]);
+          transaction.sign([owner]);
 
-        swapV0Transactions.push(fromVersionedTransaction(transaction));
+          swapV0Transactions.push(fromVersionedTransaction(transaction));
+        }
       }
     }
   }
@@ -388,6 +392,9 @@ export const closePosition = async (
   });
 
   return {
+    transactions,
+    swapV0Transactions,
+    closePositionV0Transaction,
     bundleSimulationResponse,
     async execute() {
       const { result } = await sender.sendBundle(

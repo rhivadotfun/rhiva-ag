@@ -71,6 +71,11 @@ export const orcaClosePositionSchema = z
     pair: address().describe("pool address"),
     slippage: z.number().describe("swap slippage"),
     position: address().describe("position address"),
+    swapToNative: z
+      .boolean()
+      .default(true)
+      .optional()
+      .describe("skip swapping to native mint"),
     tokenA: z.object({
       mint: address().describe("pool base token mint address"),
       owner: address().describe("pool base token program address"),

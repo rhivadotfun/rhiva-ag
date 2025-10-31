@@ -27,7 +27,9 @@ async function loadFonts(origin: string) {
 
   cachedFonts = await Promise.all(
     fontNames.map(async ([file, weight]) => {
-      const res = await fetch(new URL(format("/fonts/%s", file), origin));
+      const res = await fetch(new URL(format("/fonts/%s", file), origin), {
+        cache: "force-cache",
+      });
       const data = await res.arrayBuffer();
       return { name: "Roboto", data, weight };
     }),
@@ -89,7 +91,9 @@ export async function GET(request: NextRequest) {
   });
 
   if (data) {
-    const pool: PoolData = JSON.parse(decodeURIComponent(data));
+    const pool: PoolData = JSON.parse(
+      Buffer.from(decodeURIComponent(data), "base64").toString("utf-8"),
+    );
     return new ImageResponse(
       <div
         style={{

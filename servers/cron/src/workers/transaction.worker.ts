@@ -27,9 +27,9 @@ import {
 
 import { Work } from "../constants";
 import { createRedis } from "../instances";
-import { syncOrcaPositionStateFromEvent } from "../controllers/sync/orca";
-import { syncRaydiumPositionStateFromEvent } from "../controllers/sync/raydium";
-import { syncMeteoraPositionStateFromEvent } from "../controllers/sync/meteora";
+import { syncOrcaPositionStateFromEvent } from "../controllers/orca";
+import { syncRaydiumPositionStateFromEvent } from "../controllers/raydium";
+import { syncMeteoraPositionStateFromEvent } from "../controllers/meteora";
 
 export const transactionWorkSchema = z
   .union([

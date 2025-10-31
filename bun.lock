@@ -153,7 +153,7 @@
         "@orca-so/whirlpools-core": "^2.0.0",
         "@raydium-io/raydium-sdk-v2": "^0.2.30-alpha",
         "@rhiva-ag/shared": "*",
-        "@saros-finance/dlmm-sdk": "^1.4.1",
+        "@saros-finance/dlmm-sdk": "^1.5.0",
         "@solana-program/token": "^0.7.0",
         "@solana/compat": "^4.0.0",
         "@solana/kit": "^2.3.0",
@@ -226,6 +226,7 @@
         "@rhiva-ag/dex-api": "*",
         "@rhiva-ag/env": "*",
         "@rhiva-ag/shared": "*",
+        "@rhiva-ag/trpc": "*",
         "@solana-program/token": "^0.7.0",
         "@solana/compat": "^4.0.0",
         "@solana/kit": "^2.3.0",
@@ -1344,7 +1345,7 @@
 
     "@rtsao/scc": ["@rtsao/scc@1.1.0", "", {}, "sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g=="],
 
-    "@saros-finance/dlmm-sdk": ["@saros-finance/dlmm-sdk@1.4.1", "", { "dependencies": { "@coral-xyz/anchor": "0.31.1", "@project-serum/borsh": "0.2.3", "@solana-program/token-2022": "0.4.0", "@solana/spl-token": "0.4.13", "@solana/web3.js": "1.98.2", "bs58": "^6.0.0", "js-big-decimal": "^2.2.0", "lodash": "^4.17.21", "tsdx": "^0.14.1" } }, "sha512-fbgUgU0pB25ii3el6Hm9Aaz1uDE983Vwg6KhtozTMuHnW1gCvBi5VZIr5U1Zci+qJqiv48fYr75XCUU65W3ksg=="],
+    "@saros-finance/dlmm-sdk": ["@saros-finance/dlmm-sdk@1.5.0", "", { "dependencies": { "@coral-xyz/anchor": "0.31.1", "@project-serum/borsh": "0.2.3", "@solana-program/token-2022": "0.4.0", "@solana/spl-token": "0.4.13", "@solana/web3.js": "1.98.2", "bs58": "^6.0.0", "js-big-decimal": "^2.2.0", "lodash": "^4.17.21", "tsdx": "^0.14.1" } }, "sha512-Swkup2sBXtPnnJx8LS3o6notmuPJrbdSLx9EpLx0deGvy0hx5wxBXJ+P1Ggn8Ch1HcgqNE/WPapwKa1FdOYy5g=="],
 
     "@schummar/icu-type-parser": ["@schummar/icu-type-parser@1.21.5", "", {}, "sha512-bXHSaW5jRTmke9Vd0h5P7BtWZG9Znqb8gSDxZnxaGSJnGwPLDPfS+3g0BKzeWqzgZPsIVZkM7m2tbo18cm5HBw=="],
 

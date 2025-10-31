@@ -64,9 +64,13 @@ export async function generateMetadata(
     },
   };
 
-  const title = format("%s on %s | Rhiva", pool.name, params.dex);
+  const title = format(
+    "Provide Liquidity for %s on %s | Rhiva",
+    pool.name,
+    params.dex,
+  );
   const description = format(
-    "The current TVL of %s today is %s with a 24-hour fees of %s.",
+    "Earn fees by providing liquidity to %s — aggregated across multiple DEXs for higher efficiency. Current TVL: %s, 24h fees: %s.",
     pool.name,
     currencyIntl.format(pool.tvl ?? 0),
     currencyIntl.format(pool.fees24H ?? 0),
@@ -81,7 +85,7 @@ export async function generateMetadata(
     format(
       "%s/api/media/pool-card?data=%s",
       process.env.NEXT_PUBLIC_MEDIA_URL,
-      encodeURIComponent(JSON.stringify(data)),
+      Buffer.from(JSON.stringify(data), "utf-8").toString("base64"),
     ),
   ];
 

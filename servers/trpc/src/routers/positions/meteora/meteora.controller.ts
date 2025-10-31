@@ -1,8 +1,8 @@
 import BN from "bn.js";
 import Decimal from "decimal.js";
 import type { z } from "zod/mini";
-import type Dex from "@rhiva-ag/dex";
 import DLMM from "@meteora-ag/dlmm";
+import type Dex from "@rhiva-ag/dex";
 import { getAssociatedTokenAddressSync, NATIVE_MINT } from "@solana/spl-token";
 import {
   getPreTokenBalanceForAccounts,
@@ -124,7 +124,6 @@ export const createPosition = async (
   for (const transaction of swapV0Transactions) transaction.sign([owner]);
 
   const transactions = [...swapV0Transactions, createPositionV0Transaction];
-
   const bundleSimulationResponse = await sender.simulateBundle({
     transactions,
     skipSigVerify: true,
@@ -132,6 +131,7 @@ export const createPosition = async (
   });
 
   return {
+    transactions,
     bundleSimulationResponse,
     async execute() {
       const { result } = await sender.sendBundle(transactions);
@@ -254,6 +254,7 @@ export const claimReward = async (
   });
 
   return {
+    transactions,
     bundleSimulationResponse,
     async execute() {
       const { result } = await sender.sendBundle(transactions);
@@ -270,6 +271,7 @@ export const closePosition = async (
     pair,
     slippage,
     jitoConfig,
+    swapToNative,
     position: positionPubkey,
   }: z.infer<typeof meteoraClosePositionSchema>,
 ) => {
@@ -301,64 +303,70 @@ export const closePosition = async (
     }),
   );
 
-  const tokenAAta = getAssociatedTokenAddressSync(
-    pool.tokenX.mint.address,
-    owner.publicKey,
-    false,
-    pool.tokenX.owner,
-  );
-  const tokenBAta = getAssociatedTokenAddressSync(
-    pool.tokenY.mint.address,
-    owner.publicKey,
-    false,
-    pool.tokenY.owner,
-  );
-
-  const preTokenBalanceChanges = await getPreTokenBalanceForAccounts(
-    dex.connection,
-    [tokenAAta, tokenBAta],
-  );
-
-  const simulationResponses = await batchSimulateTransactions(dex.connection, {
-    transactions: closePositionV0Transactions,
-    options: {
-      sigVerify: false,
-      accounts: {
-        encoding: "base64",
-        addresses: [tokenAAta.toBase58(), tokenBAta.toBase58()],
-      },
-    },
-  });
-
-  const errors = simulationResponses
-    .filter((response) => response.err != null)
-    .map((response) => response.err);
-  if (errors.length > 0) throw errors;
-
-  const tokenBalanceChanges = getTokenBalanceChangesFromBatchSimulation(
-    simulationResponses,
-    preTokenBalanceChanges,
-  );
-
   const swapV0Transactions = [];
-  const tokenConfigs: [PublicKey, number][] = [
-    [pool.tokenX.mint.address, pool.tokenX.mint.decimals],
-    [pool.tokenY.mint.address, pool.tokenY.mint.decimals],
-  ];
 
-  for (const [mint] of tokenConfigs) {
-    if (!isNative(mint)) {
-      const quoteAmount = tokenBalanceChanges[mint.toBase58()] ?? 0n;
-      if (quoteAmount > 0n) {
-        const { transaction } = await dex.swap.jupiter.buildSwap({
-          slippage,
-          inputMint: mint,
-          outputMint: NATIVE_MINT,
-          owner: owner.publicKey,
-          amount: quoteAmount.toString(),
-        });
+  if (swapToNative) {
+    const tokenAAta = getAssociatedTokenAddressSync(
+      pool.tokenX.mint.address,
+      owner.publicKey,
+      false,
+      pool.tokenX.owner,
+    );
+    const tokenBAta = getAssociatedTokenAddressSync(
+      pool.tokenY.mint.address,
+      owner.publicKey,
+      false,
+      pool.tokenY.owner,
+    );
 
-        swapV0Transactions.push(transaction);
+    const preTokenBalanceChanges = await getPreTokenBalanceForAccounts(
+      dex.connection,
+      [tokenAAta, tokenBAta],
+    );
+
+    const simulationResponses = await batchSimulateTransactions(
+      dex.connection,
+      {
+        transactions: closePositionV0Transactions,
+        options: {
+          sigVerify: false,
+          accounts: {
+            encoding: "base64",
+            addresses: [tokenAAta.toBase58(), tokenBAta.toBase58()],
+          },
+        },
+      },
+    );
+
+    const errors = simulationResponses
+      .filter((response) => response.err != null)
+      .map((response) => response.err);
+    if (errors.length > 0) throw errors;
+
+    const tokenBalanceChanges = getTokenBalanceChangesFromBatchSimulation(
+      simulationResponses,
+      preTokenBalanceChanges,
+    );
+
+    const tokenConfigs: [PublicKey, number][] = [
+      [pool.tokenX.mint.address, pool.tokenX.mint.decimals],
+      [pool.tokenY.mint.address, pool.tokenY.mint.decimals],
+    ];
+
+    for (const [mint] of tokenConfigs) {
+      if (!isNative(mint)) {
+        const quoteAmount = tokenBalanceChanges[mint.toBase58()] ?? 0n;
+        if (quoteAmount > 0n) {
+          const { transaction } = await dex.swap.jupiter.buildSwap({
+            slippage,
+            inputMint: mint,
+            outputMint: NATIVE_MINT,
+            owner: owner.publicKey,
+            amount: quoteAmount.toString(),
+          });
+
+          swapV0Transactions.push(transaction);
+        }
       }
     }
   }
@@ -368,7 +376,6 @@ export const closePosition = async (
     transaction.sign([owner]);
 
   const transactions = [...closePositionV0Transactions, ...swapV0Transactions];
-
   const bundleSimulationResponse = await sender.simulateBundle({
     transactions,
     skipSigVerify: true,
@@ -376,6 +383,9 @@ export const closePosition = async (
   });
 
   return {
+    transactions,
+    swapV0Transactions,
+    closePositionV0Transactions,
     bundleSimulationResponse,
     async execute() {
       const { result } = await sender.sendBundle(transactions);

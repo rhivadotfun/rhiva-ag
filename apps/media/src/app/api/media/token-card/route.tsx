@@ -81,7 +81,9 @@ export async function GET(request: NextRequest) {
   });
 
   if (data) {
-    const token: TokenData = JSON.parse(decodeURIComponent(data));
+    const token: TokenData = JSON.parse(
+      Buffer.from(decodeURIComponent(data), "base64").toString("utf-8"),
+    );
 
     return new ImageResponse(
       <div

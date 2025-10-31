@@ -72,7 +72,7 @@ export async function generateMetadata(
     format(
       "%s/api/media/token-card?data=%s",
       process.env.NEXT_PUBLIC_MEDIA_URL,
-      JSON.stringify(data),
+      Buffer.from(JSON.stringify(data), "utf-8").toString("base64"),
     ),
   ];
 

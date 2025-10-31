@@ -51,6 +51,11 @@ export const raydiumClosePositionSchema = z
     pair: publicKey().describe("pool address"),
     slippage: z.number().describe("swap slippage"),
     position: publicKey().describe("position address"),
+    swapToNative: z
+      .boolean()
+      .default(true)
+      .optional()
+      .describe("skip swapping to native mint"),
   })
   .extend({
     jitoConfig: jitoTipConfigSchema.default({
