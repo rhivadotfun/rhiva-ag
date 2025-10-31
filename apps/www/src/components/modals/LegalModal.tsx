@@ -17,23 +17,15 @@ export default function LegalModal() {
   const hash = useHash();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [isFirstTime, setIsFirstTime] = useState(false);
 
   useEffect(() => {
     if (hash) setOpen(hash === "#legal");
   }, [hash]);
 
-  useEffect(() => {
-    const isFirstTime = localStorage.getItem("legal") == null;
-    setIsFirstTime(isFirstTime);
-    setOpen(isFirstTime);
-  }, []);
-
   return (
     <Dialog
       open={open}
       onClose={() => {
-        if (isFirstTime) return;
         if (hash === "#legal") {
           router.back();
           setOpen(false);
@@ -220,7 +212,6 @@ export default function LegalModal() {
               className="bg-primary text-black p-3 rounded"
               onClick={() => {
                 setOpen(false);
-                setIsFirstTime(false);
                 window.localStorage.setItem("legal", "true");
               }}
             >
