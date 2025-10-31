@@ -307,13 +307,6 @@ export default async function Image(
           ),
           weight: 400,
         },
-        {
-          name: "Roboto",
-          data: readFileSync(
-            path.join(process.cwd(), "src/assets/fonts/Roboto-Bold.ttf"),
-          ),
-          weight: 700,
-        },
       ],
     },
   );
