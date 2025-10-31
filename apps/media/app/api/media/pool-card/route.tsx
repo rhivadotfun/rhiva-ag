@@ -7,7 +7,10 @@ import { ImageResponse } from "@vercel/og";
 import type { Pair } from "@rhiva-ag/dex-api";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { compactCurrencyIntlArgs, percentageIntlArgs } from "../../constants";
+import {
+  compactCurrencyIntlArgs,
+  percentageIntlArgs,
+} from "../../../constants/format";
 
 const Text = <T extends React.ElementType>({
   children,
