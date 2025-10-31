@@ -69,6 +69,8 @@ export async function generateMetadata(
       percentageIntl.format(token.stats24h.priceChange),
     ),
     openGraph: {
+      type: "website",
+      url: "https://beta.rhiva.fun",
       images: [
         format(
           "%s/api/media/token-card?data=%s",

@@ -1,5 +1,5 @@
 import { format } from "util";
-import type { Metadata } from "next";
+import type { Metadata, ResolvingMetadata } from "next";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
 import { dexApi } from "@/instances";
@@ -30,6 +30,7 @@ type PoolData = {
 
 export async function generateMetadata(
   props: PageProps<"/pools/[dex]/[poolAddress]">,
+  parent: ResolvingMetadata,
 ): Promise<Metadata> {
   const params = await props.params;
   const queryClient = getQueryClient();
@@ -73,6 +74,8 @@ export async function generateMetadata(
       currencyIntl.format(pool.fees24H ?? 0),
     ),
     openGraph: {
+      type: "website",
+      url: "https://beta.rhiva.fun",
       images: [
         format(
           "%s/api/media/pool-card?data=%s",

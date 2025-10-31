@@ -25,6 +25,8 @@ export const metadata: Metadata = {
   description:
     "Experience Rhiva Beta, the all-in-one liquidity aggregator. Provide liquidity across multiple dexes.",
   openGraph: {
+    type: "website",
+    url: "https://beta.rhiva.fun",
     images: ["https://beta.rhiva.fun/banner.jpg"],
   },
 };
