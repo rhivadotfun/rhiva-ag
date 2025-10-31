@@ -10,7 +10,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import {
   compactCurrencyIntlArgs,
   percentageIntlArgs,
-} from "../../../constants/format";
+} from "@/constants/format";
 
 const Text = <T extends React.ElementType>({
   children,
