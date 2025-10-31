@@ -7,7 +7,6 @@ import { NextIntlClientProvider } from "next-intl";
 
 import "@unocss/reset/tailwind.css";
 import "rc-slider/assets/index.css";
-import "react-tooltip/dist/react-tooltip.css";
 
 import "./globals.css";
 import Provider from "@/providers";

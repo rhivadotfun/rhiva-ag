@@ -310,20 +310,6 @@ export default async function Image(
         {
           name: "Roboto",
           data: readFileSync(
-            path.join(process.cwd(), "src/assets/fonts/Roboto-Medium.ttf"),
-          ),
-          weight: 500,
-        },
-        {
-          name: "Roboto",
-          data: readFileSync(
-            path.join(process.cwd(), "src/assets/fonts/Roboto-SemiBold.ttf"),
-          ),
-          weight: 600,
-        },
-        {
-          name: "Roboto",
-          data: readFileSync(
             path.join(process.cwd(), "src/assets/fonts/Roboto-Bold.ttf"),
           ),
           weight: 700,
