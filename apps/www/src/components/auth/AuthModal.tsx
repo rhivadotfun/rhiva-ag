@@ -10,7 +10,7 @@ import { Field, Form, Formik } from "formik";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { MdArrowForward, MdClose } from "react-icons/md";
 import type { safeAuthUserSchema } from "@rhiva-ag/trpc";
-import type { ActionCodeSettings } from "firebase-admin/auth";
+import type { ActionCodeSettings } from "firebase/auth";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import {
   getAuth,
