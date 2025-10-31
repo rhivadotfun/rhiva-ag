@@ -1,5 +1,5 @@
 import { format } from "util";
-import type { Metadata, ResolvingMetadata } from "next";
+import type { Metadata } from "next";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
 import { dexApi } from "@/instances";
@@ -30,6 +30,15 @@ export async function generateMetadata(
       currencyIntl.format(pool.tvl ?? 0),
       currencyIntl.format(pool.fees24H ?? 0),
     ),
+    openGraph: {
+      images: [
+        format(
+          "%s/api/media/pool-card?data=%s",
+          process.env.NEXT_PUBLIC_MEDIA_URL,
+          encodeURIComponent(JSON.stringify(pool)),
+        ),
+      ],
+    },
   };
 }
 

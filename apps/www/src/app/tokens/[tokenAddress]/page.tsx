@@ -36,6 +36,15 @@ export async function generateMetadata(
       currencyIntl.format(token.mcap),
       percentageIntl.format(token.stats24h.priceChange),
     ),
+    openGraph: {
+      images: [
+        format(
+          "%s/api/media/token-card?data=%s",
+          process.env.NEXT_PUBLIC_MEDIA_URL,
+          encodeURIComponent(JSON.stringify(token)),
+        ),
+      ],
+    },
   };
 }
 
