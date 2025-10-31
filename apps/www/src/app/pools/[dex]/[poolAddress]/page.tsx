@@ -35,7 +35,7 @@ export async function generateMetadata(
         format(
           "%s/api/media/pool-card?data=%s",
           process.env.NEXT_PUBLIC_MEDIA_URL,
-          encodeURIComponent(JSON.stringify(pool)),
+          JSON.stringify(pool),
         ),
       ],
     },

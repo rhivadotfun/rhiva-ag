@@ -292,28 +292,40 @@ export async function GET(request: NextRequest) {
           {
             name: "Roboto",
             data: await fetch(
-              new URL("src/assets/fonts/Roboto-Regular.ttf", import.meta.url),
+              new URL(
+                "../../../../assets/fonts/Roboto-Regular.ttf",
+                import.meta.url,
+              ),
             ).then((response) => response.arrayBuffer()),
             weight: 400,
           },
           {
             name: "Roboto",
             data: await fetch(
-              new URL("src/assets/fonts/Roboto-Medium.ttf", import.meta.url),
+              new URL(
+                "../../../../assets/fonts/Roboto-Medium.ttf",
+                import.meta.url,
+              ),
             ).then((response) => response.arrayBuffer()),
             weight: 500,
           },
           {
             name: "Roboto",
             data: await fetch(
-              new URL("src/assets/fonts/Roboto-SemiBold.ttf", import.meta.url),
+              new URL(
+                "../../../../assets/fonts/Roboto-SemiBold.ttf",
+                import.meta.url,
+              ),
             ).then((response) => response.arrayBuffer()),
             weight: 600,
           },
           {
             name: "Roboto",
             data: await fetch(
-              new URL("src/assets/fonts/Roboto-Bold.ttf", import.meta.url),
+              new URL(
+                "../../../../assets/fonts/Roboto-Bold.ttf",
+                import.meta.url,
+              ),
             ).then((response) => response.arrayBuffer()),
             weight: 700,
           },

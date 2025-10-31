@@ -41,7 +41,7 @@ export async function generateMetadata(
         format(
           "%s/api/media/token-card?data=%s",
           process.env.NEXT_PUBLIC_MEDIA_URL,
-          encodeURIComponent(JSON.stringify(token)),
+          JSON.stringify(token),
         ),
       ],
     },
