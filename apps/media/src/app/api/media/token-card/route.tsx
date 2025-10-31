@@ -2,7 +2,6 @@
 import path from "path";
 import moment from "moment";
 import { format } from "util";
-import { readFileSync } from "fs";
 import { ImageResponse } from "next/og";
 import type { Token } from "@rhiva-ag/dex-api/jup/types";
 import { type NextRequest, NextResponse } from "next/server";
@@ -28,7 +27,7 @@ const Text = <T extends React.ElementType>({
   );
 };
 
-export function GET(request: NextRequest) {
+export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const data = searchParams.get("data");
   const percentageIntl = Intl.NumberFormat("en-US", {
@@ -292,30 +291,30 @@ export function GET(request: NextRequest) {
         fonts: [
           {
             name: "Roboto",
-            data: readFileSync(
-              path.join(process.cwd(), "src/assets/fonts/Roboto-Regular.ttf"),
-            ),
+            data: await fetch(
+              new URL("src/assets/fonts/Roboto-Regular.ttf", import.meta.url),
+            ).then((response) => response.arrayBuffer()),
             weight: 400,
           },
           {
             name: "Roboto",
-            data: readFileSync(
-              path.join(process.cwd(), "src/assets/fonts/Roboto-Medium.ttf"),
-            ),
+            data: await fetch(
+              new URL("src/assets/fonts/Roboto-Medium.ttf", import.meta.url),
+            ).then((response) => response.arrayBuffer()),
             weight: 500,
           },
           {
             name: "Roboto",
-            data: readFileSync(
-              path.join(process.cwd(), "src/assets/fonts/Roboto-SemiBold.ttf"),
-            ),
+            data: await fetch(
+              new URL("src/assets/fonts/Roboto-SemiBold.ttf", import.meta.url),
+            ).then((response) => response.arrayBuffer()),
             weight: 600,
           },
           {
             name: "Roboto",
-            data: readFileSync(
-              path.join(process.cwd(), "src/assets/fonts/Roboto-Bold.ttf"),
-            ),
+            data: await fetch(
+              new URL("src/assets/fonts/Roboto-Bold.ttf", import.meta.url),
+            ).then((response) => response.arrayBuffer()),
             weight: 700,
           },
         ],
