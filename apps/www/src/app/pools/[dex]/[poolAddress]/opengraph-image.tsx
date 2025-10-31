@@ -3,7 +3,7 @@ import path from "path";
 import moment from "moment";
 import { format } from "util";
 import { readFileSync } from "fs";
-import { ImageResponse } from "next/og";
+import { ImageResponse } from "@vercel/og";
 
 import { dexApi } from "@/instances";
 import { getQueryClient } from "@/trpc.server";
