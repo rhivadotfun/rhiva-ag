@@ -7,6 +7,27 @@ import PoolClientPage from "./page.client";
 import { getQueryClient } from "@/trpc.server";
 import { compactCurrencyIntlArgs } from "@/constants/format";
 
+type PoolData = {
+  name: string;
+  price?: number;
+  apr?: number;
+  tvl?: number;
+  volume24h: number;
+  baseFee: number;
+  maxFee: number;
+  dex: string;
+  baseToken: {
+    name: string;
+    symbol: string;
+    icon: string;
+  };
+  quoteToken: {
+    name: string;
+    symbol: string;
+    icon: string;
+  };
+};
+
 export async function generateMetadata(
   props: PageProps<"/pools/[dex]/[poolAddress]">,
 ): Promise<Metadata> {
@@ -22,6 +43,27 @@ export async function generateMetadata(
     },
   });
 
+  const data: PoolData = {
+    name: pool.name,
+    price: pool.price,
+    apr: pool.apr,
+    tvl: pool.tvl,
+    maxFee: pool.maxFee,
+    baseFee: pool.baseFee,
+    volume24h: pool.volume24h,
+    dex: params.dex,
+    baseToken: {
+      name: pool.baseToken.name,
+      symbol: pool.baseToken.symbol,
+      icon: pool.baseToken.icon,
+    },
+    quoteToken: {
+      name: pool.quoteToken.name,
+      symbol: pool.quoteToken.symbol,
+      icon: pool.quoteToken.icon,
+    },
+  };
+
   return {
     title: format("%s on %s | Rhiva", pool.name, params.dex),
     description: format(
@@ -35,7 +77,7 @@ export async function generateMetadata(
         format(
           "%s/api/media/pool-card?data=%s",
           process.env.NEXT_PUBLIC_MEDIA_URL,
-          JSON.stringify(pool),
+          JSON.stringify(data),
         ),
       ],
     },

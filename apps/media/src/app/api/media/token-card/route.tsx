@@ -2,7 +2,6 @@
 import moment from "moment";
 import { format } from "util";
 import { ImageResponse } from "next/og";
-import type { Token } from "@rhiva-ag/dex-api/jup/types";
 import { type NextRequest, NextResponse } from "next/server";
 
 import {
@@ -53,6 +52,22 @@ const Text = <T extends React.ElementType>({
   );
 };
 
+type TokenData = {
+  name: string;
+  symbol: string;
+  icon: string;
+  liquidity: number;
+  usdPrice: number;
+  stats24h: {
+    buyOrganicVolume: number;
+    sellOrganicVolume: number;
+  };
+  stats5m: {
+    priceChange: number;
+  };
+  mcap: number;
+};
+
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const data = searchParams.get("data");
@@ -66,7 +81,7 @@ export async function GET(request: NextRequest) {
   });
 
   if (data) {
-    const token: Token = JSON.parse(decodeURIComponent(data));
+    const token: TokenData = JSON.parse(decodeURIComponent(data));
 
     return new ImageResponse(
       <div

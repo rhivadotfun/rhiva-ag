@@ -11,6 +11,22 @@ import {
   percentageIntlArgs,
 } from "@/constants/format";
 
+type TokenData = {
+  name: string;
+  symbol: string;
+  icon: string;
+  liquidity: number;
+  usdPrice: number;
+  stats24h: {
+    buyOrganicVolume: number;
+    sellOrganicVolume: number;
+  };
+  stats5m: {
+    priceChange: number;
+  };
+  mcap: number;
+};
+
 export async function generateMetadata(
   props: PageProps<"/tokens/[tokenAddress]">,
 ): Promise<Metadata> {
@@ -28,6 +44,22 @@ export async function generateMetadata(
       }),
   });
 
+  const data: TokenData = {
+    name: token.name,
+    symbol: token.symbol,
+    icon: token.icon,
+    liquidity: token.liquidity,
+    usdPrice: token.usdPrice,
+    stats24h: {
+      buyOrganicVolume: token.stats24h.buyOrganicVolume,
+      sellOrganicVolume: token.stats24h.sellOrganicVolume,
+    },
+    stats5m: {
+      priceChange: token.stats5m.priceChange,
+    },
+    mcap: token.mcap,
+  };
+
   return {
     title: format("%s | Rhiva", token.name),
     description: format(
@@ -41,7 +73,7 @@ export async function generateMetadata(
         format(
           "%s/api/media/token-card?data=%s",
           process.env.NEXT_PUBLIC_MEDIA_URL,
-          JSON.stringify(token),
+          JSON.stringify(data),
         ),
       ],
     },

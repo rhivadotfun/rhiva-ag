@@ -1,9 +1,7 @@
 // biome-ignore-all lint/performance/noImgElement: ssr
-import path from "path";
 import moment from "moment";
 import { format } from "util";
 import { ImageResponse } from "next/og";
-import type { Pair } from "@rhiva-ag/dex-api";
 import { NextResponse, type NextRequest } from "next/server";
 
 import {
@@ -54,6 +52,27 @@ const Text = <T extends React.ElementType>({
   );
 };
 
+type PoolData = {
+  name: string;
+  price?: number;
+  apr?: number;
+  tvl?: number;
+  volume24h: number;
+  baseFee: number;
+  maxFee: number;
+  dex: string;
+  baseToken: {
+    name: string;
+    symbol: string;
+    icon: string;
+  };
+  quoteToken: {
+    name: string;
+    symbol: string;
+    icon: string;
+  };
+};
+
 export default async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const data = searchParams.get("data");
@@ -70,7 +89,7 @@ export default async function GET(request: NextRequest) {
   });
 
   if (data) {
-    const pool: Pair & { dex: string } = JSON.parse(decodeURIComponent(data));
+    const pool: PoolData = JSON.parse(decodeURIComponent(data));
     return new ImageResponse(
       <div
         style={{
@@ -171,7 +190,7 @@ export default async function GET(request: NextRequest) {
                     {pool.baseToken.symbol}
                   </Text>
                 )}
-                {pool.fees24H && (
+                {pool.apr && (
                   <Text
                     style={{
                       color: pool.apr > 0 ? "#39FF14" : "#ef4444",
