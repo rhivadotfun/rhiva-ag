@@ -73,7 +73,7 @@ type PoolData = {
   };
 };
 
-export default async function GET(request: NextRequest) {
+export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const data = searchParams.get("data");
   const percentageIntl = Intl.NumberFormat("en-US", {
