@@ -1,5 +1,5 @@
 import { format } from "util";
-import type { Metadata, ResolvingMetadata } from "next";
+import type { Metadata } from "next";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
 import { dexApi } from "@/instances";
@@ -30,7 +30,6 @@ type PoolData = {
 
 export async function generateMetadata(
   props: PageProps<"/pools/[dex]/[poolAddress]">,
-  parent: ResolvingMetadata,
 ): Promise<Metadata> {
   const params = await props.params;
   const queryClient = getQueryClient();
@@ -65,24 +64,41 @@ export async function generateMetadata(
     },
   };
 
-  return {
-    title: format("%s on %s | Rhiva", pool.name, params.dex),
-    description: format(
-      "The current TVL of %s today is %s with a 24-hour fees of %s.",
-      pool.name,
-      currencyIntl.format(pool.tvl ?? 0),
-      currencyIntl.format(pool.fees24H ?? 0),
+  const title = format("%s on %s | Rhiva", pool.name, params.dex);
+  const description = format(
+    "The current TVL of %s today is %s with a 24-hour fees of %s.",
+    pool.name,
+    currencyIntl.format(pool.tvl ?? 0),
+    currencyIntl.format(pool.fees24H ?? 0),
+  );
+
+  const url = format(
+    "https://beta.rhiva.fun/pools/%s/%s",
+    params.dex,
+    params.poolAddress,
+  );
+  const images = [
+    format(
+      "%s/api/media/pool-card?data=%s",
+      process.env.NEXT_PUBLIC_MEDIA_URL,
+      encodeURIComponent(JSON.stringify(data)),
     ),
+  ];
+
+  return {
+    title,
+    description,
     openGraph: {
       type: "website",
-      url: "https://beta.rhiva.fun",
-      images: [
-        format(
-          "%s/api/media/pool-card?data=%s",
-          process.env.NEXT_PUBLIC_MEDIA_URL,
-          JSON.stringify(data),
-        ),
-      ],
+      url,
+      images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images,
+      site: url,
     },
   };
 }

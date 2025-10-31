@@ -60,24 +60,36 @@ export async function generateMetadata(
     mcap: token.mcap,
   };
 
-  return {
-    title: format("%s | Rhiva", token.name),
-    description: format(
-      "The live market cap of %s today is %s with a 24-hour change of %s.",
-      token.name,
-      currencyIntl.format(token.mcap),
-      percentageIntl.format(token.stats24h.priceChange),
+  const title = format("%s | Rhiva", token.name);
+  const description = format(
+    "The live market cap of %s today is %s with a 24-hour change of %s.",
+    token.name,
+    currencyIntl.format(token.mcap),
+    percentageIntl.format(token.stats24h.priceChange),
+  );
+  const url = format("https://beta.rhiva.fun/tokens/%s/", params.tokenAddress);
+  const images = [
+    format(
+      "%s/api/media/token-card?data=%s",
+      process.env.NEXT_PUBLIC_MEDIA_URL,
+      JSON.stringify(data),
     ),
+  ];
+
+  return {
+    title,
+    description,
     openGraph: {
       type: "website",
-      url: "https://beta.rhiva.fun",
-      images: [
-        format(
-          "%s/api/media/token-card?data=%s",
-          process.env.NEXT_PUBLIC_MEDIA_URL,
-          JSON.stringify(data),
-        ),
-      ],
+      url,
+      images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images,
+      site: url,
     },
   };
 }
