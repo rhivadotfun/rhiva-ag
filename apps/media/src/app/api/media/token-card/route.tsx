@@ -1,5 +1,4 @@
 // biome-ignore-all lint/performance/noImgElement: ssr
-import path from "path";
 import moment from "moment";
 import { format } from "util";
 import { ImageResponse } from "next/og";
@@ -10,6 +9,33 @@ import {
   compactCurrencyIntlArgs,
   percentageIntlArgs,
 } from "@/constants/format";
+
+let cachedFonts: Array<{
+  name: string;
+  data: ArrayBuffer;
+  weight: 400 | 500 | 600 | 700;
+}> | null = null;
+
+async function loadFonts(origin: string) {
+  if (cachedFonts) return cachedFonts;
+
+  const fontNames = [
+    ["Roboto-Regular.ttf", 400],
+    ["Roboto-Medium.ttf", 500],
+    ["Roboto-SemiBold.ttf", 600],
+    ["Roboto-Bold.ttf", 700],
+  ] as const;
+
+  cachedFonts = await Promise.all(
+    fontNames.map(async ([file, weight]) => {
+      const res = await fetch(new URL(format("/fonts/%s", file), origin));
+      const data = await res.arrayBuffer();
+      return { name: "Roboto", data, weight };
+    }),
+  );
+
+  return cachedFonts;
+}
 
 const Text = <T extends React.ElementType>({
   children,
@@ -288,48 +314,7 @@ export async function GET(request: NextRequest) {
       {
         width: 512,
         height: 288,
-        fonts: [
-          {
-            name: "Roboto",
-            data: await fetch(
-              new URL(
-                "../../../../assets/fonts/Roboto-Regular.ttf",
-                import.meta.url,
-              ),
-            ).then((response) => response.arrayBuffer()),
-            weight: 400,
-          },
-          {
-            name: "Roboto",
-            data: await fetch(
-              new URL(
-                "../../../../assets/fonts/Roboto-Medium.ttf",
-                import.meta.url,
-              ),
-            ).then((response) => response.arrayBuffer()),
-            weight: 500,
-          },
-          {
-            name: "Roboto",
-            data: await fetch(
-              new URL(
-                "../../../../assets/fonts/Roboto-SemiBold.ttf",
-                import.meta.url,
-              ),
-            ).then((response) => response.arrayBuffer()),
-            weight: 600,
-          },
-          {
-            name: "Roboto",
-            data: await fetch(
-              new URL(
-                "../../../../assets/fonts/Roboto-Bold.ttf",
-                import.meta.url,
-              ),
-            ).then((response) => response.arrayBuffer()),
-            weight: 700,
-          },
-        ],
+        fonts: await loadFonts(origin),
       },
     );
   }
