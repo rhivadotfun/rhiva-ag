@@ -231,7 +231,7 @@ export class SendTransaction {
       jitoTipLamports = await this.recentJitoTop(
         jitoConfig.priorityFeePercentitle,
       );
-    if (jitoTipLamports > 0n) {
+    if (jitoTipLamports > BigInt(0)) {
       if (transaction instanceof Transaction)
         transaction.instructions = [
           SystemProgram.transfer({
@@ -275,7 +275,7 @@ export class SendTransaction {
       jitoTipLamports = await this.recentJitoTop(
         jitoConfig.priorityFeePercentitle,
       );
-    if (jitoTipLamports > 0n)
+    if (jitoTipLamports > BigInt(0))
       return SystemProgram.transfer({
         toPubkey: tipAddress,
         lamports: jitoTipLamports,
@@ -295,7 +295,7 @@ export class SendTransaction {
       ),
     );
 
-    if (!response.ok) return 0n;
+    if (!response.ok) return BigInt(0);
 
     const key = PercentileToKey[priorityFeePercentitle];
 
@@ -304,7 +304,7 @@ export class SendTransaction {
         BigInt(Math.floor(Number(data[key]) * Math.pow(10, 9))),
       ).valueOf();
 
-    return 0n;
+    return BigInt(0);
   };
 
   static getJitoTipAddress(): PublicKey {

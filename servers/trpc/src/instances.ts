@@ -44,7 +44,7 @@ export const solanatracker = new Client({
 
 export const mcpClient = new McpClient(
   new MCPServerStreamableHttp({
-    url: new URL(getEnv("MCP_SERVER_URL")),
+    url: getEnv("MCP_SERVER_URL"),
   }),
   { name: "RhivaAg Bot" },
 );

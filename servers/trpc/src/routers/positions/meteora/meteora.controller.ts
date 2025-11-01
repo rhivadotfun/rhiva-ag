@@ -72,14 +72,14 @@ export const createPosition = async (
         });
 
         if (side.equals(tokenXMint)) {
-          const quoteAmount = quote[tokenXMint.toBase58()] ?? 0n;
-          if (quoteAmount > 0n) {
+          const quoteAmount = quote[tokenXMint.toBase58()] ?? BigInt(0);
+          if (quoteAmount > BigInt(0)) {
             totalXAmount = new BN(quoteAmount.toString());
             swapV0Transactions.push(transaction);
           }
         } else if (side.equals(tokenYMint)) {
-          const quoteAmount = quote[tokenYMint.toBase58()] ?? 0n;
-          if (quoteAmount > 0n) {
+          const quoteAmount = quote[tokenYMint.toBase58()] ?? BigInt(0);
+          if (quoteAmount > BigInt(0)) {
             totalYAmount = new BN(quoteAmount.toString());
             swapV0Transactions.push(transaction);
           }
@@ -226,13 +226,14 @@ export const claimReward = async (
 
   for (const [mint] of tokenConfigs) {
     if (!isNative(mint)) {
-      const quoteAmount = tokenBalanceChanges[mint.toBase58()] ?? 0n;
-      if (quoteAmount > 0n) {
+      const quoteAmount = tokenBalanceChanges[mint.toBase58()] ?? BigInt(0);
+      if (quoteAmount > BigInt(0)) {
         const { transaction } = await dex.swap.jupiter.buildSwap({
           slippage,
           inputMint: mint,
-          outputMint: NATIVE_MINT,
+          skipSimulation: true,
           owner: owner.publicKey,
+          outputMint: NATIVE_MINT,
           amount: quoteAmount.toString(),
         });
 
@@ -355,13 +356,14 @@ export const closePosition = async (
 
     for (const [mint] of tokenConfigs) {
       if (!isNative(mint)) {
-        const quoteAmount = tokenBalanceChanges[mint.toBase58()] ?? 0n;
-        if (quoteAmount > 0n) {
+        const quoteAmount = tokenBalanceChanges[mint.toBase58()] ?? BigInt(0);
+        if (quoteAmount > BigInt(0)) {
           const { transaction } = await dex.swap.jupiter.buildSwap({
             slippage,
             inputMint: mint,
-            outputMint: NATIVE_MINT,
+            skipSimulation: true,
             owner: owner.publicKey,
+            outputMint: NATIVE_MINT,
             amount: quoteAmount.toString(),
           });
 

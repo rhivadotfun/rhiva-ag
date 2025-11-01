@@ -77,14 +77,14 @@ export const createPosition = async (
         });
 
         if (token === tokenXMint) {
-          const quoteAmount = quote[tokenXMint.toBase58()] ?? 0n;
-          if (quoteAmount > 0n) {
+          const quoteAmount = quote[tokenXMint.toBase58()] ?? BigInt(0);
+          if (quoteAmount > BigInt(0)) {
             tokenA = quoteAmount;
             swapV0Transactions.push(transaction);
           }
         } else if (token === tokenYMint) {
-          const quoteAmount = quote[tokenYMint.toBase58()] ?? 0n;
-          if (quoteAmount > 0n) {
+          const quoteAmount = quote[tokenYMint.toBase58()] ?? BigInt(0);
+          if (quoteAmount > BigInt(0)) {
             tokenB = quoteAmount;
             swapV0Transactions.push(transaction);
           }
@@ -216,14 +216,15 @@ export const claimReward = async (
 
   for (const token of tokens) {
     if (!isNative(token.address)) {
-      const quoteAmount = tokenBalanceChanges[token.address] ?? 0n;
-      if (quoteAmount > 0n) {
+      const quoteAmount = tokenBalanceChanges[token.address] ?? BigInt(0);
+      if (quoteAmount > BigInt(0)) {
         const { transaction } = await dex.swap.jupiter.buildSwap({
           slippage,
-          inputMint: new PublicKey(token.address),
-          outputMint: NATIVE_MINT,
+          skipSimulation: true,
           owner: owner.publicKey,
+          outputMint: NATIVE_MINT,
           amount: quoteAmount.toString(),
+          inputMint: new PublicKey(token.address),
         });
 
         swapV0Transactions.push(transaction);
@@ -336,14 +337,15 @@ export const closePosition = async (
 
     for (const token of tokens) {
       if (!isNative(token.address)) {
-        const quoteAmount = tokenBalanceChanges[token.address] ?? 0n;
-        if (quoteAmount > 0n) {
+        const quoteAmount = tokenBalanceChanges[token.address] ?? BigInt(0);
+        if (quoteAmount > BigInt(0)) {
           const { transaction } = await dex.swap.jupiter.buildSwap({
             slippage,
-            inputMint: new PublicKey(token.address),
-            outputMint: NATIVE_MINT,
+            skipSimulation: true,
             owner: owner.publicKey,
+            outputMint: NATIVE_MINT,
             amount: quoteAmount.toString(),
+            inputMint: new PublicKey(token.address),
           });
 
           swapV0Transactions.push(transaction);

@@ -8,6 +8,7 @@ import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import Image from "../Image";
 import { truncateString } from "@/lib";
 import { useAuth } from "@/hooks/useAuth";
+import Link from "next/link";
 
 export default function HeaderAction(props: React.ComponentProps<"div">) {
   const { wallet } = useWallet();
@@ -22,6 +23,12 @@ export default function HeaderAction(props: React.ComponentProps<"div">) {
       {...props}
       className={clsx("flex items-center space-x-2", props.className)}
     >
+      <Link
+        href="#legal"
+        className="text-light underline decoration-dashed"
+      >
+        Privacy Policy
+      </Link>
       {user ? (
         <>
           <button

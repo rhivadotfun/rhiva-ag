@@ -3,8 +3,8 @@ import { readFileSync } from "fs";
 import { sleep } from "@rhiva-ag/shared";
 import { Agent, type MCPServerStreamableHttp } from "@openai/agents";
 
-import { __srcdir } from "./instances.ts";
-import { agentOutputSchema } from "./schema/agent.schema.ts";
+import { __srcdir } from "./instances";
+import { agentOutputSchema } from "./schema/agent.schema";
 
 export class McpClientConnectionError extends Error {}
 

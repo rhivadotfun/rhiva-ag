@@ -54,8 +54,8 @@ export const getTokenBalanceChangesFromSimulation = (
 
   return Object.fromEntries(
     tokens.map((mint) => {
-      const pre = preTokenBalanceChanges[mint] ?? 0n;
-      const post = postTokenBalanceChanges[mint] ?? 0n;
+      const pre = preTokenBalanceChanges[mint] ?? BigInt(0);
+      const post = postTokenBalanceChanges[mint] ?? BigInt(0);
 
       return [mint, post - pre];
     }),
@@ -75,7 +75,7 @@ export const getTokenBalanceChangesFromBatchSimulation = (
     );
 
     for (const [mint, value] of Object.entries(tokenBalanceChanges)) {
-      const amount = globalTokenBalanceChanges[mint] ?? 0n;
+      const amount = globalTokenBalanceChanges[mint] ?? BigInt(0);
       globalTokenBalanceChanges[mint] = amount + value;
     }
   }

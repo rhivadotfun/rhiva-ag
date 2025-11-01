@@ -1,4 +1,4 @@
-import type { SwapApi } from "@jup-ag/api";
+import type { SwapApi, SwapResponse } from "@jup-ag/api";
 import { mapFilter } from "@rhiva-ag/shared";
 import {
   AccountLayout,
@@ -12,40 +12,49 @@ import {
 
 import { getTokenBalanceChangesFromSimulation } from "../utils";
 
+type SwapArgs = {
+  owner: PublicKey;
+  slippage: number;
+  amount: string | bigint;
+  inputMint: PublicKey | string;
+  outputMint: PublicKey | string;
+};
+
 export class Jupiter {
   constructor(
     private readonly jupiter: SwapApi,
     private readonly connection: Connection,
   ) {}
 
-  buildSwap = async ({
+  buildSwap(args: SwapArgs & { skipSimulation?: false }): Promise<{
+    transaction: VersionedTransaction;
+    quote: { [k: string]: bigint };
+    swapResponse: SwapResponse;
+  }>;
+  buildSwap(args: SwapArgs & { skipSimulation: true }): Promise<{
+    transaction: VersionedTransaction;
+    swapResponse: SwapResponse;
+  }>;
+  async buildSwap({
     owner,
+    amount,
+    slippage,
     inputMint,
     outputMint,
-    slippage,
-    amount,
-  }: {
-    owner: PublicKey;
-    inputMint: PublicKey | string;
-    outputMint: PublicKey | string;
-    amount: string | bigint;
-    slippage: number;
-  }) => {
-    const inputMintAta = getAssociatedTokenAddressSync(
-      new PublicKey(inputMint),
-      owner,
-    );
-    const outputMintAta = getAssociatedTokenAddressSync(
-      new PublicKey(outputMint),
-      owner,
-    );
+    skipSimulation,
+  }: SwapArgs & { skipSimulation?: boolean }) {
+    const inputMintPk = new PublicKey(inputMint);
+    const outputMintPk = new PublicKey(outputMint);
+
+    const inputMintAta = getAssociatedTokenAddressSync(inputMintPk, owner);
+    const outputMintAta = getAssociatedTokenAddressSync(outputMintPk, owner);
 
     const quoteResponse = await this.jupiter.quoteGet({
       slippageBps: slippage,
       // @ts-expect-error jupiter v6 api expect bigint string
       amount: amount.toString(),
-      inputMint: inputMint.toString(),
-      outputMint: outputMint.toString(),
+      inputMint: inputMintPk.toBase58(),
+      outputMint: outputMintPk.toBase58(),
     });
 
     const swapResponse = await this.jupiter.swapPost({
@@ -61,8 +70,11 @@ export class Jupiter {
       Buffer.from(swapResponse.swapTransaction, "base64"),
     );
 
+    if (skipSimulation) return { transaction: swapV0Transaction, swapResponse };
+
     const atas = [inputMintAta, outputMintAta];
     const preAccountInfos = await this.connection.getMultipleAccountsInfo(atas);
+
     const preTokenBalanceChanges = Object.fromEntries(
       mapFilter(preAccountInfos, (accountInfo) => {
         if (accountInfo) {
@@ -77,7 +89,7 @@ export class Jupiter {
       {
         accounts: {
           encoding: "base64",
-          addresses: [inputMintAta.toBase58(), outputMintAta.toBase58()],
+          addresses: atas.map((a) => a.toBase58()),
         },
         sigVerify: false,
         replaceRecentBlockhash: true,
@@ -90,8 +102,9 @@ export class Jupiter {
     );
 
     return {
+      swapResponse,
       quote: tokenBalanceChanges,
       transaction: swapV0Transaction,
     };
-  };
+  }
 }

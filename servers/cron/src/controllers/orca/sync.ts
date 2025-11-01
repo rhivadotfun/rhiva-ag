@@ -314,7 +314,7 @@ export const syncOrcaPositionsForWallet = async (
     const rawAmountY = tokenEstB.toString();
 
     const rawRewardAmount = rewards
-      .reduce((acc, curr) => acc + curr.rewardsOwed, 0n)
+      .reduce((acc, curr) => acc + curr.rewardsOwed, BigInt(0))
       .toString();
 
     const feeX = new Decimal(rawFeeX)

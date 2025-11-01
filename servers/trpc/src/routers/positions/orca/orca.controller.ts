@@ -74,14 +74,14 @@ export const createPosition = async (
         });
 
         if (token === tokenXMint) {
-          const quoteAmount = quote[tokenXMint] ?? 0n;
-          if (quoteAmount > 0n) {
+          const quoteAmount = quote[tokenXMint] ?? BigInt(0);
+          if (quoteAmount > BigInt(0)) {
             tokenA = quoteAmount;
             swapLegacyV0Transactions.push(transaction);
           }
         } else if (token === tokenYMint) {
-          const quoteAmount = quote[tokenYMint] ?? 0n;
-          if (quoteAmount > 0n) {
+          const quoteAmount = quote[tokenYMint] ?? BigInt(0);
+          if (quoteAmount > BigInt(0)) {
             tokenB = quoteAmount;
             swapLegacyV0Transactions.push(transaction);
           }
@@ -237,14 +237,15 @@ export const claimReward = async (
 
   for (const token of tokens) {
     if (!isNative(token.mint)) {
-      const quoteAmount = tokenBalanceChanges[token.mint] ?? 0n;
-      if (quoteAmount > 0n) {
+      const quoteAmount = tokenBalanceChanges[token.mint] ?? BigInt(0);
+      if (quoteAmount > BigInt(0)) {
         const { transaction } = await dex.swap.jupiter.buildSwap({
           slippage,
+          skipSimulation: true,
           owner: owner.publicKey,
           outputMint: NATIVE_MINT,
-          inputMint: new PublicKey(token.mint),
           amount: quoteAmount.toString(),
+          inputMint: new PublicKey(token.mint),
         });
 
         transaction.sign([owner]);
@@ -365,14 +366,15 @@ export const closePosition = async (
 
     for (const token of tokens) {
       if (!isNative(token.mint)) {
-        const quoteAmount = tokenBalanceChanges[token.mint] ?? 0n;
-        if (quoteAmount > 0n) {
+        const quoteAmount = tokenBalanceChanges[token.mint] ?? BigInt(0);
+        if (quoteAmount > BigInt(0)) {
           const { transaction } = await dex.swap.jupiter.buildSwap({
             slippage,
+            skipSimulation: true,
             owner: owner.publicKey,
             outputMint: NATIVE_MINT,
-            inputMint: new PublicKey(token.mint),
             amount: quoteAmount.toString(),
+            inputMint: new PublicKey(token.mint),
           });
 
           transaction.sign([owner]);
