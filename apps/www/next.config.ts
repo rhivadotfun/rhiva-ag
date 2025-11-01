@@ -5,9 +5,6 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   webpack: (config) => {
     config.experiments = {
       layers: true,

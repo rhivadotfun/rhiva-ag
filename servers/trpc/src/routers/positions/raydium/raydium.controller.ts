@@ -98,8 +98,8 @@ export const createPosition = async (
       slippage,
       priceChanges,
       pool: pair.toBase58(),
-      inputMint: (tokenB > 0n ? tokenYMint : tokenXMint).toBase58(),
-      inputAmount: new BN((tokenB > 0n ? tokenB : tokenA).toString()),
+      inputMint: (tokenB > BigInt(0) ? tokenYMint : tokenXMint).toBase58(),
+      inputAmount: new BN((tokenB > BigInt(0) ? tokenB : tokenA).toString()),
     });
 
   const jitoTipInstruction = await sender.getJitoTipInstruction(

@@ -1,6 +1,5 @@
 import type z from "zod";
 import type Dex from "@rhiva-ag/dex";
-import { closeRaydiumPosition } from "@rhiva-ag/trpc";
 import { PublicKey, type Connection } from "@solana/web3.js";
 import type {
   positionSelectSchema,
@@ -13,6 +12,8 @@ import {
   type KMSSecret,
   type SendTransaction,
 } from "@rhiva-ag/shared";
+
+import { closeRaydiumPosition } from "../../../../trpc/src/external";
 
 export const rabalanceRaydiumPosition = async ({
   dex,
