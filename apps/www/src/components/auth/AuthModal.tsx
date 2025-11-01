@@ -176,14 +176,14 @@ export default function AuthModal({ onSignIn, ...props }: AuthModalProps) {
           <div className="text-xs text-white/75 text-center">
             <span>By continuing, you agree to our</span>&nbsp;
             <a
-              href="#legal"
+              href="?show_legal_dialog=true"
               className="text-primary"
             >
               Terms&nbsp;
             </a>
             <span>and </span>
             <a
-              href="#legal"
+              href="?show_legal_dialog=true"
               className="text-primary"
             >
               Privacy <br /> Policy

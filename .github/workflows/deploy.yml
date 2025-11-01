@@ -11,6 +11,7 @@ on:
 jobs:
   deploy_www:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     name: Deploy media
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +37,7 @@ jobs:
           NEXT_PUBLIC_SOLANA_RPC_URL: ${{ secrets.NEXT_PUBLIC_SOLANA_RPC_URL }}
   deploy_media:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     name: Deploy media
     steps:
       - uses: actions/checkout@v4

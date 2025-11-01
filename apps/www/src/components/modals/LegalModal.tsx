@@ -1,7 +1,8 @@
 "use client";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCookies } from "react-cookie";
+import { useMemo } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Description,
   Dialog,
@@ -11,32 +12,26 @@ import {
 } from "@headlessui/react";
 
 import Logo from "@/assets/logo.png";
-import { useHash } from "@/hooks/useHash";
 
 export default function LegalModal() {
-  const hash = useHash();
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    if (hash) setOpen(hash === "#legal");
-  }, [hash]);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [, setCookie] = useCookies(["legal"]);
+  const showLegalDialog = useMemo(
+    () => searchParams.get("show_legal_dialog") != null,
+  );
 
   return (
     <Dialog
-      open={open}
-      onClose={() => {
-        if (hash === "#legal") {
-          router.back();
-          setOpen(false);
-        }
-      }}
+      open={showLegalDialog}
+      onClose={() => router.replace(pathname)}
       className="relative z-100"
     >
-      <div className="fixed inset-0 flex items-center justify-center ">
+      <div className="fixed inset-0 flex md:items-center md:justify-center ">
         <DialogBackdrop className="absolute inset-0 bg-black/50 backdrop-blur-sm -z-10" />
-        <DialogPanel className="max-w-xl max-h-xl flex flex-col space-y-4 bg-black text-light p-4 overflow-y-scroll rounded-2xl">
-          <header className="flex flex-col items-center">
+        <DialogPanel className="max-w-xl md:max-h-xl flex flex-col bg-black text-light overflow-y-scroll rounded-2xl">
+          <header className="flex flex-col items-center sticky top-0 bg-black backdrop-blur-xl py-4">
             <Image
               src={Logo}
               width={128}
@@ -48,7 +43,7 @@ export default function LegalModal() {
             </DialogTitle>
             <p className="text-gray">Last Updated [Sat 25th, Oct 2025]</p>
           </header>
-          <div className="flex flex-col space-y-8">
+          <div className="flex flex-col space-y-8 p-4">
             <Description>
               Welcome to the Rhiva. We’re excited to have you join us as we test
               and improve our liquidity yield aggregator on Solana. Before you
@@ -211,8 +206,8 @@ export default function LegalModal() {
               type="button"
               className="bg-primary text-black p-3 rounded"
               onClick={() => {
-                setOpen(false);
-                window.localStorage.setItem("legal", "true");
+                router.replace(pathname);
+                setCookie("legal", "true");
               }}
             >
               I agree
